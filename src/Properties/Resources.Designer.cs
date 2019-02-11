@@ -61,6 +61,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Automated update of &quot;{0}&quot;.
+        /// </summary>
+        internal static string AutoUpdateOfCakeFile {
+            get {
+                return ResourceManager.GetString("AutoUpdateOfCakeFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not load project &quot;{0}&quot;.
         /// </summary>
         internal static string CouldNotLoadProject {
