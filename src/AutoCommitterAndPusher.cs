@@ -46,6 +46,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 var remote = remotes[0];
 
                 Commands.Stage(repo, files[0]);
+
+                files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+                if (files.Count != 1) { return; }
+
                 var author = new Signature(personalAccessToken.TokenName, personalAccessToken.Email, DateTime.Now);
                 var committer = author;
                 var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
