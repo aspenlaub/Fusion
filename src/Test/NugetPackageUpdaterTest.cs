@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
@@ -43,7 +44,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         }
 
         [TestMethod]
-        public void CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
+        public async Task CanIdentifyNugetPackageOpportunity() {
+            var gitUtilities = vContainer.Resolve<IGitUtilities>();
+            var errorsAndInfos = new ErrorsAndInfos();
+            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var yesNo = await NugetUpdateOpportunitiesAsync();
+            Assert.IsTrue(yesNo);
+        }
+
+        [TestMethod]
+        public async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
             var gitUtilities = vContainer.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
             gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
@@ -52,6 +63,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             UpdateNugetPackages(out var yesNo, out var inconclusive);
             Assert.IsTrue(yesNo);
             Assert.IsFalse(inconclusive);
+            yesNo = await NugetUpdateOpportunitiesAsync();
+            Assert.IsFalse(yesNo);
         }
 
         [TestMethod]
@@ -68,6 +81,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             UpdateNugetPackages(out var yesNo, out var inconclusive);
             Assert.IsFalse(yesNo);
             Assert.IsTrue(inconclusive);
+        }
+
+        private async Task<bool> NugetUpdateOpportunitiesAsync() {
+            var sut = vContainer.Resolve<INugetPackageUpdater>();
+            var errorsAndInfos = new ErrorsAndInfos();
+            var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            return yesNo;
         }
 
         private void UpdateNugetPackages(out bool yesNo, out bool inconclusive) {
