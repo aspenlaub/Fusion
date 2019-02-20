@@ -61,11 +61,38 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected at least one file to commit and push.
+        /// </summary>
+        internal static string AtLeastOneFileExpected {
+            get {
+                return ResourceManager.GetString("AtLeastOneFileExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Access token with purpose AutoCommitPush not found.
+        /// </summary>
+        internal static string AutoCommitPushAccessTokenNotFound {
+            get {
+                return ResourceManager.GetString("AutoCommitPushAccessTokenNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Automated update of &quot;{0}&quot;.
         /// </summary>
         internal static string AutoUpdateOfCakeFile {
             get {
                 return ResourceManager.GetString("AutoUpdateOfCakeFile", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to It is not the master branch that is checked out.
+        /// </summary>
+        internal static string CheckedOutBranchIsNotMaster {
+            get {
+                return ResourceManager.GetString("CheckedOutBranchIsNotMaster", resourceCulture);
             }
         }
         
@@ -88,11 +115,65 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Expected exactly one file to commit and push.
+        /// </summary>
+        internal static string ExactlyOneFileExpected {
+            get {
+                return ResourceManager.GetString("ExactlyOneFileExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The number of files with uncommitted changes has changed.
+        /// </summary>
+        internal static string NumberOfFilesWithUncommittedChangesHasChanged {
+            get {
+                return ResourceManager.GetString("NumberOfFilesWithUncommittedChangesHasChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected cake files to commit and push, no other file types.
+        /// </summary>
+        internal static string OnlyCakeFilesExpected {
+            get {
+                return ResourceManager.GetString("OnlyCakeFilesExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Expected .csproj and .config files to commit and push, no other file types.
+        /// </summary>
+        internal static string OnlyCsProjAndConfigFilesExpected {
+            get {
+                return ResourceManager.GetString("OnlyCsProjAndConfigFilesExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Could not find owner and name of the remote repository.
+        /// </summary>
+        internal static string OwnerAndNameNotFound {
+            get {
+                return ResourceManager.GetString("OwnerAndNameNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Package/-s updated to most recent version.
         /// </summary>
         internal static string PackageUpdates {
             get {
                 return ResourceManager.GetString("PackageUpdates", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remove repository not found or not unique.
+        /// </summary>
+        internal static string RemoteNotFoundOrNotUnique {
+            get {
+                return ResourceManager.GetString("RemoteNotFoundOrNotUnique", resourceCulture);
             }
         }
     }
