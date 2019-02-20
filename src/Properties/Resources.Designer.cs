@@ -86,5 +86,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
                 return ResourceManager.GetString("CouldNotUpdate", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Package/-s updated to most recent version.
+        /// </summary>
+        internal static string PackageUpdates {
+            get {
+                return ResourceManager.GetString("PackageUpdates", resourceCulture);
+            }
+        }
     }
 }

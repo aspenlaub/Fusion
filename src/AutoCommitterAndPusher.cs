@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
@@ -27,33 +28,45 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
             var shortName = file.Substring(file.LastIndexOf('\\') + 1);
 
+            var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
+            await AutoCommitAndPushAsync(repositoryFolder, files, message);
+        }
+
+        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, IList<string> files, string commitMessage) {
             var branchName = vGitUtilities.CheckedOutBranch(repositoryFolder);
             if (branchName != "master") { return; }
 
             var errorsAndInfos = new ErrorsAndInfos();
             vGitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
-            if (errorsAndInfos.AnyErrors()) { return; }
+            if (errorsAndInfos.AnyErrors()) {
+                return;
+            }
 
             var personalAccessTokensSecret = new PersonalAccessTokensSecret();
             var personalAccessTokens = await vSecretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
             var personalAccessToken = personalAccessTokens.FirstOrDefault(t => t.Owner == owner && t.Purpose == "AutoCommitPush");
-            if (personalAccessToken == null) { return; }
+            if (personalAccessToken == null) {
+                return;
+            }
 
             using (var repo = new Repository(repositoryFolder.FullName)) {
                 var remotes = repo.Network.Remotes.ToList();
-                if (remotes.Count != 1) { return; }
+                if (remotes.Count != 1) {
+                    return;
+                }
 
                 var remote = remotes[0];
 
                 Commands.Stage(repo, files[0]);
 
                 files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
-                if (files.Count != 1) { return; }
+                if (files.Count != 1) {
+                    return;
+                }
 
                 var author = new Signature(personalAccessToken.TokenName, personalAccessToken.Email, DateTime.Now);
                 var committer = author;
-                var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
-                repo.Commit(message, author, committer);
+                repo.Commit(commitMessage, author, committer);
 
                 var options = new PushOptions {
                     CredentialsProvider = (aUrl, aUserNameFromUrl, someTypes) => new UsernamePasswordCredentials {
@@ -64,6 +77,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 repo.Network.Push(remote, @"refs/heads/" + branchName, options);
             }
+        }
+
+        public async Task AutoCommitAndPushPackageUpdates(IFolder repositoryFolder) {
+            var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+            if (files.Count == 0) { return; }
+
+            if (!files.All(f => f.EndsWith(".csproj", StringComparison.InvariantCultureIgnoreCase) || f.EndsWith(".config", StringComparison.InvariantCultureIgnoreCase))) { return; }
+
+            await AutoCommitAndPushAsync(repositoryFolder, files, Properties.Resources.PackageUpdates);
         }
     }
 }

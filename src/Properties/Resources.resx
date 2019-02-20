@@ -126,4 +126,7 @@
   <data name="CouldNotUpdate" xml:space="preserve">
     <value>Could not update '{0}'</value>
   </data>
+  <data name="PackageUpdates" xml:space="preserve">
+    <value>Package/-s updated to most recent version</value>
+  </data>
 </root>
