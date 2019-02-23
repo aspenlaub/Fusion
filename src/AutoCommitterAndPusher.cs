@@ -18,9 +18,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             vSecretRepository = secretRepository;
         }
 
+        public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            await AutoCommitAndPushSingleCakeFileAsync(repositoryFolder, true, errorsAndInfos);
+        }
+
         public async Task AutoCommitAndPushSingleCakeFileAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            await AutoCommitAndPushSingleCakeFileAsync(repositoryFolder, false, errorsAndInfos);
+        }
+
+        private async Task AutoCommitAndPushSingleCakeFileAsync(IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
             var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
             if (files.Count == 0) {
+                if (onlyIfNecessary) { return; }
+
                 errorsAndInfos.Errors.Add(Properties.Resources.NoFileWithUncommittedChanges);
             } else if (files.Count != 1) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.ExactlyOneFileExpected, string.Join(", ", files)));
