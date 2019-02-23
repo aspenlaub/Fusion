@@ -136,10 +136,13 @@
     <value>Could not update '{0}'</value>
   </data>
   <data name="ExactlyOneFileExpected" xml:space="preserve">
-    <value>Expected exactly one file to commit and push</value>
+    <value>Expected exactly one file to commit and push, got: {0}</value>
+  </data>
+  <data name="NoFileWithUncommittedChanges" xml:space="preserve">
+    <value>There are no files with uncommitted changes</value>
   </data>
   <data name="NumberOfFilesWithUncommittedChangesHasChanged" xml:space="preserve">
-    <value>The number of files with uncommitted changes has changed</value>
+    <value>The number of files with uncommitted changes has changed. Expected {0}, got {1]</value>
   </data>
   <data name="OnlyCakeFilesExpected" xml:space="preserve">
     <value>Expected cake files to commit and push, no other file types</value>

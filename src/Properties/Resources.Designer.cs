@@ -115,7 +115,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected exactly one file to commit and push.
+        ///   Looks up a localized string similar to Expected exactly one file to commit and push, got: {0}.
         /// </summary>
         internal static string ExactlyOneFileExpected {
             get {
@@ -124,7 +124,16 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The number of files with uncommitted changes has changed.
+        ///   Looks up a localized string similar to There are no files with uncommitted changes.
+        /// </summary>
+        internal static string NoFileWithUncommittedChanges {
+            get {
+                return ResourceManager.GetString("NoFileWithUncommittedChanges", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The number of files with uncommitted changes has changed. Expected {0}, got {1].
         /// </summary>
         internal static string NumberOfFilesWithUncommittedChangesHasChanged {
             get {

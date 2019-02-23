@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
 
@@ -21,8 +20,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
         public async Task AutoCommitAndPushSingleCakeFileAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
             var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
-            if (files.Count != 1) {
-                errorsAndInfos.Errors.Add(Properties.Resources.ExactlyOneFileExpected);
+            if (files.Count == 0) {
+                errorsAndInfos.Errors.Add(Properties.Resources.NoFileWithUncommittedChanges);
+            } else if (files.Count != 1) {
+                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.ExactlyOneFileExpected, string.Join(", ", files)));
                 return;
             }
 
@@ -87,7 +88,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 var checkFiles = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
                 if (checkFiles.Count != files.Count) {
-                    errorsAndInfos.Errors.Add(Properties.Resources.NumberOfFilesWithUncommittedChangesHasChanged);
+                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NumberOfFilesWithUncommittedChangesHasChanged,
+                        string.Join(", ", files), string.Join(", ", checkFiles)));
                     return;
                 }
 
