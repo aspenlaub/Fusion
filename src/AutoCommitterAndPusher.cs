@@ -46,7 +46,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var shortName = file.Substring(file.LastIndexOf('\\') + 1);
 
             var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
-            await AutoCommitAndPushAsync(repositoryFolder, files, message, errorsAndInfos);
+            await AutoCommitAndPushAsync(repositoryFolder, files, onlyIfNecessary, message, errorsAndInfos);
         }
 
         public async Task AutoCommitAndPushPackageUpdates(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -61,10 +61,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return;
             }
 
-            await AutoCommitAndPushAsync(repositoryFolder, files, Properties.Resources.PackageUpdates, errorsAndInfos);
+            await AutoCommitAndPushAsync(repositoryFolder, files, false, Properties.Resources.PackageUpdates, errorsAndInfos);
         }
 
-        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, List<string> files, string commitMessage, IErrorsAndInfos errorsAndInfos) {
+        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, IErrorsAndInfos errorsAndInfos) {
             var branchName = vGitUtilities.CheckedOutBranch(repositoryFolder);
             if (branchName != "master") {
                 errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
@@ -97,6 +97,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 files.ForEach(f => Commands.Stage(repo, f));
 
                 var checkFiles = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+                if (onlyIfNecessary && !checkFiles.Any()) { return; }
+
                 if (checkFiles.Count != files.Count) {
                     errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NumberOfFilesWithUncommittedChangesHasChanged,
                         string.Join(", ", files), string.Join(", ", checkFiles)));
