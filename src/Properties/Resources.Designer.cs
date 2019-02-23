@@ -133,7 +133,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The number of files with uncommitted changes has changed. Expected {0}, got {1].
+        ///   Looks up a localized string similar to The number of files with uncommitted changes has changed. Expected {0}, got {1}.
         /// </summary>
         internal static string NumberOfFilesWithUncommittedChangesHasChanged {
             get {

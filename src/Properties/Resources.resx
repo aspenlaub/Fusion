@@ -142,7 +142,7 @@
     <value>There are no files with uncommitted changes</value>
   </data>
   <data name="NumberOfFilesWithUncommittedChangesHasChanged" xml:space="preserve">
-    <value>The number of files with uncommitted changes has changed. Expected {0}, got {1]</value>
+    <value>The number of files with uncommitted changes has changed. Expected {0}, got {1}</value>
   </data>
   <data name="OnlyCakeFilesExpected" xml:space="preserve">
     <value>Expected cake files to commit and push, no other file types</value>
