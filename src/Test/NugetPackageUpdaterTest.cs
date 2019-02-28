@@ -6,6 +6,7 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

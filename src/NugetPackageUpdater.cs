@@ -11,6 +11,7 @@ using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using NuGet.Protocol.Core.Types;
@@ -135,11 +136,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return false;
             }
 
+            var secret = new SecretManuallyUpdatedPackages();
+            var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
+            if (errorsAndInfos.AnyErrors()) { return false; }
+
             foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
                 var id = element.Attribute("Include")?.Value;
                 if (string.IsNullOrEmpty(id)) {
                     continue;
                 }
+
+                if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
 
                 IList<IPackageSearchMetadata> remotePackages = null;
                 foreach (var feedUrl in feedUrls) {
