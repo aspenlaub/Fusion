@@ -60,27 +60,30 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             MakeCsProjAndConfigChange();
-            UpdateNugetPackages(out var yesNo, out var inconclusive);
-            Assert.IsTrue(yesNo);
-            Assert.IsFalse(inconclusive);
-            yesNo = await NugetUpdateOpportunitiesAsync();
-            Assert.IsFalse(yesNo);
+            var yesNoInconclusive = await UpdateNugetPackagesAsync();
+            Assert.IsTrue(yesNoInconclusive.YesNo);
+            Assert.IsFalse(yesNoInconclusive.Inconclusive);
+            yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync();
+            Assert.IsFalse(yesNoInconclusive.YesNo);
         }
 
         [TestMethod]
-        public void CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges() {
+        public async Task CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges() {
+            var yesNoInconclusive = await UpdateNugetPackagesAsync();
+            if (yesNoInconclusive.YesNo) { return; }
+
             MakeCsProjAndConfigChange();
-            UpdateNugetPackages(out var yesNo, out var inconclusive);
-            Assert.IsFalse(yesNo);
-            Assert.IsFalse(inconclusive);
+            yesNoInconclusive = await UpdateNugetPackagesAsync();
+            Assert.IsFalse(yesNoInconclusive.YesNo);
+            Assert.IsFalse(yesNoInconclusive.Inconclusive);
         }
 
         [TestMethod]
-        public void ErrorWhenAskedToUpdateNugetPackagesWithCsChange() {
+        public async Task ErrorWhenAskedToUpdateNugetPackagesWithCsChange() {
             MakeCsChange();
-            UpdateNugetPackages(out var yesNo, out var inconclusive);
-            Assert.IsFalse(yesNo);
-            Assert.IsTrue(inconclusive);
+            var yesNoInconclusive = await UpdateNugetPackagesAsync();
+            Assert.IsFalse(yesNoInconclusive.YesNo);
+            Assert.IsTrue(yesNoInconclusive.Inconclusive);
         }
 
         private async Task<bool> NugetUpdateOpportunitiesAsync() {
@@ -91,11 +94,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             return yesNo;
         }
 
-        private void UpdateNugetPackages(out bool yesNo, out bool inconclusive) {
+        private async Task<IYesNoInconclusive> UpdateNugetPackagesAsync() {
             var sut = vContainer.Resolve<INugetPackageUpdater>();
             var errorsAndInfos = new ErrorsAndInfos();
-            sut.UpdateNugetPackagesInRepository(PakledConsumerCoreTarget.Folder(), out yesNo, out inconclusive, errorsAndInfos);
+            var yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            return yesNoInconclusive;
         }
 
         private void MakeCsChange() {

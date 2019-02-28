@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
 using System.Xml.XPath;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
@@ -30,43 +31,51 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             vSecretRepository = secretRepository;
         }
 
-        public void UpdateNugetPackagesInRepository(IFolder repositoryFolder, out bool yesNo, out bool inconclusive, IErrorsAndInfos errorsAndInfos) {
+        public async Task<IYesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            var yesNoInconclusive = new YesNoInconclusive();
             var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
-            inconclusive = files.Any(f => vEndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
-            yesNo = false;
-            if (inconclusive) { return; }
+            yesNoInconclusive.Inconclusive = files.Any(f => vEndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
+            yesNoInconclusive.YesNo = false;
+            if (yesNoInconclusive.Inconclusive) { return yesNoInconclusive; }
 
             vGitUtilities.Reset(repositoryFolder, vGitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
-            if (errorsAndInfos.AnyErrors()) { return; }
+            if (errorsAndInfos.AnyErrors()) { return yesNoInconclusive; }
 
             var projectFileFullNames = Directory.GetFiles(repositoryFolder.SubFolder("src").FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             if (!projectFileFullNames.Any()) {
-                return;
+                return yesNoInconclusive;
             }
 
             foreach (var projectFileFullName in projectFileFullNames) {
-                UpdateNugetPackagesForProject(projectFileFullName, ref yesNo, errorsAndInfos);
+                yesNoInconclusive.YesNo = await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, errorsAndInfos);
             }
 
-            if (yesNo) { return; }
+            if (yesNoInconclusive.YesNo) { return yesNoInconclusive; }
 
             vGitUtilities.Reset(repositoryFolder, vGitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+            return yesNoInconclusive;
         }
 
-        private void UpdateNugetPackagesForProject(string projectFileFullName, ref bool yesNo, IErrorsAndInfos errorsAndInfos) {
+        private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName, bool yesNo, IErrorsAndInfos errorsAndInfos) {
             var namespaceManager = new XmlNamespaceManager(new NameTable());
             XDocument document;
             try {
                 document = XDocument.Load(projectFileFullName);
             } catch {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.CouldNotLoadProject, projectFileFullName));
-                return;
+                return yesNo;
             }
+
+            var secret = new SecretManuallyUpdatedPackages();
+            var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
+            if (errorsAndInfos.AnyErrors()) { return false; }
 
             var packageToVersion = new Dictionary<string, string>();
             foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
                 var id = element.Attribute("Include")?.Value;
                 if (string.IsNullOrEmpty(id)) { continue; }
+
+                if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
 
                 var version = element.Attribute("Version")?.Value;
                 if (string.IsNullOrEmpty(version)) { continue; }
@@ -80,7 +89,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 document = XDocument.Load(projectFileFullName);
             } catch {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.CouldNotLoadProject, projectFileFullName));
-                return;
+                return yesNo;
             }
 
             foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
@@ -92,6 +101,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 yesNo = yesNo || !packageToVersion.ContainsKey(id) || version != packageToVersion[id];
             }
+
+            return yesNo;
         }
 
         public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {

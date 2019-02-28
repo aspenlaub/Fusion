@@ -19,7 +19,8 @@
     <None Remove="Test\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Aspenlaub.Net.GitHub.CSharp.Nuclide" Version="1.0.6997.19431" />
+    <PackageReference Include="Aspenlaub.Net.GitHub.CSharp.Nuclide" Version="1.0.6998.33548" />
+    <PackageReference Include="System.ComponentModel.Annotations" Version="4.5.0" />
   </ItemGroup>
   <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
