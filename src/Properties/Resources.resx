@@ -126,6 +126,9 @@
   <data name="AutoUpdateOfCakeFile" xml:space="preserve">
     <value>Automated update of "{0}"</value>
   </data>
+  <data name="CanUpdatePackageFromTo" xml:space="preserve">
+    <value>Could update package {0} from {1} to {2}</value>
+  </data>
   <data name="CheckedOutBranchIsNotMaster" xml:space="preserve">
     <value>It is not the master branch that is checked out</value>
   </data>

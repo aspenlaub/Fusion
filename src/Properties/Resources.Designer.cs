@@ -88,6 +88,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could update package {0} from {1} to {2}.
+        /// </summary>
+        internal static string CanUpdatePackageFromTo {
+            get {
+                return ResourceManager.GetString("CanUpdatePackageFromTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is not the master branch that is checked out.
         /// </summary>
         internal static string CheckedOutBranchIsNotMaster {

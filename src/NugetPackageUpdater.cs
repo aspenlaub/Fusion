@@ -140,6 +140,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return false; }
 
+            var yesNo = false;
             foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
                 var id = element.Attribute("Include")?.Value;
                 if (string.IsNullOrEmpty(id)) {
@@ -167,11 +168,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
                 if (!latestRemotePackageVersion.ToString().StartsWith(version)) {
-                    return true;
+                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CanUpdatePackageFromTo, id, version, latestRemotePackageVersion));
+                    yesNo = true;
                 }
             }
 
-            return false;
+            return yesNo;
         }
     }
 }

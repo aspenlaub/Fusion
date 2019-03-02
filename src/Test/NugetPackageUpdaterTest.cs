@@ -50,8 +50,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var errorsAndInfos = new ErrorsAndInfos();
             gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            var yesNo = await NugetUpdateOpportunitiesAsync();
+            var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsTrue(yesNo);
+            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains("package Aspenlaub.Net.GitHub.CSharp.PakledCore from 1.0.6974.31928")));
         }
 
         [TestMethod]
@@ -64,7 +65,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var yesNoInconclusive = await UpdateNugetPackagesAsync();
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
-            yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync();
+            yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsFalse(yesNoInconclusive.YesNo);
         }
 
@@ -87,9 +88,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             Assert.IsTrue(yesNoInconclusive.Inconclusive);
         }
 
-        private async Task<bool> NugetUpdateOpportunitiesAsync() {
+        private async Task<bool> NugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
             var sut = vContainer.Resolve<INugetPackageUpdater>();
-            var errorsAndInfos = new ErrorsAndInfos();
             var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             return yesNo;
