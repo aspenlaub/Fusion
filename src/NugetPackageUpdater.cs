@@ -57,6 +57,20 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             return yesNoInconclusive;
         }
 
+        public async Task<IYesNoInconclusive> UpdateNugetPackagesInSolutionAsync(IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
+            var yesNoInconclusive = new YesNoInconclusive();
+            var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
+            if (!projectFileFullNames.Any()) {
+                return yesNoInconclusive;
+            }
+
+            foreach (var projectFileFullName in projectFileFullNames) {
+                yesNoInconclusive.YesNo = await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, errorsAndInfos);
+            }
+
+            return yesNoInconclusive;
+        }
+
         private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName, bool yesNo, IErrorsAndInfos errorsAndInfos) {
             var namespaceManager = new XmlNamespaceManager(new NameTable());
             XDocument document;
@@ -107,7 +121,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         }
 
         public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-            var projectFileFullNames = Directory.GetFiles(repositoryFolder.SubFolder("src").FullName, "*.csproj", SearchOption.AllDirectories).ToList();
+            return await AreThereNugetUpdateOpportunitiesForSolutionAsync(repositoryFolder.SubFolder("src"), errorsAndInfos);
+        }
+
+        public async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
+            var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             if (!projectFileFullNames.Any()) {
                 return false;
             }
