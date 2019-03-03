@@ -5,7 +5,9 @@ using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
 using LibGit2Sharp;
@@ -16,7 +18,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
     public class NugetPackageUpdaterTest {
         private static readonly TestTargetFolder PakledConsumerCoreTarget = new TestTargetFolder(nameof(NugetPackageUpdaterTest), "PakledConsumerCore");
-        private const string HeadTipSha = "e2012ba3bfbaff0ab985cd2629b1a5b368410ace"; // Before PakledCoreUpdate
+        private const string PakledConsumerCoreHeadTipSha = "e2012ba3bfbaff0ab985cd2629b1a5b368410ace"; // Before PakledCoreUpdate
         private static IContainer vContainer;
         private static TestTargetInstaller vTargetInstaller;
 
@@ -48,7 +50,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         public async Task CanIdentifyNugetPackageOpportunity() {
             var gitUtilities = vContainer.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
-            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
+            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsTrue(yesNo);
@@ -59,14 +61,22 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         public async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
             var gitUtilities = vContainer.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
-            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), HeadTipSha, errorsAndInfos);
+            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var packageConfigsScanner = vContainer.Resolve<IPackageConfigsScanner>();
+            var dependencyErrorsAndInfos = new ErrorsAndInfos();
+            var dependencyIdsAndVersions = packageConfigsScanner.DependencyIdsAndVersions(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
             MakeCsProjAndConfigChange();
             var yesNoInconclusive = await UpdateNugetPackagesAsync();
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
             yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsFalse(yesNoInconclusive.YesNo);
+            var dependencyIdsAndVersionsAfterUpdate = packageConfigsScanner.DependencyIdsAndVersions(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+            Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
+                $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
+            Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
+            Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
         }
 
         [TestMethod]

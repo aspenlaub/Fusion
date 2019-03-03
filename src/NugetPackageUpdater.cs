@@ -3,9 +3,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Xml;
-using System.Xml.Linq;
-using System.Xml.XPath;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
@@ -22,14 +19,16 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         private readonly IProcessRunner vProcessRunner;
         private readonly INugetFeedLister vNugetFeedLister;
         private readonly ISecretRepository vSecretRepository;
+        private readonly IPackageConfigsScanner vPackageConfigsScanner;
 
         private readonly IList<string> vEndingsThatAllowReset = new List<string> { "csproj", "config" };
 
-        public NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner processRunner, INugetFeedLister nugetFeedLister, ISecretRepository secretRepository) {
+        public NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner processRunner, INugetFeedLister nugetFeedLister, ISecretRepository secretRepository, IPackageConfigsScanner packageConfigsScanner) {
             vGitUtilities = gitUtilities;
             vProcessRunner = processRunner;
             vNugetFeedLister = nugetFeedLister;
             vSecretRepository = secretRepository;
+            vPackageConfigsScanner = packageConfigsScanner;
         }
 
         public async Task<IYesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -48,7 +47,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             }
 
             foreach (var projectFileFullName in projectFileFullNames) {
-                yesNoInconclusive.YesNo = await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, errorsAndInfos);
+                var projectErrorsAndInfos = new ErrorsAndInfos();
+                if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, projectErrorsAndInfos)) {
+                    continue;
+                }
+
+                yesNoInconclusive.YesNo = true;
             }
 
             if (yesNoInconclusive.YesNo) { return yesNoInconclusive; }
@@ -72,49 +76,28 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         }
 
         private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName, bool yesNo, IErrorsAndInfos errorsAndInfos) {
-            var namespaceManager = new XmlNamespaceManager(new NameTable());
-            XDocument document;
-            try {
-                document = XDocument.Load(projectFileFullName);
-            } catch {
-                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.CouldNotLoadProject, projectFileFullName));
-                return yesNo;
-            }
+            var dependencyErrorsAndInfos = new ErrorsAndInfos();
+            var dependencyIdsAndVersions = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             var secret = new SecretManuallyUpdatedPackages();
             var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return false; }
 
-            var packageToVersion = new Dictionary<string, string>();
-            foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
-                var id = element.Attribute("Include")?.Value;
-                if (string.IsNullOrEmpty(id)) { continue; }
-
+            foreach (var dependencyIdsAndVersion in dependencyIdsAndVersions) {
+                var id = dependencyIdsAndVersion.Key;
                 if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
 
-                var version = element.Attribute("Version")?.Value;
-                if (string.IsNullOrEmpty(version)) { continue; }
-
-                packageToVersion[id] = version;
                 var projectFileFolder = projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\'));
+                vProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
                 vProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
             }
 
-            try {
-                document = XDocument.Load(projectFileFullName);
-            } catch {
-                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.CouldNotLoadProject, projectFileFullName));
-                return yesNo;
-            }
+            var dependencyIdsAndVersionsAfterUpdate = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
-            foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
-                var id = element.Attribute("Include")?.Value;
-                if (string.IsNullOrEmpty(id)) { continue; }
-
-                var version = element.Attribute("Version")?.Value;
-                if (string.IsNullOrEmpty(version)) { continue; }
-
-                yesNo = yesNo || !packageToVersion.ContainsKey(id) || version != packageToVersion[id];
+            foreach (var dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
+                var id = dependencyIdsAndVersion.Key;
+                var version = dependencyIdsAndVersion.Value;
+                yesNo = yesNo || !dependencyIdsAndVersions.ContainsKey(id) || version != dependencyIdsAndVersions[id];
             }
 
             return yesNo;
@@ -145,26 +128,16 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         }
 
         private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> feedUrls, IErrorsAndInfos errorsAndInfos) {
-            var namespaceManager = new XmlNamespaceManager(new NameTable());
-            XDocument document;
-            try {
-                document = XDocument.Load(projectFileFullName);
-            } catch {
-                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.CouldNotLoadProject, projectFileFullName));
-                return false;
-            }
+            var dependencyErrorsAndInfos = new ErrorsAndInfos();
+            var dependencyIdsAndVersions = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             var secret = new SecretManuallyUpdatedPackages();
             var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return false; }
 
             var yesNo = false;
-            foreach (var element in document.XPathSelectElements("/Project/ItemGroup/PackageReference", namespaceManager)) {
-                var id = element.Attribute("Include")?.Value;
-                if (string.IsNullOrEmpty(id)) {
-                    continue;
-                }
-
+            foreach (var dependencyIdsAndVersion in dependencyIdsAndVersions) {
+                var id = dependencyIdsAndVersion.Key;
                 if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
 
                 IList<IPackageSearchMetadata> remotePackages = null;
@@ -179,16 +152,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                     continue;
                 }
 
-                var version = element.Attribute("Version")?.Value;
-                if (string.IsNullOrEmpty(version)) {
+                var version = dependencyIdsAndVersion.Value;
+                var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
+                if (latestRemotePackageVersion.ToString().StartsWith(version)) {
                     continue;
                 }
 
-                var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
-                if (!latestRemotePackageVersion.ToString().StartsWith(version)) {
-                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CanUpdatePackageFromTo, id, version, latestRemotePackageVersion));
-                    yesNo = true;
-                }
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CanUpdatePackageFromTo, id, version, latestRemotePackageVersion));
+                yesNo = true;
             }
 
             return yesNo;
