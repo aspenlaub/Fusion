@@ -37,7 +37,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var gitUtilities = vContainer.Resolve<IGitUtilities>();
             var url = "https://github.com/aspenlaub/" + PakledConsumerCoreTarget.SolutionId + ".git";
             var errorsAndInfos = new ErrorsAndInfos();
-            gitUtilities.Clone(url, PakledConsumerCoreTarget.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
+            gitUtilities.Clone(url, "master", PakledConsumerCoreTarget.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
 
