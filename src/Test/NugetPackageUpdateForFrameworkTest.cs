@@ -52,13 +52,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var packageConfigsScanner = vContainer.Resolve<IPackageConfigsScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var dependencyIdsAndVersions = packageConfigsScanner.DependencyIdsAndVersions(WakekTarget.Folder().SubFolder("src").FullName, true, true, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersions = await packageConfigsScanner.DependencyIdsAndVersionsAsync(WakekTarget.Folder().SubFolder("src").FullName, true, true, dependencyErrorsAndInfos);
             var yesNoInconclusive = await UpdateNugetPackagesAsync();
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
             yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsFalse(yesNoInconclusive.YesNo);
-            var dependencyIdsAndVersionsAfterUpdate = packageConfigsScanner.DependencyIdsAndVersions(WakekTarget.Folder().SubFolder("src").FullName, true, true, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersionsAfterUpdate = await packageConfigsScanner.DependencyIdsAndVersionsAsync(WakekTarget.Folder().SubFolder("src").FullName, true, true, dependencyErrorsAndInfos);
             Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
                 $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");

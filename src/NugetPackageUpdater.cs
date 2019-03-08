@@ -77,7 +77,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
         private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName, bool yesNo, IErrorsAndInfos errorsAndInfos) {
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var dependencyIdsAndVersions = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersions = await vPackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             var secret = new SecretManuallyUpdatedPackages();
             var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
@@ -92,7 +92,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 vProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
             }
 
-            var dependencyIdsAndVersionsAfterUpdate = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersionsAfterUpdate = await vPackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             foreach (var dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
                 var id = dependencyIdsAndVersion.Key;
@@ -129,7 +129,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
         private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> feedUrls, IErrorsAndInfos errorsAndInfos) {
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var dependencyIdsAndVersions = vPackageConfigsScanner.DependencyIdsAndVersions(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersions = await vPackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             var secret = new SecretManuallyUpdatedPackages();
             var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
