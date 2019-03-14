@@ -44,7 +44,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             WakekTarget.Delete();
         }
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public async Task CanUpdateNugetPackagesForFrameworkProject() {
             var gitUtilities = vContainer.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
