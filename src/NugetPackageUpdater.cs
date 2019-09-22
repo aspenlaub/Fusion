@@ -190,9 +190,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                     continue;
                 }
 
-                var version = dependencyIdsAndVersion.Value;
+                if (!Version.TryParse(dependencyIdsAndVersion.Value, out var version)) {
+                    continue;
+                }
+
                 var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
-                if (latestRemotePackageVersion.ToString().StartsWith(version)) {
+                if (latestRemotePackageVersion <= version || latestRemotePackageVersion.ToString().StartsWith(version.ToString())) {
                     continue;
                 }
 
