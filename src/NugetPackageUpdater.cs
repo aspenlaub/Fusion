@@ -114,7 +114,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 var secret = new SecretManuallyUpdatedPackages();
                 var manuallyUpdatedPackages = await vSecretRepository.GetAsync(secret, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) {
-                    vSimpleLogger.LogInformation($"Returning false");
+                    vSimpleLogger.LogInformation("Returning false");
                     return false;
                 }
 
