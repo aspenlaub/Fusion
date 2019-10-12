@@ -14,7 +14,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         public async Task CanGetManuallyUpdatedPackages() {
             var errorsAndInfos = new ErrorsAndInfos();
             var secret = new SecretManuallyUpdatedPackages();
-            var container = new ContainerBuilder().RegisterForPegh(new DummyCsArgumentPrompter()).Build();
+            var container = new ContainerBuilder().UsePegh(new DummyCsArgumentPrompter()).Build();
             var manuallyUpdatedPackages = await container.Resolve<ISecretRepository>().GetAsync(secret, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsNotNull(manuallyUpdatedPackages);
