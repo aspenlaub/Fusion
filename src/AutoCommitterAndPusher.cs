@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
 
@@ -12,10 +14,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
     public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
         private readonly IGitUtilities vGitUtilities;
         private readonly ISecretRepository vSecretRepository;
+        private readonly IPushedHeadTipShaRepository vPushedHeadTipShaRepository;
 
-        public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository) {
+        public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository, IPushedHeadTipShaRepository pushedHeadTipShaRepository) {
             vGitUtilities = gitUtilities;
             vSecretRepository = secretRepository;
+            vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
         }
 
         public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -46,7 +50,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var shortName = file.Substring(file.LastIndexOf('\\') + 1);
 
             var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
-            await AutoCommitAndPushAsync(repositoryFolder, files, onlyIfNecessary, message, errorsAndInfos);
+            await AutoCommitAndPushAsync(repositoryFolder, files, onlyIfNecessary, message, true, errorsAndInfos);
         }
 
         public async Task AutoCommitAndPushPackageUpdates(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -61,15 +65,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return;
             }
 
-            await AutoCommitAndPushAsync(repositoryFolder, files, false, Properties.Resources.PackageUpdates, errorsAndInfos);
+            await AutoCommitAndPushAsync(repositoryFolder, files, false, Properties.Resources.PackageUpdates, false, errorsAndInfos);
         }
 
-        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, IErrorsAndInfos errorsAndInfos) {
+        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
             var branchName = vGitUtilities.CheckedOutBranch(repositoryFolder);
             if (branchName != "master") {
                 errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
                 return;
             }
+
+            var headTipShaBeforePush = vGitUtilities.HeadTipIdSha(repositoryFolder);
 
             vGitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
@@ -117,6 +123,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 };
 
                 repo.Network.Push(remote, @"refs/heads/" + branchName, options);
+
+                if (!noRebuildRequired) { return; }
+
+                var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
+                if (!pushedHeadTipShaRepository.Get(errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
+
+                var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
+                pushedHeadTipShaRepository.Add(headTipSha, errorsAndInfos);
             }
         }
     }
