@@ -6,7 +6,6 @@ using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
 
