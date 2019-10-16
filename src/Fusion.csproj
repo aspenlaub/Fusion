@@ -19,7 +19,7 @@
     <None Remove="Test\**" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Aspenlaub.Net.GitHub.CSharp.Nuclide" Version="1.0.7228.25912" />
+    <PackageReference Include="Aspenlaub.Net.GitHub.CSharp.Nuclide" Version="1.0.7228.37905" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.6.0" />
   </ItemGroup>
   <ItemGroup>
