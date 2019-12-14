@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using FolderUpdateMethod = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.FolderUpdateMethod;
@@ -91,7 +92,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             }
         }
 
-        private bool CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod folderUpdateMethod, string mainNamespace, IEnumerable<byte> sourceContents, IReadOnlyList<byte> destinationContents,
+        private bool CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod folderUpdateMethod, string mainNamespace, IReadOnlyList<byte> sourceContents, IReadOnlyList<byte> destinationContents,
                 FileInfo sourceFileInfo, bool hasSomethingBeenUpdated, FileSystemInfo destinationFileInfo, out string updateReason) {
             updateReason = Properties.Resources.FilesHaveEqualLengthThatCannotBeIgnored;
             var differences = sourceContents.Where((t, i) => t != destinationContents[i]).Count();
@@ -103,13 +104,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return true;
             }
 
+            var tempFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdater));
+            tempFolder.CreateIfNecessary();
+            var guid = Guid.NewGuid().ToString();
+            File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_old.bin", sourceContents.ToArray());
+            File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_new.bin", destinationContents.ToArray());
+
             return folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged
-                   && !hasSomethingBeenUpdated
-                   && IsJsonDependencyFile(sourceFileInfo.Name)
-                   && vJsonDepsDifferencer.AreJsonDependenciesIdenticalExceptForNamespaceVersion(
-                       File.ReadAllText(sourceFileInfo.FullName),
-                       File.ReadAllText(destinationFileInfo.FullName),
-                       mainNamespace, out updateReason);
+                        && !hasSomethingBeenUpdated
+                        && IsJsonDependencyFile(sourceFileInfo.Name)
+                        && vJsonDepsDifferencer.AreJsonDependenciesIdenticalExceptForNamespaceVersion(
+                            File.ReadAllText(sourceFileInfo.FullName),
+                            File.ReadAllText(destinationFileInfo.FullName),
+                            mainNamespace, out updateReason);
         }
 
         protected static bool IsBinary(string fileName) {
