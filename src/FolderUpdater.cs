@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -33,10 +34,18 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             }
 
             var hasSomethingBeenUpdated = false;
-            foreach(var checkJsonDependencyFiles in new[] { false, true }) {
+            foreach(var updateStep in new[] { FolderUpdateSteps.NoPdbsNoJsonDependencies, FolderUpdateSteps.Pdbs, FolderUpdateSteps.JsonDependencies }) {
+                if (updateStep == FolderUpdateSteps.Pdbs && !hasSomethingBeenUpdated) {
+                    continue;
+                }
+
                 foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
-                    if (checkJsonDependencyFiles && !IsJsonDependencyFile(sourceFileInfo.FullName)) { continue; }
-                    if (!checkJsonDependencyFiles && IsJsonDependencyFile(sourceFileInfo.FullName)) { continue; }
+                    switch (updateStep) {
+                        case FolderUpdateSteps.JsonDependencies when !IsJsonDependencyFile(sourceFileInfo.FullName):
+                        case FolderUpdateSteps.Pdbs when !IsPdbFile(sourceFileInfo.FullName):
+                        case FolderUpdateSteps.NoPdbsNoJsonDependencies when (IsJsonDependencyFile(sourceFileInfo.FullName) || IsPdbFile(sourceFileInfo.Name)):
+                            continue;
+                    }
 
                     var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
                     var updateReason = "";
@@ -104,13 +113,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return true;
             }
 
-            /*
             var tempFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdater));
             tempFolder.CreateIfNecessary();
             var guid = Guid.NewGuid().ToString();
             File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_old.bin", sourceContents.ToArray());
             File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_new.bin", destinationContents.ToArray());
-            */
 
             return folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged
                         && !hasSomethingBeenUpdated
@@ -127,6 +134,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
         protected static bool IsJsonDependencyFile(string fileName) {
             return fileName.EndsWith(@".deps.json");
+        }
+
+        protected static bool IsPdbFile(string fileName) {
+            return fileName.EndsWith(@".pdb");
         }
 
         private static string NewNameForFileToBeOverwritten(string folder, string name) {
