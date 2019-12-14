@@ -49,10 +49,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                                 if (CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
                                     continue;
                                 }
+                            } else {
+                                updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceContents.Length, destinationContents.Length);
                             }
                         } else {
                             updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceFileInfo.Length, destinationFileInfo.Length);
                         }
+                    } else {
+                        updateReason = string.Format(Properties.Resources.FileIsNew);
                     }
 
                     errorsAndInfos.Infos.Add(string.Format(Properties.Resources.UpdatingFile, sourceFileInfo.Name) + ", " + updateReason);

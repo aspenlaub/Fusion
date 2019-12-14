@@ -151,6 +151,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File is new.
+        /// </summary>
+        internal static string FileIsNew {
+            get {
+                return ResourceManager.GetString("FileIsNew", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Files differ in length (new {0}, old {1}).
         /// </summary>
         internal static string FilesDifferInLength {
