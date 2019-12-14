@@ -27,7 +27,7 @@ Scenario: Empty file is updated once
 Scenario: 4 kilobyte file is updated
 	Given I place a 4 kilobyte file into the source folder
     And I wait two seconds
-	And I place a 4 kilobyte file with 50 differences into the destination folder
+	And I place a 4 kilobyte file with 100 differences into the destination folder
 	When I update the destination folder
 	Then the 4 kilobyte destination file is identical to the 4 kilobyte source file
 	And the last write times of the 4 kilobyte source and the 4 kilobyte destination files are identical 
@@ -36,7 +36,7 @@ Scenario: 4 kilobyte file is updated
 Scenario: 4 kilobyte file is not updated
 	Given I place a 4 kilobyte file into the source folder
     And I wait two seconds
-	And I place a 4 kilobyte file with 20 differences into the destination folder
+	And I place a 4 kilobyte file with 50 differences into the destination folder
 	When I update the destination folder
 	Then the last write time of the 4 kilobyte destination file is unchanged
 	And no errors occurred during the folder update
@@ -44,7 +44,7 @@ Scenario: 4 kilobyte file is not updated
 Scenario: 3 kilobyte file is updated
 	Given I place a 3 kilobyte file into the source folder
     And I wait two seconds
-	And I place a 3 kilobyte file with 20 differences into the destination folder
+	And I place a 3 kilobyte file with 50 differences into the destination folder
 	When I update the destination folder
 	Then the 3 kilobyte destination file is identical to the 3 kilobyte source file
 	And the last write times of the 3 kilobyte source and the 3 kilobyte destination files are identical 
@@ -60,7 +60,7 @@ Scenario: File in a sub folder is updated
 Scenario: Locked 3 kilobyte file cannot be renamed
 	Given I place a 3 kilobyte file into the source folder
     And I wait two seconds
-	And I place a 3 kilobyte file with 20 differences into the destination folder
+	And I place a 3 kilobyte file with 50 differences into the destination folder
 	And I lock the 3 kilobyte file
 	When I update the destination folder
 	Then folder update failed because the 3 kilobyte destination file could not be renamed

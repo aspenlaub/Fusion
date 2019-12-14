@@ -100,15 +100,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return true;
             }
 
-            if (folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged && IsBinary(sourceFileInfo.Name) && differences < 50 && sourceFileInfo.Length >= MinimumBinaryFileSizeInBytes) {
+            if (folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged && IsBinary(sourceFileInfo.Name) && differences < 100 && sourceFileInfo.Length >= MinimumBinaryFileSizeInBytes) {
                 return true;
             }
 
+            /*
             var tempFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdater));
             tempFolder.CreateIfNecessary();
             var guid = Guid.NewGuid().ToString();
             File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_old.bin", sourceContents.ToArray());
             File.WriteAllBytes(tempFolder.FullName + '\\' + sourceFileInfo.Name + '_' + guid + "_diff" + differences + "_new.bin", destinationContents.ToArray());
+            */
 
             return folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged
                         && !hasSomethingBeenUpdated
