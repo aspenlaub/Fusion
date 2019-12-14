@@ -19,7 +19,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
     // class via a tool like ResGen or Visual Studio.
     // To add or remove a member, edit your .ResX file then rerun ResGen
     // with the /str option, or rebuild your VS project.
-    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "15.0.0.0")]
+    [global::System.CodeDom.Compiler.GeneratedCodeAttribute("System.Resources.Tools.StronglyTypedResourceBuilder", "16.0.0.0")]
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
     [global::System.Runtime.CompilerServices.CompilerGeneratedAttribute()]
     internal class Resources {
@@ -133,6 +133,51 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to copy &quot;{0}&quot; to &quot;{1}.
+        /// </summary>
+        internal static string FailedToCopy {
+            get {
+                return ResourceManager.GetString("FailedToCopy", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to rename &quot;{0}&quot; into &quot;{1}&quot;.
+        /// </summary>
+        internal static string FailedToRename {
+            get {
+                return ResourceManager.GetString("FailedToRename", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files differ in length (new {0}, old {1}).
+        /// </summary>
+        internal static string FilesDifferInLength {
+            get {
+                return ResourceManager.GetString("FilesDifferInLength", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The files are equal in length but it cannot be ignored.
+        /// </summary>
+        internal static string FilesHaveEqualLengthThatCannotBeIgnored {
+            get {
+                return ResourceManager.GetString("FilesHaveEqualLengthThatCannotBeIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The json files are equal in length but it cannot be ignored.
+        /// </summary>
+        internal static string JsonFilesHaveEqualLengthThatCannotBeIgnored {
+            get {
+                return ResourceManager.GetString("JsonFilesHaveEqualLengthThatCannotBeIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There are no files with uncommitted changes.
         /// </summary>
         internal static string NoFileWithUncommittedChanges {
@@ -192,6 +237,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string RemoteNotFoundOrNotUnique {
             get {
                 return ResourceManager.GetString("RemoteNotFoundOrNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Updating &quot;{0}&quot;.
+        /// </summary>
+        internal static string UpdatingFile {
+            get {
+                return ResourceManager.GetString("UpdatingFile", resourceCulture);
             }
         }
     }

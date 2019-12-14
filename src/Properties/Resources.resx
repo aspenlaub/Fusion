@@ -141,6 +141,21 @@
   <data name="ExactlyOneFileExpected" xml:space="preserve">
     <value>Expected exactly one file to commit and push, got: {0}</value>
   </data>
+  <data name="FailedToCopy" xml:space="preserve">
+    <value>Failed to copy "{0}" to "{1}</value>
+  </data>
+  <data name="FailedToRename" xml:space="preserve">
+    <value>Failed to rename "{0}" into "{1}"</value>
+  </data>
+  <data name="FilesDifferInLength" xml:space="preserve">
+    <value>Files differ in length (new {0}, old {1})</value>
+  </data>
+  <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
+    <value>The files are equal in length but it cannot be ignored</value>
+  </data>
+  <data name="JsonFilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
+    <value>The json files are equal in length but it cannot be ignored</value>
+  </data>
   <data name="NoFileWithUncommittedChanges" xml:space="preserve">
     <value>There are no files with uncommitted changes</value>
   </data>
@@ -161,5 +176,8 @@
   </data>
   <data name="RemoteNotFoundOrNotUnique" xml:space="preserve">
     <value>Remove repository not found or not unique</value>
+  </data>
+  <data name="UpdatingFile" xml:space="preserve">
+    <value>Updating "{0}"</value>
   </data>
 </root>

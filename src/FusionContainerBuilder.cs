@@ -4,6 +4,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using IFolderUpdater = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IFolderUpdater;
+using IJsonDepsDifferencer = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IJsonDepsDifferencer;
 // ReSharper disable UnusedMember.Global
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
@@ -16,6 +18,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             builder.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
             builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
+            builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
+            builder.RegisterType<JsonDepsDifferencer>().As<IJsonDepsDifferencer>();
             return builder;
         }
 
@@ -23,6 +27,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             services.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
             services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
+            services.AddTransient<IFolderUpdater, FolderUpdater>();
+            services.AddTransient<IJsonDepsDifferencer, JsonDepsDifferencer>();
             return services;
         }
     }
