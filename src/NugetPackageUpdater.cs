@@ -151,13 +151,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return false;
             }
 
-            var developerSettingsSecret = new DeveloperSettingsSecret();
-            var developerSettings = await vSecretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
+            var nugetFeedsSecret = new SecretNugetFeeds();
+            var nugetFeeds = await vSecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return false; }
 
-            var feedUrls = new[] { developerSettings.NugetFeedUrl, "https://packages.nuget.org/api/v2" };
+            var feedIds = nugetFeeds.Select(f => f.Id).ToList();
             foreach (var projectFileFullName in projectFileFullNames) {
-                if (await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName, feedUrls, errorsAndInfos)) {
+                if (await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName, feedIds, errorsAndInfos)) {
                     return !errorsAndInfos.AnyErrors();
                 }
             }
@@ -165,7 +165,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             return false;
         }
 
-        private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> feedUrls, IErrorsAndInfos errorsAndInfos) {
+        private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> nugetFeedIds, IErrorsAndInfos errorsAndInfos) {
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             var dependencyIdsAndVersions = await vPackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
@@ -179,8 +179,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
 
                 IList<IPackageSearchMetadata> remotePackages = null;
-                foreach (var feedUrl in feedUrls) {
-                    remotePackages = await vNugetFeedLister.ListReleasedPackagesAsync(feedUrl, id);
+                foreach (var nugetFeedId in nugetFeedIds) {
+                    var listingErrorsAndInfos = new ErrorsAndInfos();
+                    remotePackages = await vNugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
+                    if (listingErrorsAndInfos.AnyErrors()) {
+                        continue;
+                    }
                     if (remotePackages.Any()) {
                         break;
                     }
