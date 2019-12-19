@@ -21,15 +21,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
         }
 
-        public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-            await AutoCommitAndPushSingleCakeFileAsync(repositoryFolder, true, errorsAndInfos);
+        public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            await AutoCommitAndPushSingleCakeFileAsync(nugetFeedId, repositoryFolder, true, errorsAndInfos);
         }
 
-        public async Task AutoCommitAndPushSingleCakeFileAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-            await AutoCommitAndPushSingleCakeFileAsync(repositoryFolder, false, errorsAndInfos);
+        public async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            await AutoCommitAndPushSingleCakeFileAsync(nugetFeedId, repositoryFolder, false, errorsAndInfos);
         }
 
-        private async Task AutoCommitAndPushSingleCakeFileAsync(IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
+        private async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
             var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
             if (files.Count == 0) {
                 if (onlyIfNecessary) { return; }
@@ -49,10 +49,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var shortName = file.Substring(file.LastIndexOf('\\') + 1);
 
             var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
-            await AutoCommitAndPushAsync(repositoryFolder, files, onlyIfNecessary, message, true, errorsAndInfos);
+            await AutoCommitAndPushAsync(nugetFeedId, repositoryFolder, files, onlyIfNecessary, message, true, errorsAndInfos);
         }
 
-        public async Task AutoCommitAndPushPackageUpdates(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+        public async Task AutoCommitAndPushPackageUpdates(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
             var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
             if (files.Count == 0) {
                 errorsAndInfos.Errors.Add(Properties.Resources.AtLeastOneFileExpected);
@@ -64,10 +64,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return;
             }
 
-            await AutoCommitAndPushAsync(repositoryFolder, files, false, Properties.Resources.PackageUpdates, false, errorsAndInfos);
+            await AutoCommitAndPushAsync(nugetFeedId, repositoryFolder, files, false, Properties.Resources.PackageUpdates, false, errorsAndInfos);
         }
 
-        private async Task AutoCommitAndPushAsync(IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
+        private async Task AutoCommitAndPushAsync(string nugetFeedId, IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
             var branchName = vGitUtilities.CheckedOutBranch(repositoryFolder);
             if (branchName != "master") {
                 errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
@@ -126,10 +126,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 if (!noRebuildRequired) { return; }
 
                 var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
-                if (!pushedHeadTipShaRepository.Get(errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
+                if (!pushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
 
                 var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
-                pushedHeadTipShaRepository.Add(headTipSha, errorsAndInfos);
+                pushedHeadTipShaRepository.Add(nugetFeedId, headTipSha, errorsAndInfos);
             }
         }
     }
