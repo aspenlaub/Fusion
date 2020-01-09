@@ -381,6 +381,8 @@ Task("PushNuGetPackage")
     if (packageToPush != null && !string.IsNullOrEmpty(packageToPush.PackageFileFullName) && !string.IsNullOrEmpty(packageToPush.FeedUrl) && !string.IsNullOrEmpty(packageToPush.ApiKey)) {
       Information("Pushing " + packageToPush.PackageFileFullName + " to " + packageToPush.FeedUrl + "..");
       NuGetPush(packageToPush.PackageFileFullName, new NuGetPushSettings { Source = packageToPush.FeedUrl });
+    } else {
+      Information("Did not find any package to push, adding " + headTipSha + " to pushed headTipShas for " + mainNugetFeedId);
     }
     var pushedHeadTipShaRepository = container.Resolve<IPushedHeadTipShaRepository>();
     var pushedErrorsAndInfos = new ErrorsAndInfos();
