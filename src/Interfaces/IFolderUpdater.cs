@@ -1,4 +1,5 @@
 ﻿using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+// ReSharper disable UnusedMemberInSuper.Global
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces {
     public interface IFolderUpdater {

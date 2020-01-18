@@ -20,6 +20,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
             builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
             builder.RegisterType<JsonDepsDifferencer>().As<IJsonDepsDifferencer>();
+            builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
+            builder.RegisterType<CakeReinstaller>().As<ICakeReinstaller>();
+            builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
+            builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
             return builder;
         }
 
@@ -29,6 +33,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
             services.AddTransient<IFolderUpdater, FolderUpdater>();
             services.AddTransient<IJsonDepsDifferencer, JsonDepsDifferencer>();
+            services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
+            services.AddTransient<ICakeReinstaller, CakeReinstaller>();
+            services.AddTransient<ICakeBuilder, CakeBuilder>();
+            services.AddTransient<IBinariesHelper, BinariesHelper>();
             return services;
         }
     }

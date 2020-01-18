@@ -25,7 +25,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var newJson = tableRow["New Json"];
             var nameSpace = tableRow["Namespace"];
             var expectedToBeIdentical = string.IsNullOrWhiteSpace(tableRow["Necessary"]);
-            var actuallyIdentical = vSut.AreJsonDependenciesIdenticalExceptForNamespaceVersion(oldJson, newJson, nameSpace, out string updateReason);
+            var actuallyIdentical = vSut.AreJsonDependenciesIdenticalExceptForNamespaceVersion(oldJson, newJson, nameSpace, out var updateReason);
             var errorMessage = expectedToBeIdentical
                 ? $"Old json '{oldJson}' and new json '{newJson}' should be identical in the context of namespace '{nameSpace}' ({updateReason})"
                 : $"Old json '{oldJson}' and new json '{newJson}' should not be identical in the context of namespace '{nameSpace}'";

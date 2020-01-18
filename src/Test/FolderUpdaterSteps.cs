@@ -3,9 +3,11 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using TechTalk.SpecFlow;
 using FolderUpdateMethod = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.FolderUpdateMethod;
@@ -37,7 +39,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             SourceFiles = new Dictionary<int, string>();
             DestinationFiles = new Dictionary<int, string>();
             UpdateFolderErrorsAndInfos = new ErrorsAndInfos();
-            Sut = new FolderUpdater(new JsonDepsDifferencer());
+            var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            Sut = container.Resolve<IFolderUpdater>();
         }
 
         [AfterScenario("FolderUpdater")]

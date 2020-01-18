@@ -223,6 +223,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Other files require update anyway.
+        /// </summary>
+        internal static string OtherFilesRequireUpdateAnyway {
+            get {
+                return ResourceManager.GetString("OtherFilesRequireUpdateAnyway", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find owner and name of the remote repository.
         /// </summary>
         internal static string OwnerAndNameNotFound {

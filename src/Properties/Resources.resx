@@ -171,6 +171,9 @@
   <data name="OnlyCsProjAndConfigFilesExpected" xml:space="preserve">
     <value>Expected .csproj and .config files to commit and push, no other file types</value>
   </data>
+  <data name="OtherFilesRequireUpdateAnyway" xml:space="preserve">
+    <value>Other files require update anyway</value>
+  </data>
   <data name="OwnerAndNameNotFound" xml:space="preserve">
     <value>Could not find owner and name of the remote repository</value>
   </data>
