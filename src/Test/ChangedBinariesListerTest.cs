@@ -13,10 +13,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         private const string PreviousHeadTipIdSha = "6e314114c347c17776bdd8367cc5d0f1687a7775";
         private const string CurrentHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
 
+        private readonly IContainer vContainer;
+
+        public ChangedBinariesListerTest() {
+            vContainer = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+        }
+
         [TestMethod]
         public void UnchangedBinariesAreNotListed() {
-            var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
-            var sut = container.Resolve<IChangedBinariesLister>();
+            var sut = vContainer.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = sut.ListChangedBinaries("Pegh", PreviousHeadTipIdSha, CurrentHeadTipIdSha, errorsAndInfos);
@@ -26,8 +31,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [TestMethod]
         public void CanListChangedBinaries() {
-            var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
-            var sut = container.Resolve<IChangedBinariesLister>();
+            var sut = vContainer.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = sut.ListChangedBinaries("Pegh", BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);

@@ -10,9 +10,11 @@ using IFolderUpdater = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IFolderUpda
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
     public class FolderUpdater : IFolderUpdater {
         private readonly IBinariesHelper vBinariesHelper;
+        private readonly IChangedBinariesLister vChangedBinariesLister;
 
-        public FolderUpdater(IBinariesHelper binariesHelper) {
+        public FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesLister changedBinariesLister) {
             vBinariesHelper = binariesHelper;
+            vChangedBinariesLister = changedBinariesLister;
         }
 
         public void UpdateFolder(IFolder sourceFolder, IFolder destinationFolder, FolderUpdateMethod folderUpdateMethod, IErrorsAndInfos errorsAndInfos) {
@@ -69,28 +71,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                         Directory.CreateDirectory(destinationFileInfo.DirectoryName);
                     }
 
-                    try {
-                        File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
-                    } catch {
-                        if (File.Exists(destinationFileInfo.FullName)) {
-                            var newNameForFileToBeOverwritten = NewNameForFileToBeOverwritten(destinationFileInfo.DirectoryName, destinationFileInfo.Name);
-                            try {
-                                File.Move(destinationFileInfo.FullName, newNameForFileToBeOverwritten);
-                            } catch {
-                                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRename, destinationFileInfo.Name, newNameForFileToBeOverwritten.Substring(newNameForFileToBeOverwritten.LastIndexOf('\\') + 1)));
-                                continue;
-                            }
-                        }
+                    if (!CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos)) { continue; }
 
-                        try {
-                            File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
-                        } catch {
-                            errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToCopy, sourceFileInfo.FullName, destinationFileInfo.FullName));
-                            continue;
-                        }
-                    }
-
-                    File.SetLastWriteTime(destinationFileInfo.FullName, sourceFileInfo.LastWriteTime);
                     hasSomethingBeenUpdated = true;
                 }
             }
@@ -105,6 +87,47 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             } while (File.Exists(newOriginalFileName));
 
             return newOriginalFileName;
+        }
+
+        private bool CopyFileReturnSuccess(FileSystemInfo sourceFileInfo, FileInfo destinationFileInfo, IErrorsAndInfos errorsAndInfos) {
+            try {
+                File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
+            } catch {
+                if (File.Exists(destinationFileInfo.FullName)) {
+                    var newNameForFileToBeOverwritten = NewNameForFileToBeOverwritten(destinationFileInfo.DirectoryName, destinationFileInfo.Name);
+                    try {
+                        File.Move(destinationFileInfo.FullName, newNameForFileToBeOverwritten);
+                    } catch {
+                        errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRename, destinationFileInfo.Name, newNameForFileToBeOverwritten.Substring(newNameForFileToBeOverwritten.LastIndexOf('\\') + 1)));
+                        return false;
+                    }
+                }
+
+                try {
+                    File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
+                } catch {
+                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToCopy, sourceFileInfo.FullName, destinationFileInfo.FullName));
+                    return false;
+                }
+
+                File.SetLastWriteTime(destinationFileInfo.FullName, sourceFileInfo.LastWriteTime);
+            }
+
+            return true;
+        }
+
+        public void UpdateFolder(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder, IErrorsAndInfos errorsAndInfos) {
+            var changedBinaries = vChangedBinariesLister.ListChangedBinaries(repositoryId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
+            if (errorsAndInfos.AnyErrors()) { return; }
+
+            foreach (var changedBinary in changedBinaries) {
+                var sourceFileInfo = new FileInfo(sourceFolder.FullName + '\\' + changedBinary.FileName);
+                var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + changedBinary.FileName);
+
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.UpdatingFile, sourceFileInfo.Name) + ", " + changedBinary.UpdateReason);
+
+                CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos);
+            }
         }
     }
 }
