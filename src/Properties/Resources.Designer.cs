@@ -88,6 +88,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Building &apos;{0}&apos; at head tip ID sha &apos;{1}&apos;.
+        /// </summary>
+        internal static string Building {
+            get {
+                return ResourceManager.GetString("Building", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could update package {0} from {1} to {2}.
         /// </summary>
         internal static string CanUpdatePackageFromTo {
@@ -129,6 +138,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string ExactlyOneFileExpected {
             get {
                 return ResourceManager.GetString("ExactlyOneFileExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Failed to build &apos;{0}&apos; at head tip ID sha &apos;{1}&apos;.
+        /// </summary>
+        internal static string FailedToBuild {
+            get {
+                return ResourceManager.GetString("FailedToBuild", resourceCulture);
             }
         }
         

@@ -10,6 +10,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
+using NuGet.Packaging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
     public class ChangedBinariesLister : IChangedBinariesLister {
@@ -82,8 +83,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
                 vNugetPackageRestorer.RestoreNugetPackages(solutionFileName, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
-                vCakeBuilder.Build(solutionFileName, false, "", errorsAndInfos);
-                if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
+                var buildErrorsAndInfos = new ErrorsAndInfos();
+                vCakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
+                if (errorsAndInfos.AnyErrors()) {
+                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
+                    errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
+                    return changedBinaries;
+                }
 
                 var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
                 var targetFolder = previous ? previousTargetFolder : currentTargetFolder;

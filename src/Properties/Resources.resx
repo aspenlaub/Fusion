@@ -126,6 +126,9 @@
   <data name="AutoUpdateOfCakeFile" xml:space="preserve">
     <value>Automated update of "{0}"</value>
   </data>
+  <data name="Building" xml:space="preserve">
+    <value>Building '{0}' at head tip ID sha '{1}'</value>
+  </data>
   <data name="CanUpdatePackageFromTo" xml:space="preserve">
     <value>Could update package {0} from {1} to {2}</value>
   </data>
@@ -140,6 +143,9 @@
   </data>
   <data name="ExactlyOneFileExpected" xml:space="preserve">
     <value>Expected exactly one file to commit and push, got: {0}</value>
+  </data>
+  <data name="FailedToBuild" xml:space="preserve">
+    <value>Failed to build '{0}' at head tip ID sha '{1}'</value>
   </data>
   <data name="FailedToCopy" xml:space="preserve">
     <value>Failed to copy "{0}" to "{1}</value>
