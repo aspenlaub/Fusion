@@ -81,12 +81,19 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 }
 
                 var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
-                vNugetPackageRestorer.RestoreNugetPackages(solutionFileName, errorsAndInfos);
-                if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
+                var restoreErrorsAndInfos = new ErrorsAndInfos();
+                vNugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
+                if (restoreErrorsAndInfos.AnyErrors()) {
+                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRestore, repositoryId, headTipIdSha));
+                    errorsAndInfos.Errors.AddRange(restoreErrorsAndInfos.Errors);
+                    return changedBinaries;
+                }
+
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
                 var buildErrorsAndInfos = new ErrorsAndInfos();
                 vCakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
-                if (errorsAndInfos.AnyErrors()) {
+                if (buildErrorsAndInfos.AnyErrors()) {
                     errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                     errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
                     return changedBinaries;

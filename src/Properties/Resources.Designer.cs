@@ -169,6 +169,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Failed to restore nuget packages for &apos;{0}&apos; at head tip ID sha &apos;{1}&apos;.
+        /// </summary>
+        internal static string FailedToRestore {
+            get {
+                return ResourceManager.GetString("FailedToRestore", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File is new.
         /// </summary>
         internal static string FileIsNew {
@@ -273,6 +282,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string RemoteNotFoundOrNotUnique {
             get {
                 return ResourceManager.GetString("RemoteNotFoundOrNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Restoring nuget packages for &apos;{0}&apos; at head tip ID sha &apos;{1}&apos;.
+        /// </summary>
+        internal static string Restoring {
+            get {
+                return ResourceManager.GetString("Restoring", resourceCulture);
             }
         }
         
