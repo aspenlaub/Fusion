@@ -12,7 +12,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
     public class FolderUpdaterTest {
         private const string BeforeMajorChangeHeadTipSha = "932cb235841ce7ab5afc80fcbc3220c4ae54933e";
-        private const string PreviousHeadTipIdSha = "6e314114c347c17776bdd8367cc5d0f1687a7775";
         private const string CurrentHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
         private const string RepositoryId = "Pegh";
 
