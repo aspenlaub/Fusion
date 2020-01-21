@@ -21,9 +21,5 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         public bool IsBinary(string fileName) {
             return fileName.EndsWith(@".exe") || fileName.EndsWith(@".dll") || fileName.EndsWith(@".pdb");
         }
-
-        public bool IsPdbFile(string fileName) {
-            return fileName.EndsWith(@".pdb");
-        }
     }
 }
