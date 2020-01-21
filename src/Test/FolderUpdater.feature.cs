@@ -255,7 +255,7 @@ this.FeatureBackground();
     testRunner.And("I wait two seconds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 30
- testRunner.And("I place a 4 kilobyte file with 100 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("I place a 4 kilobyte file with 30 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 31
  testRunner.When("I update the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -312,7 +312,7 @@ this.FeatureBackground();
     testRunner.And("I wait two seconds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 39
- testRunner.And("I place a 4 kilobyte file with 50 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("I place a 4 kilobyte file with 20 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 40
  testRunner.When("I update the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -365,7 +365,7 @@ this.FeatureBackground();
     testRunner.And("I wait two seconds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 47
- testRunner.And("I place a 3 kilobyte file with 50 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("I place a 3 kilobyte file with 20 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 48
  testRunner.When("I update the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "When ");
@@ -473,7 +473,7 @@ this.FeatureBackground();
     testRunner.And("I wait two seconds", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 63
- testRunner.And("I place a 3 kilobyte file with 50 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
+ testRunner.And("I place a 3 kilobyte file with 20 differences into the destination folder", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");
 #line hidden
 #line 64
  testRunner.And("I lock the 3 kilobyte file", ((string)(null)), ((TechTalk.SpecFlow.Table)(null)), "And ");

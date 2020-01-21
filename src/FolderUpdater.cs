@@ -4,8 +4,6 @@ using System.Linq;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
-using FolderUpdateMethod = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.FolderUpdateMethod;
-using IFolderUpdater = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IFolderUpdater;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
     public class FolderUpdater : IFolderUpdater {
@@ -31,50 +29,37 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             }
 
             var hasSomethingBeenUpdated = false;
-            foreach(var updateStep in new[] { FolderUpdateSteps.NoPdbsNoJsonDependencies, FolderUpdateSteps.Pdbs, FolderUpdateSteps.JsonDependencies }) {
-                if (updateStep == FolderUpdateSteps.Pdbs && !hasSomethingBeenUpdated) {
-                    continue;
-                }
+            foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
+                var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
+                string updateReason;
+                if (File.Exists(destinationFileInfo.FullName)) {
+                    if (sourceFileInfo.Length == 0 && destinationFileInfo.Length == 0) { continue; }
 
-                foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
-                    switch (updateStep) {
-                        case FolderUpdateSteps.JsonDependencies when !vBinariesHelper.IsJsonDependencyFile(sourceFileInfo.FullName):
-                        case FolderUpdateSteps.Pdbs when !vBinariesHelper.IsPdbFile(sourceFileInfo.FullName):
-                        case FolderUpdateSteps.NoPdbsNoJsonDependencies when vBinariesHelper.IsJsonDependencyFile(sourceFileInfo.FullName) || vBinariesHelper.IsPdbFile(sourceFileInfo.Name):
-                            continue;
-                    }
-
-                    var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
-                    string updateReason;
-                    if (File.Exists(destinationFileInfo.FullName)) {
-                        if (sourceFileInfo.Length == 0 && destinationFileInfo.Length == 0) { continue; }
-
-                        if (sourceFileInfo.Length == destinationFileInfo.Length) {
-                            var sourceContents = File.ReadAllBytes(sourceFileInfo.FullName);
-                            var destinationContents = File.ReadAllBytes(destinationFileInfo.FullName);
-                            if (sourceContents.Length == destinationContents.Length) {
-                                if (vBinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
-                                    continue;
-                                }
-                            } else {
-                                updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceContents.Length, destinationContents.Length);
+                    if (sourceFileInfo.Length == destinationFileInfo.Length) {
+                        var sourceContents = File.ReadAllBytes(sourceFileInfo.FullName);
+                        var destinationContents = File.ReadAllBytes(destinationFileInfo.FullName);
+                        if (sourceContents.Length == destinationContents.Length) {
+                            if (vBinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
+                                continue;
                             }
                         } else {
-                            updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceFileInfo.Length, destinationFileInfo.Length);
+                            updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceContents.Length, destinationContents.Length);
                         }
                     } else {
-                        updateReason = string.Format(Properties.Resources.FileIsNew);
+                        updateReason = string.Format(Properties.Resources.FilesDifferInLength, sourceFileInfo.Length, destinationFileInfo.Length);
                     }
-
-                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.UpdatingFile, sourceFileInfo.Name) + ", " + updateReason);
-                    if (!string.IsNullOrEmpty(destinationFileInfo.DirectoryName) && !Directory.Exists(destinationFileInfo.DirectoryName)) {
-                        Directory.CreateDirectory(destinationFileInfo.DirectoryName);
-                    }
-
-                    if (!CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos)) { continue; }
-
-                    hasSomethingBeenUpdated = true;
+                } else {
+                    updateReason = string.Format(Properties.Resources.FileIsNew);
                 }
+
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.UpdatingFile, sourceFileInfo.Name) + ", " + updateReason);
+                if (!string.IsNullOrEmpty(destinationFileInfo.DirectoryName) && !Directory.Exists(destinationFileInfo.DirectoryName)) {
+                    Directory.CreateDirectory(destinationFileInfo.DirectoryName);
+                }
+
+                if (!CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos)) { continue; }
+
+                hasSomethingBeenUpdated = true;
             }
         }
 

@@ -4,8 +4,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
-using IFolderUpdater = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IFolderUpdater;
-using IJsonDepsDifferencer = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IJsonDepsDifferencer;
 // ReSharper disable UnusedMember.Global
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
@@ -19,7 +17,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
             builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
-            builder.RegisterType<JsonDepsDifferencer>().As<IJsonDepsDifferencer>();
             builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
             builder.RegisterType<CakeReinstaller>().As<ICakeReinstaller>();
             builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
@@ -32,7 +29,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
             services.AddTransient<IFolderUpdater, FolderUpdater>();
-            services.AddTransient<IJsonDepsDifferencer, JsonDepsDifferencer>();
             services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
             services.AddTransient<ICakeReinstaller, CakeReinstaller>();
             services.AddTransient<ICakeBuilder, CakeBuilder>();

@@ -8,7 +8,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces {
             FileInfo sourceFileInfo, bool hasSomethingBeenUpdated, FileSystemInfo destinationFileInfo, out string updateReason);
 
         bool IsBinary(string fileName);
-        bool IsJsonDependencyFile(string fileName);
         bool IsPdbFile(string fileName);
     }
 }
