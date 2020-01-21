@@ -48,6 +48,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
                 File.WriteAllText(destinationFolder.FullName + '\\' + changedBinary.FileName, "Old " + changedBinary.FileName);
                 File.WriteAllText(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName, "Unchanged " + changedBinary.FileName);
             }
+            File.WriteAllText(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
             var sut = vContainer.Resolve<IFolderUpdater>();
             sut.UpdateFolder(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -56,6 +57,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
                 Assert.AreEqual(changedBinary.FileName, File.ReadAllText(destinationFolder.FullName + '\\' + changedBinary.FileName));
                 Assert.AreEqual("Unchanged " + changedBinary.FileName, File.ReadAllText(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName));
             }
+            Assert.IsTrue(File.Exists(destinationFolder.FullName + @"\SomeNewFile.txt"));
+            Assert.AreEqual("SomeNewFile", File.ReadAllText(destinationFolder.FullName + @"\SomeNewFile.txt"));
         }
 
         private void CleanUpFolder(IFolder folder) {

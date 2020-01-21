@@ -113,6 +113,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos);
             }
+
+            foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*").Select(f => new FileInfo(f))) {
+                var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.Name);
+                if (destinationFileInfo.Exists) { continue; }
+
+                CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos);
+            }
         }
     }
 }
