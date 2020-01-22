@@ -107,7 +107,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                     var sourceFileName = binFolder.FullName + '\\' + shortFileName;
                     var destinationFileName = targetFolder.FullName + '\\' + shortFileName;
                     try {
-                        File.Copy(sourceFileName, destinationFileName);
+                        var destinationFolder = new Folder(destinationFileName.Substring(0, destinationFileName.LastIndexOf('\\')));
+                        destinationFolder.CreateIfNecessary();
+                        File.Copy(sourceFileName, destinationFileName, true);
                     } catch {
                         errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToCopy, sourceFileName, destinationFileName));
                     }
