@@ -20,7 +20,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         public FolderUpdaterTest() {
             vContainer = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
-            vWorkFolder = new Folder(Path.GetTempPath()).SubFolder(nameof(FolderUpdaterTest)).SubFolder(RepositoryId);
+            vWorkFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest)).SubFolder(RepositoryId);
         }
 
         [TestInitialize]

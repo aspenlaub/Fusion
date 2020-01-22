@@ -31,7 +31,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
             IList<BinaryToUpdate> changedBinaries;
 
-            var workFolder = new Folder(Path.GetTempPath()).SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
+            var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
             try {
                 CleanUpFolder(workFolder);
                 workFolder.CreateIfNecessary();
