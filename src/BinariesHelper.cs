@@ -15,6 +15,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return true;
             }
 
+            updateReason = string.Format(Properties.Resources.FilesHaveEqualLengthButNDifferences, differences);
             return folderUpdateMethod == FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged && IsBinary(sourceFileInfo.Name) && differences < 30 && sourceFileInfo.Length >= MinimumBinaryFileSizeInBytes;
         }
 

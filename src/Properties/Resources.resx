@@ -162,6 +162,9 @@
   <data name="FilesDifferInLength" xml:space="preserve">
     <value>Files differ in length (new {0}, old {1})</value>
   </data>
+  <data name="FilesHaveEqualLengthButNDifferences" xml:space="preserve">
+    <value>The files are equal in length but have {0} differences, which cannot be ignored</value>
+  </data>
   <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The files are equal in length but it cannot be ignored</value>
   </data>

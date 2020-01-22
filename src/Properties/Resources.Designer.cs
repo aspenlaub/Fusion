@@ -196,6 +196,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The files are equal in length but have {0} differences, which cannot be ignored.
+        /// </summary>
+        internal static string FilesHaveEqualLengthButNDifferences {
+            get {
+                return ResourceManager.GetString("FilesHaveEqualLengthButNDifferences", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The files are equal in length but it cannot be ignored.
         /// </summary>
         internal static string FilesHaveEqualLengthThatCannotBeIgnored {
