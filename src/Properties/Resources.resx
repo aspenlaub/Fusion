@@ -159,6 +159,9 @@
   <data name="FileIsNew" xml:space="preserve">
     <value>File is new</value>
   </data>
+  <data name="FileRenamedButOriginalStillExists" xml:space="preserve">
+    <value>"{0}" renamed into "{1}", but the original file still exists</value>
+  </data>
   <data name="FilesDifferInLength" xml:space="preserve">
     <value>Files differ in length (new {0}, old {1})</value>
   </data>

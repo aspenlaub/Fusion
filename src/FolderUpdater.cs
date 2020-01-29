@@ -1,6 +1,7 @@
 ﻿using System;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -82,6 +83,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                     var newNameForFileToBeOverwritten = NewNameForFileToBeOverwritten(destinationFileInfo.DirectoryName, destinationFileInfo.Name);
                     try {
                         File.Move(destinationFileInfo.FullName, newNameForFileToBeOverwritten);
+                        Thread.Sleep(TimeSpan.FromSeconds(1));
+                        if (File.Exists(destinationFileInfo.FullName)) {
+                            errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FileRenamedButOriginalStillExists, destinationFileInfo.Name, newNameForFileToBeOverwritten.Substring(newNameForFileToBeOverwritten.LastIndexOf('\\') + 1)));
+                            return false;
+                        }
                     } catch {
                         errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRename, destinationFileInfo.Name, newNameForFileToBeOverwritten.Substring(newNameForFileToBeOverwritten.LastIndexOf('\\') + 1)));
                         return false;

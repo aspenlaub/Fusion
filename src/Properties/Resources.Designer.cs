@@ -187,6 +187,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &quot;{0}&quot; renamed into &quot;{1}&quot;, but the original file still exists.
+        /// </summary>
+        internal static string FileRenamedButOriginalStillExists {
+            get {
+                return ResourceManager.GetString("FileRenamedButOriginalStillExists", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Files differ in length (new {0}, old {1}).
         /// </summary>
         internal static string FilesDifferInLength {
