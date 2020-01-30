@@ -31,9 +31,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
             IList<BinaryToUpdate> changedBinaries = new List<BinaryToUpdate>();
 
-            var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId).SubFolder(Guid.NewGuid().ToString());
+            var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
             try {
-                CleanUpFolder(workFolder, false, errorsAndInfos);
+                CleanUpFolder(workFolder, errorsAndInfos);
                 if (!errorsAndInfos.AnyErrors()) {
                     workFolder.CreateIfNecessary();
                     changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
@@ -45,22 +45,28 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 errorsAndInfos.Errors.Add(e.Message);
                 changedBinaries = new List<BinaryToUpdate>();
             } finally {
-                CleanUpFolder(workFolder, true, errorsAndInfos);
+                CleanUpFolder(workFolder, errorsAndInfos);
             }
 
             return changedBinaries;
         }
 
-        private void CleanUpFolder(IFolder folder, bool canLiveWithFailure, IErrorsAndInfos errorsAndInfos) {
+        private void CleanUpFolder(IFolder folder, IErrorsAndInfos errorsAndInfos) {
             if (!folder.Exists()) {
                 return;
             }
 
+            if (!vFolderDeleter.CanDeleteFolder(folder)) {
+                errorsAndInfos.Errors.Add($"Folder deleter refuses to delete {folder.FullName}");
+                return;
+            }
+
             try {
+                foreach (var file in Directory.GetFiles(folder.FullName, "*.*", SearchOption.AllDirectories)) {
+                    File.SetAttributes(file, FileAttributes.Normal);
+                }
                 vFolderDeleter.DeleteFolder(folder);
             } catch (Exception e) {
-                if (canLiveWithFailure) { return; }
-
                 errorsAndInfos.Errors.Add($"Could not delete {folder.FullName}");
                 errorsAndInfos.Errors.Add(e.Message);
             }
@@ -73,7 +79,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var currentTargetFolder = workFolder.SubFolder("Current");
 
             foreach (var previous in new[] { true, false}) {
-                CleanUpFolder(compileFolder, false, errorsAndInfos);
+                CleanUpFolder(compileFolder, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
                 compileFolder.CreateIfNecessary();
 
@@ -114,7 +120,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
                 var targetFolder = previous ? previousTargetFolder : currentTargetFolder;
                 var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
-                CleanUpFolder(targetFolder, false, folderCleanUpErrorsAndInfos);
+                CleanUpFolder(targetFolder, folderCleanUpErrorsAndInfos);
                 if (folderCleanUpErrorsAndInfos.AnyErrors()) {
                     errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
                     return changedBinaries;
