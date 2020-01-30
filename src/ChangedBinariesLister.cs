@@ -66,7 +66,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 compileFolder.CreateIfNecessary();
 
                 var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
-                vGitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
+                vGitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
                 var headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;
