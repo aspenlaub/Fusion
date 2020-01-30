@@ -29,29 +29,40 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         }
 
         public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
-            IList<BinaryToUpdate> changedBinaries;
+            IList<BinaryToUpdate> changedBinaries = new List<BinaryToUpdate>();
 
-            var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
+            var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId).SubFolder(Guid.NewGuid().ToString());
             try {
-                CleanUpFolder(workFolder);
-                workFolder.CreateIfNecessary();
-                changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
-                if (changedBinaries.Any()) {
-                    changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, false);
+                CleanUpFolder(workFolder, false, errorsAndInfos);
+                if (!errorsAndInfos.AnyErrors()) {
+                    workFolder.CreateIfNecessary();
+                    changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
+                    if (changedBinaries.Any()) {
+                        changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, false);
+                    }
                 }
             } catch (Exception e) {
                 errorsAndInfos.Errors.Add(e.Message);
                 changedBinaries = new List<BinaryToUpdate>();
             } finally {
-                CleanUpFolder(workFolder);
+                CleanUpFolder(workFolder, true, errorsAndInfos);
             }
 
             return changedBinaries;
         }
 
-        private void CleanUpFolder(IFolder folder) {
-            if (folder.Exists()) {
+        private void CleanUpFolder(IFolder folder, bool canLiveWithFailure, IErrorsAndInfos errorsAndInfos) {
+            if (!folder.Exists()) {
+                return;
+            }
+
+            try {
                 vFolderDeleter.DeleteFolder(folder);
+            } catch (Exception e) {
+                if (canLiveWithFailure) { return; }
+
+                errorsAndInfos.Errors.Add($"Could not delete {folder.FullName}");
+                errorsAndInfos.Errors.Add(e.Message);
             }
         }
 
@@ -62,7 +73,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var currentTargetFolder = workFolder.SubFolder("Current");
 
             foreach (var previous in new[] { true, false}) {
-                CleanUpFolder(compileFolder);
+                CleanUpFolder(compileFolder, false, errorsAndInfos);
+                if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
                 compileFolder.CreateIfNecessary();
 
                 var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
@@ -101,7 +113,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
                 var targetFolder = previous ? previousTargetFolder : currentTargetFolder;
-                CleanUpFolder(targetFolder);
+                var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
+                CleanUpFolder(targetFolder, false, folderCleanUpErrorsAndInfos);
+                if (folderCleanUpErrorsAndInfos.AnyErrors()) {
+                    errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
+                    return changedBinaries;
+                }
                 targetFolder.CreateIfNecessary();
                 foreach (var shortFileName in Directory.GetFiles(binFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => f.Substring(binFolder.FullName.Length + 1))) {
                     var sourceFileName = binFolder.FullName + '\\' + shortFileName;
