@@ -17,7 +17,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.4.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.0" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.0" />
-    <PackageReference Include="Nuclide" Version="2.0.194.1337" />
+    <PackageReference Include="Nuclide" Version="2.0.195.1343" />
     <PackageReference Include="SpecFlow.MsTest" Version="3.1.82" />
     <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.1.82" />
   </ItemGroup>
