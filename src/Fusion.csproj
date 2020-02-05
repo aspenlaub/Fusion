@@ -35,7 +35,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.196.576" />
+    <PackageReference Include="Nuclide" Version="2.0.196.932" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="4.7.0" />
   </ItemGroup>
   <ItemGroup>
