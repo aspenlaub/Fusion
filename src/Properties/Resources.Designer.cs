@@ -61,6 +61,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No release binaries changed between head tip sha &apos;{0}&apos; (pushed) and &apos;{1}&apos; (not pushed) -&gt; considering that one pushed to &apos;{2}&apos;.
+        /// </summary>
+        internal static string AddingEquivalentHeadTipSha {
+            get {
+                return ResourceManager.GetString("AddingEquivalentHeadTipSha", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Expected at least one file to commit and push.
         /// </summary>
         internal static string AtLeastOneFileExpected {
