@@ -140,15 +140,29 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 anyCopies = true;
             }
 
-            if (anyCopies) { return; }
-            if (!destinationFolder.FullName.Contains(@"\Release")) { return; }
+            if (anyCopies) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentDueToCopies, sourceHeadTipIdSha, destinationHeadTipIdSha));
+                return;
+            }
+
+            if (!destinationFolder.FullName.Contains(@"\Release")) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentCauseThisIsNotRelease, sourceHeadTipIdSha, destinationHeadTipIdSha));
+                return;
+            }
 
             foreach (var nugetFeed in nugetFeeds) {
                 var pushedHeadTipShas = vPushedHeadTipShaRepository.Get(nugetFeed.Id, errorsAndInfos);
                 if (errorsAndInfos.Errors.Any()) { return; }
 
-                if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) { return; }
-                if (!pushedHeadTipShas.Contains(sourceHeadTipIdSha)) { return; }
+                if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {
+                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, destinationHeadTipIdSha, nugetFeed.Id));
+                    continue;
+                }
+
+                if (!pushedHeadTipShas.Contains(sourceHeadTipIdSha)) {
+                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeed.Id));
+                    continue;
+                }
 
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeed.Id));
 

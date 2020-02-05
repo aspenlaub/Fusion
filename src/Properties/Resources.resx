@@ -132,6 +132,15 @@
   <data name="Building" xml:space="preserve">
     <value>Building '{0}' at head tip ID sha '{1}'</value>
   </data>
+  <data name="CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed" xml:space="preserve">
+    <value>Cannot make head tip sha '{0}' and '{1}' equivalent because the former has not been pushed to '{2}'</value>
+  </data>
+  <data name="CannotMakeHeadTipShasEquivalentCauseThisIsNotRelease" xml:space="preserve">
+    <value>This is not release, cannot make head tip sha '{0}' and '{1}' equivalent</value>
+  </data>
+  <data name="CannotMakeHeadTipShasEquivalentDueToCopies" xml:space="preserve">
+    <value>Files have been copied, cannot make head tip sha '{0}' and '{1}' equivalent</value>
+  </data>
   <data name="CanUpdatePackageFromTo" xml:space="preserve">
     <value>Could update package {0} from {1} to {2}</value>
   </data>
@@ -173,6 +182,9 @@
   </data>
   <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The files are equal in length but it cannot be ignored</value>
+  </data>
+  <data name="HeadTipShaHasAlreadyBeenPushed" xml:space="preserve">
+    <value>Head tip sha '{0}' has already been pushed to '{1}'</value>
   </data>
   <data name="JsonFilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The json files are equal in length but it cannot be ignored</value>

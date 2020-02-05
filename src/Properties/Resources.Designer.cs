@@ -106,6 +106,33 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot make head tip sha &apos;{0}&apos; and &apos;{1}&apos; equivalent because the former has not been pushed to &apos;{2}&apos;.
+        /// </summary>
+        internal static string CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed {
+            get {
+                return ResourceManager.GetString("CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to This is not release, cannot make head tip sha &apos;{0}&apos; and &apos;{1}&apos; equivalent.
+        /// </summary>
+        internal static string CannotMakeHeadTipShasEquivalentCauseThisIsNotRelease {
+            get {
+                return ResourceManager.GetString("CannotMakeHeadTipShasEquivalentCauseThisIsNotRelease", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Files have been copied, cannot make head tip sha &apos;{0}&apos; and &apos;{1}&apos; equivalent.
+        /// </summary>
+        internal static string CannotMakeHeadTipShasEquivalentDueToCopies {
+            get {
+                return ResourceManager.GetString("CannotMakeHeadTipShasEquivalentDueToCopies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could update package {0} from {1} to {2}.
         /// </summary>
         internal static string CanUpdatePackageFromTo {
@@ -228,6 +255,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string FilesHaveEqualLengthThatCannotBeIgnored {
             get {
                 return ResourceManager.GetString("FilesHaveEqualLengthThatCannotBeIgnored", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Head tip sha &apos;{0}&apos; has already been pushed to &apos;{1}&apos;.
+        /// </summary>
+        internal static string HeadTipShaHasAlreadyBeenPushed {
+            get {
+                return ResourceManager.GetString("HeadTipShaHasAlreadyBeenPushed", resourceCulture);
             }
         }
         
