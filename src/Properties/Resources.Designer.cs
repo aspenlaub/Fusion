@@ -286,6 +286,24 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No nuget feed id has been provided, therefore the head tip sha equivalence of &apos;{0}&apos; and &apos;{1}&apos; is not checked.
+        /// </summary>
+        internal static string NoNugetFeedIdThereforeNoEquivalenceCheck {
+            get {
+                return ResourceManager.GetString("NoNugetFeedIdThereforeNoEquivalenceCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The project does not push packages, therefore the head tip sha equivalence of &apos;{0}&apos; and &apos;{1}&apos; is not checked.
+        /// </summary>
+        internal static string NoPackagesThereforeNoEquivalenceCheck {
+            get {
+                return ResourceManager.GetString("NoPackagesThereforeNoEquivalenceCheck", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The number of files with uncommitted changes has changed. Expected {0}, got {1}.
         /// </summary>
         internal static string NumberOfFilesWithUncommittedChangesHasChanged {

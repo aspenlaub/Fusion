@@ -50,7 +50,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             }
             File.WriteAllText(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
             var sut = vContainer.Resolve<IFolderUpdater>();
-            sut.UpdateFolder(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, errorsAndInfos);
+            sut.UpdateFolder(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             foreach (var changedBinary in changedBinaries) {
                 Assert.AreEqual(changedBinary.FileName, File.ReadAllText(sourceFolder.FullName + '\\' + changedBinary.FileName));

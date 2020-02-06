@@ -192,6 +192,12 @@
   <data name="NoFileWithUncommittedChanges" xml:space="preserve">
     <value>There are no files with uncommitted changes</value>
   </data>
+  <data name="NoNugetFeedIdThereforeNoEquivalenceCheck" xml:space="preserve">
+    <value>No nuget feed id has been provided, therefore the head tip sha equivalence of '{0}' and '{1}' is not checked</value>
+  </data>
+  <data name="NoPackagesThereforeNoEquivalenceCheck" xml:space="preserve">
+    <value>The project does not push packages, therefore the head tip sha equivalence of '{0}' and '{1}' is not checked</value>
+  </data>
   <data name="NumberOfFilesWithUncommittedChangesHasChanged" xml:space="preserve">
     <value>The number of files with uncommitted changes has changed. Expected {0}, got {1}</value>
   </data>

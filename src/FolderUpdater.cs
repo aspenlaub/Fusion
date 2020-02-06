@@ -113,13 +113,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             return true;
         }
 
-        public void UpdateFolder(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder, IErrorsAndInfos errorsAndInfos) {
+        public void UpdateFolder(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
+                bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
             var changedBinaries = vChangedBinariesLister.ListChangedBinaries(repositoryId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return; }
-
-            var nugetFeedsSecret = new SecretNugetFeeds();
-            var nugetFeeds = vSecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos).Result;
-            if (errorsAndInfos.Errors.Any()) { return; }
 
             var anyCopies = false;
             foreach (var changedBinary in changedBinaries) {
@@ -145,30 +142,38 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return;
             }
 
-            if (!destinationFolder.FullName.Contains(@"\Release")) {
+            if (!forRelease) {
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentCauseThisIsNotRelease, sourceHeadTipIdSha, destinationHeadTipIdSha));
                 return;
             }
 
-            foreach (var nugetFeed in nugetFeeds) {
-                var pushedHeadTipShas = vPushedHeadTipShaRepository.Get(nugetFeed.Id, errorsAndInfos);
-                if (errorsAndInfos.Errors.Any()) { return; }
-
-                if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {
-                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, destinationHeadTipIdSha, nugetFeed.Id));
-                    continue;
-                }
-
-                if (!pushedHeadTipShas.Contains(sourceHeadTipIdSha)) {
-                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeed.Id));
-                    continue;
-                }
-
-                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeed.Id));
-
-                vPushedHeadTipShaRepository.Add(nugetFeed.Id, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
-                if (errorsAndInfos.Errors.Any()) { return; }
+            if (!createAndPushPackages) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.NoPackagesThereforeNoEquivalenceCheck, sourceHeadTipIdSha, destinationHeadTipIdSha));
+                return;
             }
+
+            if (string.IsNullOrEmpty(nugetFeedId)) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.NoNugetFeedIdThereforeNoEquivalenceCheck, sourceHeadTipIdSha, destinationHeadTipIdSha));
+                return;
+            }
+
+            var pushedHeadTipShas = vPushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos);
+            if (errorsAndInfos.Errors.Any()) { return; }
+
+            if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, destinationHeadTipIdSha, nugetFeedId));
+                return;
+            }
+
+            if (!pushedHeadTipShas.Contains(sourceHeadTipIdSha)) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeedId));
+                return;
+            }
+
+            errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeedId));
+
+            vPushedHeadTipShaRepository.Add(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
+            if (errorsAndInfos.Errors.Any()) { return; }
         }
     }
 }
