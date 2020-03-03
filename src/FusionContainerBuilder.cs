@@ -15,6 +15,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, ICsArgumentPrompter csArgumentPrompter) {
             builder.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
             builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
+            builder.RegisterType<NugetPackageToPushFinder>().As<INugetPackageToPushFinder>();
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
             builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
             builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
@@ -27,6 +28,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, ICsArgumentPrompter csArgumentPrompter) {
             services.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
             services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
+            services.AddTransient<INugetPackageToPushFinder, NugetPackageToPushFinder>();
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
             services.AddTransient<IFolderUpdater, FolderUpdater>();
             services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();

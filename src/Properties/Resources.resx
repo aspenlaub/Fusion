@@ -147,6 +147,12 @@
   <data name="CheckedOutBranchIsNotMaster" xml:space="preserve">
     <value>It is not the master branch that is checked out</value>
   </data>
+  <data name="CheckingProjectVsSolution" xml:space="preserve">
+    <value>Checking project ID against solution ID</value>
+  </data>
+  <data name="CheckingRemotePackageTag" xml:space="preserve">
+    <value>Checking remote package tag</value>
+  </data>
   <data name="CouldNotLoadProject" xml:space="preserve">
     <value>Could not load project "{0}"</value>
   </data>
@@ -171,6 +177,9 @@
   <data name="FileIsNew" xml:space="preserve">
     <value>File is new</value>
   </data>
+  <data name="FileNotFound" xml:space="preserve">
+    <value>File "{0}" not found</value>
+  </data>
   <data name="FileRenamedButOriginalStillExists" xml:space="preserve">
     <value>"{0}" renamed into "{1}", but the original file still exists</value>
   </data>
@@ -183,11 +192,41 @@
   <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The files are equal in length but it cannot be ignored</value>
   </data>
+  <data name="FoundLocalPackage" xml:space="preserve">
+    <value>Found local package {0}</value>
+  </data>
+  <data name="FoundRemotePackage" xml:space="preserve">
+    <value>Found remote package {0}</value>
+  </data>
   <data name="HeadTipShaHasAlreadyBeenPushed" xml:space="preserve">
     <value>Head tip sha '{0}' has already been pushed to '{1}'</value>
   </data>
+  <data name="HeadTipShaNotPushed" xml:space="preserve">
+    <value>Head tip sha {0} has not yet been pushed</value>
+  </data>
+  <data name="IdentifyingFeedUrl" xml:space="preserve">
+    <value>Identifying feed URL</value>
+  </data>
+  <data name="IdentifyingNugetFeed" xml:space="preserve">
+    <value>Identifying nuget feed</value>
+  </data>
+  <data name="IncompleteDeveloperSettings" xml:space="preserve">
+    <value>Incomplete 'DeveloperSettings'. Please update "{0}" in your SecretRepository</value>
+  </data>
   <data name="JsonFilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The json files are equal in length but it cannot be ignored</value>
+  </data>
+  <data name="LoadingNugetFeeds" xml:space="preserve">
+    <value>Loading nuget feeds</value>
+  </data>
+  <data name="LoadingProject" xml:space="preserve">
+    <value>Loading project</value>
+  </data>
+  <data name="LoadingPushedHeadTipShas" xml:space="preserve">
+    <value>Loading pushed head tip shas</value>
+  </data>
+  <data name="MissingDeveloperSettings" xml:space="preserve">
+    <value>Missing 'DeveloperSettings' secret. Open "{0}" in SecretSamples, modify it and save it in SecretRepository</value>
   </data>
   <data name="NoFileWithUncommittedChanges" xml:space="preserve">
     <value>There are no files with uncommitted changes</value>
@@ -195,8 +234,14 @@
   <data name="NoNugetFeedIdThereforeNoEquivalenceCheck" xml:space="preserve">
     <value>No nuget feed id has been provided, therefore the head tip sha equivalence of '{0}' and '{1}' is not checked</value>
   </data>
+  <data name="NoPackageFilesFound" xml:space="preserve">
+    <value>Folder "{0}" does not contain any packages</value>
+  </data>
   <data name="NoPackagesThereforeNoEquivalenceCheck" xml:space="preserve">
     <value>The project does not push packages, therefore the head tip sha equivalence of '{0}' and '{1}' is not checked</value>
+  </data>
+  <data name="NoRemotePackageFilesFound" xml:space="preserve">
+    <value>Feed "{0}" does not provide package "{1}"</value>
   </data>
   <data name="NumberOfFilesWithUncommittedChangesHasChanged" xml:space="preserve">
     <value>The number of files with uncommitted changes has changed. Expected {0}, got {1}</value>
@@ -213,14 +258,38 @@
   <data name="OwnerAndNameNotFound" xml:space="preserve">
     <value>Could not find owner and name of the remote repository</value>
   </data>
+  <data name="PackageAlreadyTaggedWithHeadTipSha" xml:space="preserve">
+    <value>The remote package is already tagged with the head tip sha</value>
+  </data>
+  <data name="PackageNeedsToBePushed" xml:space="preserve">
+    <value>The package needs to be pushed</value>
+  </data>
   <data name="PackageUpdates" xml:space="preserve">
     <value>Package/-s updated to most recent version</value>
+  </data>
+  <data name="ProjectFileNotFound" xml:space="preserve">
+    <value>There is no project file "{0}"</value>
   </data>
   <data name="RemoteNotFoundOrNotUnique" xml:space="preserve">
     <value>Remove repository not found or not unique</value>
   </data>
+  <data name="RemotePackageHasHigherOrEqualVersion" xml:space="preserve">
+    <value>The remote package version number is higher or equal to the version number of the local package</value>
+  </data>
   <data name="Restoring" xml:space="preserve">
     <value>Restoring nuget packages for '{0}' at head tip ID sha '{1}'</value>
+  </data>
+  <data name="SearchingLocalPackage" xml:space="preserve">
+    <value>Searching local package</value>
+  </data>
+  <data name="SearchingRemotePackage" xml:space="preserve">
+    <value>Searching remote package</value>
+  </data>
+  <data name="TagsAre" xml:space="preserve">
+    <value>Remote package tags are: "{0}"</value>
+  </data>
+  <data name="UnknownNugetFeed" xml:space="preserve">
+    <value>Unknown nuget feed '{0}', please add to "{1}" in your SecretRepository</value>
   </data>
   <data name="UpdatingFile" xml:space="preserve">
     <value>Updating "{0}"</value>
