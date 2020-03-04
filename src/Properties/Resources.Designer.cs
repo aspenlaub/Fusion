@@ -151,6 +151,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Checking if there are changed binaries between head tip shas &quot;{0}&quot; and &quot;{1}&quot;.
+        /// </summary>
+        internal static string CheckingIfThereAreChangedBinaries {
+            get {
+                return ResourceManager.GetString("CheckingIfThereAreChangedBinaries", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Checking project ID against solution ID.
         /// </summary>
         internal static string CheckingProjectVsSolution {
@@ -394,6 +403,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to No binaries have changed, there is no need to push.
+        /// </summary>
+        internal static string NoBinariesHaveChanged {
+            get {
+                return ResourceManager.GetString("NoBinariesHaveChanged", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to There are no files with uncommitted changes.
         /// </summary>
         internal static string NoFileWithUncommittedChanges {
@@ -525,6 +543,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string RemoteNotFoundOrNotUnique {
             get {
                 return ResourceManager.GetString("RemoteNotFoundOrNotUnique", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Remote package contains several tags: &quot;{0}&quot;.
+        /// </summary>
+        internal static string RemotePackageContainsSeveralTags {
+            get {
+                return ResourceManager.GetString("RemotePackageContainsSeveralTags", resourceCulture);
             }
         }
         

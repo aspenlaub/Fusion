@@ -9,9 +9,11 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
 using NuGet.Common;
+using NuGet.Packaging;
 using NuGet.Protocol;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
@@ -23,9 +25,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         private readonly IProjectFactory vProjectFactory;
         private readonly ISecretRepository vSecretRepository;
         private readonly IPushedHeadTipShaRepository vPushedHeadTipShaRepository;
+        private readonly IChangedBinariesLister vChangedBinariesLister;
 
         public NugetPackageToPushFinder(IFolderResolver folderResolver, IGitUtilities gitUtilities, INugetConfigReader nugetConfigReader, INugetFeedLister nugetFeedLister,
-                IProjectFactory projectFactory, IPushedHeadTipShaRepository pushedHeadTipShaRepository, ISecretRepository secretRepository) {
+                IProjectFactory projectFactory, IPushedHeadTipShaRepository pushedHeadTipShaRepository, ISecretRepository secretRepository, IChangedBinariesLister changedBinariesLister) {
             vFolderResolver = folderResolver;
             vGitUtilities = gitUtilities;
             vNugetConfigReader = nugetConfigReader;
@@ -33,6 +36,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             vProjectFactory = projectFactory;
             vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
             vSecretRepository = secretRepository;
+            vChangedBinariesLister = changedBinariesLister;
         }
 
         public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName, IErrorsAndInfos errorsAndInfos) {
@@ -113,7 +117,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
             var headTipIdSha = repositoryFolder == null ? "" : vGitUtilities.HeadTipIdSha(repositoryFolder);
             if (!string.IsNullOrWhiteSpace(headTipIdSha) && pushedHeadTipShas.Contains(headTipIdSha)) {
-                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaNotPushed, headTipIdSha));
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, headTipIdSha, nugetFeedId));
                 return packageToPush;
             }
 
@@ -128,9 +132,28 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var remotePackage = remotePackages.First(p => p.Identity.Version.Version == latestRemotePackageVersion);
             if (!string.IsNullOrEmpty(remotePackage.Tags) && !string.IsNullOrWhiteSpace(headTipIdSha)) {
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.TagsAre, remotePackage.Tags));
-                var tags = remotePackage.Tags.Split(' ');
+                var tags = remotePackage.Tags.Split(' ').ToList();
                 if (tags.Contains(headTipIdSha)) {
                     errorsAndInfos.Infos.Add(string.Format(Properties.Resources.PackageAlreadyTaggedWithHeadTipSha, headTipIdSha));
+                    return packageToPush;
+                }
+
+                if (tags.Count != 1) {
+                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.RemotePackageContainsSeveralTags, tags));
+                    return packageToPush;
+                }
+
+                var tag = tags[0];
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
+                var listerErrorsAndInfos = new ErrorsAndInfos();
+                var changedBinaries = vChangedBinariesLister.ListChangedBinaries(packageId, headTipIdSha, tag, listerErrorsAndInfos);
+                if (listerErrorsAndInfos.AnyErrors()) {
+                    errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
+                    errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);
+                    return packageToPush;
+                }
+                if (!changedBinaries.Any()) {
+                    errorsAndInfos.Infos.Add(string.Format(Properties.Resources.NoBinariesHaveChanged));
                     return packageToPush;
                 }
             }

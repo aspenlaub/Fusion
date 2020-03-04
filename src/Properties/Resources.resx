@@ -147,6 +147,9 @@
   <data name="CheckedOutBranchIsNotMaster" xml:space="preserve">
     <value>It is not the master branch that is checked out</value>
   </data>
+  <data name="CheckingIfThereAreChangedBinaries" xml:space="preserve">
+    <value>Checking if there are changed binaries between head tip shas "{0}" and "{1}"</value>
+  </data>
   <data name="CheckingProjectVsSolution" xml:space="preserve">
     <value>Checking project ID against solution ID</value>
   </data>
@@ -228,6 +231,9 @@
   <data name="MissingDeveloperSettings" xml:space="preserve">
     <value>Missing 'DeveloperSettings' secret. Open "{0}" in SecretSamples, modify it and save it in SecretRepository</value>
   </data>
+  <data name="NoBinariesHaveChanged" xml:space="preserve">
+    <value>No binaries have changed, there is no need to push</value>
+  </data>
   <data name="NoFileWithUncommittedChanges" xml:space="preserve">
     <value>There are no files with uncommitted changes</value>
   </data>
@@ -272,6 +278,9 @@
   </data>
   <data name="RemoteNotFoundOrNotUnique" xml:space="preserve">
     <value>Remove repository not found or not unique</value>
+  </data>
+  <data name="RemotePackageContainsSeveralTags" xml:space="preserve">
+    <value>Remote package contains several tags: "{0}"</value>
   </data>
   <data name="RemotePackageHasHigherOrEqualVersion" xml:space="preserve">
     <value>The remote package version number is higher or equal to the version number of the local package</value>
