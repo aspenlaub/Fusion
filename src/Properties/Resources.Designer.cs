@@ -106,15 +106,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to But that file actually does not exist.
-        /// </summary>
-        internal static string ButThatFileDoesNotExist {
-            get {
-                return ResourceManager.GetString("ButThatFileDoesNotExist", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot make head tip sha &apos;{0}&apos; and &apos;{1}&apos; equivalent because the former has not been pushed to &apos;{2}&apos;.
         /// </summary>
         internal static string CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed {

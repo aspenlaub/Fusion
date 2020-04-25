@@ -34,12 +34,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
             var hasSomethingBeenUpdated = false;
             foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
-                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.FoundFile, sourceFileInfo.FullName));
-                if (!File.Exists(sourceFileInfo.FullName)) {
-                    errorsAndInfos.Errors.Add(Properties.Resources.ButThatFileDoesNotExist);
-                    continue;
-                }
-
                 var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
                 string updateReason;
                 if (File.Exists(destinationFileInfo.FullName)) {
@@ -124,9 +118,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             var anyCopies = false;
             foreach (var changedBinary in changedBinaries) {
                 var sourceFileInfo = new FileInfo(sourceFolder.FullName + '\\' + changedBinary.FileName);
-                var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + changedBinary.FileName);
+                if (!File.Exists(sourceFileInfo.FullName)) {
+                    continue;
+                }
 
-                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.UpdatingFile, sourceFileInfo.Name) + ", " + changedBinary.UpdateReason);
+                var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + changedBinary.FileName);
 
                 CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos);
                 anyCopies = true;

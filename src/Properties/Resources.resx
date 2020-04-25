@@ -132,9 +132,6 @@
   <data name="Building" xml:space="preserve">
     <value>Building '{0}' at head tip ID sha '{1}'</value>
   </data>
-  <data name="ButThatFileDoesNotExist" xml:space="preserve">
-    <value>But that file actually does not exist</value>
-  </data>
   <data name="CannotMakeHeadTipShasEquivalentCauseSourceHasNotBeenPushed" xml:space="preserve">
     <value>Cannot make head tip sha '{0}' and '{1}' equivalent because the former has not been pushed to '{2}'</value>
   </data>
