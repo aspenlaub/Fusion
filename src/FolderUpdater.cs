@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -13,13 +12,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
         private readonly IBinariesHelper vBinariesHelper;
         private readonly IChangedBinariesLister vChangedBinariesLister;
         private readonly IPushedHeadTipShaRepository vPushedHeadTipShaRepository;
-        private readonly ISecretRepository vSecretRepository;
 
-        public FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesLister changedBinariesLister, IPushedHeadTipShaRepository  pushedHeadTipShaRepository, ISecretRepository secretRepository) {
+        public FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesLister changedBinariesLister, IPushedHeadTipShaRepository  pushedHeadTipShaRepository) {
             vBinariesHelper = binariesHelper;
             vChangedBinariesLister = changedBinariesLister;
             vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
-            vSecretRepository = secretRepository;
         }
 
         public void UpdateFolder(IFolder sourceFolder, IFolder destinationFolder, FolderUpdateMethod folderUpdateMethod, IErrorsAndInfos errorsAndInfos) {
@@ -37,6 +34,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
             var hasSomethingBeenUpdated = false;
             foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
+                errorsAndInfos.Infos.Add(string.Format(Properties.Resources.FoundFile, sourceFileInfo.FullName));
+                if (!File.Exists(sourceFileInfo.FullName)) {
+                    errorsAndInfos.Errors.Add(Properties.Resources.ButThatFileDoesNotExist);
+                    continue;
+                }
+
                 var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
                 string updateReason;
                 if (File.Exists(destinationFileInfo.FullName)) {
@@ -173,7 +176,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeedId));
 
             vPushedHeadTipShaRepository.Add(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
-            if (errorsAndInfos.Errors.Any()) { return; }
         }
     }
 }
