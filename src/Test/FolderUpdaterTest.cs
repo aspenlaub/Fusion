@@ -38,7 +38,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var lister = vContainer.Resolve<IChangedBinariesLister>();
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = lister.ListChangedBinaries(RepositoryId, BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
-            Assert.AreEqual(2, changedBinaries.Count);
+            Assert.AreEqual(3, changedBinaries.Count);
             var sourceFolder = vWorkFolder.SubFolder("Source");
             sourceFolder.CreateIfNecessary();
             var destinationFolder = vWorkFolder.SubFolder("Destination");

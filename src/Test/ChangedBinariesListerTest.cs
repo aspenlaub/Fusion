@@ -36,8 +36,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = sut.ListChangedBinaries("Pegh", BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            Assert.AreEqual(2, changedBinaries.Count);
+            Assert.AreEqual(3, changedBinaries.Count);
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll"));
+            Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.pdb"));
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.deps.json"));
         }
     }
