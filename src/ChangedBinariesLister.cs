@@ -126,7 +126,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                     return changedBinaries;
                 }
                 targetFolder.CreateIfNecessary();
-                foreach (var shortFileName in Directory.GetFiles(binFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => f.Substring(binFolder.FullName.Length + 1))) {
+                var shortFileNames = Directory.GetFiles(binFolder.FullName, "*.*", SearchOption.AllDirectories)
+                    .Where(f => !f.StartsWith(binFolder.FullName + @"\ref\"))
+                    .Select(f => f.Substring(binFolder.FullName.Length + 1));
+                foreach (var shortFileName in shortFileNames) {
                     var sourceFileName = binFolder.FullName + '\\' + shortFileName;
                     var destinationFileName = targetFolder.FullName + '\\' + shortFileName;
                     try {
