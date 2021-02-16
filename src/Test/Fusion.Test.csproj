@@ -19,9 +19,9 @@
     <PackageReference Include="Moq" Version="4.16.0" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.1.2" />
     <PackageReference Include="MSTest.TestFramework" Version="2.1.2" />
-    <PackageReference Include="Nuclide" Version="2.0.541.503" />
-    <PackageReference Include="SpecFlow.MsTest" Version="3.6.23" />
-    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.6.23" />
+    <PackageReference Include="Nuclide" Version="2.0.573.1222" />
+    <PackageReference Include="SpecFlow.MsTest" Version="3.7.13" />
+    <PackageReference Include="SpecFlow.Tools.MsBuild.Generation" Version="3.7.13" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fusion.csproj" />
