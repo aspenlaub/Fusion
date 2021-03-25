@@ -67,7 +67,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             ChabStandardTarget.Delete();
         }
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public async Task CanFindNugetPackagesToPushForPakled() {
             var errorsAndInfos = new ErrorsAndInfos();
 
@@ -139,7 +139,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
 
-        [TestMethod]
+        [TestMethod, Ignore]
         public async Task CanFindNugetPackagesToPushForChabStandard() {
             var errorsAndInfos = new ErrorsAndInfos();
             var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
