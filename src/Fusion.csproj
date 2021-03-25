@@ -31,15 +31,12 @@
     <None Remove="packageicon.png" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="packageicon.ico">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="packageicon.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.610.1000" />
+    <PackageReference Include="Nuclide" Version="2.0.610.1151" />
     <PackageReference Include="System.ComponentModel.Annotations" Version="5.0.0" />
   </ItemGroup>
   <ItemGroup>
