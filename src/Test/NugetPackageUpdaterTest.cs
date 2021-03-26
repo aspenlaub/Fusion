@@ -19,7 +19,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
     public class NugetPackageUpdaterTest {
         private static readonly TestTargetFolder PakledConsumerCoreTarget = new TestTargetFolder(nameof(NugetPackageUpdaterTest), "PakledConsumerCore");
-        private const string PakledConsumerCoreHeadTipSha = "a1e7e4ce2906ce52ff48e7b102bd4d4522d66c97"; // Before PakledCoreUpdate
+        private const string PakledConsumerCoreHeadTipSha = "a1e7e4ce2906ce52ff48e7b102bd4d4522d66c97"; // Before PakledCore update
+        private const string PakledCoreVersion = "2.0.610.1192"; // Before PakledCore update
         private static IContainer vContainer;
         private static TestTargetInstaller vTargetInstaller;
 
@@ -55,7 +56,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsTrue(yesNo);
-            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains("package PakledCore from 2.0.169.487")));
+            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package PakledCore from {PakledCoreVersion}")));
         }
 
         [TestMethod]
