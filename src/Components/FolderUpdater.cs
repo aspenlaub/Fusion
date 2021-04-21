@@ -7,7 +7,7 @@ using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class FolderUpdater : IFolderUpdater {
         private readonly IBinariesHelper vBinariesHelper;
         private readonly IChangedBinariesLister vChangedBinariesLister;

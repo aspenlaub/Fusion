@@ -12,7 +12,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
 using NuGet.Packaging;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class ChangedBinariesLister : IChangedBinariesLister {
         private readonly IBinariesHelper vBinariesHelper;
         private readonly ICakeBuilder vCakeBuilder;

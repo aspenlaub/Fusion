@@ -5,7 +5,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Gitty.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
@@ -15,7 +14,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Microsoft.Extensions.Logging;
 using NuGet.Protocol.Core.Types;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class NugetPackageUpdater : INugetPackageUpdater {
         private readonly IGitUtilities vGitUtilities;
         private readonly IProcessRunner vProcessRunner;
@@ -120,7 +119,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
 
                 foreach (var id in dependencyIdsAndVersions.Select(dependencyIdsAndVersion => dependencyIdsAndVersion.Key).Where(id => manuallyUpdatedPackages.All(p => p.Id != id))) {
                     vSimpleLogger.LogInformation($"Updating dependency {id}");
-                    var projectFileFolder = projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\'));
+                    var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
                     vProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
                     vProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
                 }
@@ -199,7 +198,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 }
 
                 var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
-                if (latestRemotePackageVersion <= version || latestRemotePackageVersion.ToString().StartsWith(version.ToString())) {
+                if (latestRemotePackageVersion <= version || latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) == true) {
                     continue;
                 }
 

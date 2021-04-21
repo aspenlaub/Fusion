@@ -4,8 +4,8 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
-using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Autofac;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]

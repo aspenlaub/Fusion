@@ -1,9 +1,10 @@
-﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Autofac;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using Autofac;
+using Microsoft.Extensions.DependencyInjection;
 // ReSharper disable UnusedMember.Global
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
@@ -19,7 +20,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
             builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
             builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
-            builder.RegisterType<CakeReinstaller>().As<ICakeReinstaller>();
             builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
             builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
             return builder;
@@ -32,7 +32,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
             services.AddTransient<IFolderUpdater, FolderUpdater>();
             services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
-            services.AddTransient<ICakeReinstaller, CakeReinstaller>();
             services.AddTransient<ICakeBuilder, CakeBuilder>();
             services.AddTransient<IBinariesHelper, BinariesHelper>();
             return services;

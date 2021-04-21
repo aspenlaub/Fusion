@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Gitty;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
@@ -10,10 +11,9 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Autofac;
 using LibGit2Sharp;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using IContainer = Autofac.IContainer;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
@@ -22,15 +22,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         private const string PakledConsumerCoreHeadTipSha = "a1e7e4ce2906ce52ff48e7b102bd4d4522d66c97"; // Before PakledCore update
         private const string PakledCoreVersion = "2.0.610.1192"; // Before PakledCore update
         private static IContainer vContainer;
-        private static TestTargetInstaller vTargetInstaller;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context) {
             vContainer = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
-            vTargetInstaller = vContainer.Resolve<TestTargetInstaller>();
-            vTargetInstaller.DeleteCakeFolder(PakledConsumerCoreTarget);
-            vTargetInstaller.CreateCakeFolder(PakledConsumerCoreTarget, out var errorsAndInfos);
-            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
 
         [TestInitialize]

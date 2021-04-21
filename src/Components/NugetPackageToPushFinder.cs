@@ -16,7 +16,7 @@ using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Protocol;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class NugetPackageToPushFinder : INugetPackageToPushFinder {
         private readonly IFolderResolver vFolderResolver;
         private readonly IGitUtilities vGitUtilities;
@@ -161,7 +161,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             errorsAndInfos.Infos.Add(Properties.Resources.PackageNeedsToBePushed);
             packageToPush.PackageFileFullName = packageFolderWithBinaries.FullName + @"\" + packageId + "." + latestLocalPackageVersion + ".nupkg";
             packageToPush.Id = packageId;
-            packageToPush.Version = latestLocalPackageVersion.ToString();
+            packageToPush.Version = latestLocalPackageVersion?.ToString();
             if (File.Exists(packageToPush.PackageFileFullName)) {
                 return packageToPush;
             }

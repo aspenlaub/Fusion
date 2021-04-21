@@ -1,5 +1,5 @@
 ﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
+using Aspenlaub.Net.GitHub.CSharp.Gitty;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;

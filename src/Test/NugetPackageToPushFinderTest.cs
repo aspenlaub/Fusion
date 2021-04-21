@@ -3,9 +3,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Components;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities.Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
@@ -15,11 +17,10 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Protch;
 using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
-using Autofac;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using IContainer = Autofac.IContainer;
+using Autofac;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
@@ -27,8 +28,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         protected static TestTargetFolder PakledCoreTarget = new TestTargetFolder(nameof(NugetPackageToPushFinderTest), "PakledCore");
         protected static TestTargetFolder ChabStandardTarget = new TestTargetFolder(nameof(NugetPackageToPushFinderTest), "ChabStandard");
         private static IContainer vContainer, vContainerWithMockedPushedHeadTipShaRepository;
-        protected static TestTargetInstaller TargetInstaller;
-        protected static TestTargetRunner TargetRunner;
+        protected static ITestTargetRunner TargetRunner;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context) {
@@ -36,23 +36,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter());
             var pushedHeadTipShaRepositoryMock = new Mock<IPushedHeadTipShaRepository>();
             pushedHeadTipShaRepositoryMock.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<IErrorsAndInfos>())).Returns(new List<string>());
-            containerBuilder.RegisterInstance<IPushedHeadTipShaRepository>(pushedHeadTipShaRepositoryMock.Object);
+            containerBuilder.RegisterInstance(pushedHeadTipShaRepositoryMock.Object);
             vContainerWithMockedPushedHeadTipShaRepository = containerBuilder.Build();
 
-            TargetInstaller = vContainer.Resolve<TestTargetInstaller>();
-            TargetRunner = vContainer.Resolve<TestTargetRunner>();
-            TargetInstaller.DeleteCakeFolder(PakledCoreTarget);
-            TargetInstaller.CreateCakeFolder(PakledCoreTarget, out var errorsAndInfos);
-            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            TargetInstaller.DeleteCakeFolder(ChabStandardTarget);
-            TargetInstaller.CreateCakeFolder(ChabStandardTarget, out errorsAndInfos);
-            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        }
-
-        [ClassCleanup]
-        public static void ClassCleanup() {
-            TargetInstaller.DeleteCakeFolder(PakledCoreTarget);
-            TargetInstaller.DeleteCakeFolder(ChabStandardTarget);
+            TargetRunner = vContainer.Resolve<ITestTargetRunner>();
         }
 
         [TestInitialize]

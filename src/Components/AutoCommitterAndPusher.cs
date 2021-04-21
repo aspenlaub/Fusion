@@ -9,7 +9,7 @@ using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using LibGit2Sharp;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
         private readonly IGitUtilities vGitUtilities;
         private readonly ISecretRepository vSecretRepository;
@@ -90,47 +90,50 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
                 return;
             }
 
-            using (var repo = new Repository(repositoryFolder.FullName)) {
-                var remotes = repo.Network.Remotes.ToList();
-                if (remotes.Count != 1) {
-                    errorsAndInfos.Errors.Add(Properties.Resources.RemoteNotFoundOrNotUnique);
-                    return;
-                }
+            using var repo = new Repository(repositoryFolder.FullName);
 
-                var remote = remotes[0];
-
-                files.ForEach(f => Commands.Stage(repo, f));
-
-                var checkFiles = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
-                if (onlyIfNecessary && !checkFiles.Any()) { return; }
-
-                if (checkFiles.Count != files.Count) {
-                    errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NumberOfFilesWithUncommittedChangesHasChanged,
-                        string.Join(", ", files), string.Join(", ", checkFiles)));
-                    return;
-                }
-
-                var author = new Signature(personalAccessToken.TokenName, personalAccessToken.Email, DateTime.Now);
-                var committer = author;
-                repo.Commit(commitMessage, author, committer);
-
-                var options = new PushOptions {
-                    CredentialsProvider = (aUrl, aUserNameFromUrl, someTypes) => new UsernamePasswordCredentials {
-                        Username = owner,
-                        Password = personalAccessToken.Token
-                    }
-                };
-
-                repo.Network.Push(remote, @"refs/heads/" + branchName, options);
-
-                if (!noRebuildRequired) { return; }
-
-                var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
-                if (!pushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
-
-                var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
-                pushedHeadTipShaRepository.Add(nugetFeedId, headTipSha, errorsAndInfos);
+            var remotes = repo.Network.Remotes.ToList();
+            if (remotes.Count != 1) {
+                errorsAndInfos.Errors.Add(Properties.Resources.RemoteNotFoundOrNotUnique);
+                return;
             }
+
+            var remote = remotes[0];
+
+            files.ForEach(f => {
+                // ReSharper disable once AccessToDisposedClosure
+                Commands.Stage(repo, f);
+            });
+
+            var checkFiles = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+            if (onlyIfNecessary && !checkFiles.Any()) { return; }
+
+            if (checkFiles.Count != files.Count) {
+                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NumberOfFilesWithUncommittedChangesHasChanged,
+                    string.Join(", ", files), string.Join(", ", checkFiles)));
+                return;
+            }
+
+            var author = new Signature(personalAccessToken.TokenName, personalAccessToken.Email, DateTime.Now);
+            var committer = author;
+            repo.Commit(commitMessage, author, committer);
+
+            var options = new PushOptions {
+                CredentialsProvider = (_, _, _) => new UsernamePasswordCredentials {
+                    Username = owner,
+                    Password = personalAccessToken.Token
+                }
+            };
+
+            repo.Network.Push(remote, @"refs/heads/" + branchName, options);
+
+            if (!noRebuildRequired) { return; }
+
+            var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
+            if (!pushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
+
+            var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
+            pushedHeadTipShaRepository.Add(nugetFeedId, headTipSha, errorsAndInfos);
         }
     }
 }

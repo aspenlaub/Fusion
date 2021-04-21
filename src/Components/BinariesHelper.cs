@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class BinariesHelper : IBinariesHelper {
         private const int MinimumBinaryFileSizeInBytes = 4000;
 
