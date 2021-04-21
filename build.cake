@@ -2,7 +2,7 @@
 #addin nuget:?package=Cake.Git
 #addin nuget:?package=System.Runtime.Loader
 #addin nuget:?package=Microsoft.Bcl.AsyncInterfaces
-#addin nuget:?package=FusionNet&loaddependencies=true&version=2.0.637.460
+#addin nuget:?package=Fusion&loaddependencies=true&version=2.0.637.629
 
 using Regex = System.Text.RegularExpressions.Regex;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,21 +12,21 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
-using Aspenlaub.Net.GitHub.CSharp.GittyNet;
-using Aspenlaub.Net.GitHub.CSharp.GittyNet.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.GittyNet.Entities;
-using Aspenlaub.Net.GitHub.CSharp.GittyNet.Components;
-using Aspenlaub.Net.GitHub.CSharp.ProtchNet;
-using Aspenlaub.Net.GitHub.CSharp.ProtchNet.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.ProtchNet.Entities;
-using Aspenlaub.Net.GitHub.CSharp.NuclideNet;
-using Aspenlaub.Net.GitHub.CSharp.NuclideNet.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.NuclideNet.Entities;
-using Aspenlaub.Net.GitHub.CSharp.NuclideNet.Components;
-using Aspenlaub.Net.GitHub.CSharp.FusionNet;
-using Aspenlaub.Net.GitHub.CSharp.FusionNet.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.FusionNet.Components;
-using FolderUpdateMethod = Aspenlaub.Net.GitHub.CSharp.FusionNet.Interfaces.FolderUpdateMethod;
+using Aspenlaub.Net.GitHub.CSharp.Gitty;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Components;
+using Aspenlaub.Net.GitHub.CSharp.Protch;
+using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Protch.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Nuclide.Components;
+using Aspenlaub.Net.GitHub.CSharp.Fusion;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
+using FolderUpdateMethod = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.FolderUpdateMethod;
 
 masterDebugBinFolder = MakeAbsolute(Directory(masterDebugBinFolder)).FullPath;
 masterReleaseBinFolder = MakeAbsolute(Directory(masterReleaseBinFolder)).FullPath;
