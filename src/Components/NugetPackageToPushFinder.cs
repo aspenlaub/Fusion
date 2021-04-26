@@ -82,7 +82,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             }
 
             errorsAndInfos.Infos.Add(Properties.Resources.IdentifyingFeedUrl);
-            var source = nugetFeed.UrlOrResolvedFolder(vFolderResolver, errorsAndInfos);
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(vFolderResolver, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
             packageToPush.FeedUrl = source;
@@ -112,7 +112,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             }
 
             errorsAndInfos.Infos.Add(Properties.Resources.LoadingPushedHeadTipShas);
-            var pushedHeadTipShas = vPushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos);
+            var pushedHeadTipShas = await vPushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
             var headTipIdSha = repositoryFolder == null ? "" : vGitUtilities.HeadTipIdSha(repositoryFolder);

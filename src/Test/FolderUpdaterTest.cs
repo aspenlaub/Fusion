@@ -1,4 +1,5 @@
 ﻿using System.IO;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
@@ -34,7 +35,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         }
 
         [TestMethod]
-        public void CanListAndCopyChangedBinaries() {
+        public async Task CanListAndCopyChangedBinaries() {
             var lister = vContainer.Resolve<IChangedBinariesLister>();
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = lister.ListChangedBinaries(RepositoryId, BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
@@ -44,21 +45,21 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var destinationFolder = vWorkFolder.SubFolder("Destination");
             destinationFolder.CreateIfNecessary();
             foreach (var changedBinary in changedBinaries) {
-                File.WriteAllText(sourceFolder.FullName + '\\' + changedBinary.FileName, changedBinary.FileName);
-                File.WriteAllText(destinationFolder.FullName + '\\' + changedBinary.FileName, "Old " + changedBinary.FileName);
-                File.WriteAllText(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName, "Unchanged " + changedBinary.FileName);
+                await File.WriteAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName, changedBinary.FileName);
+                await File.WriteAllTextAsync(destinationFolder.FullName + '\\' + changedBinary.FileName, "Old " + changedBinary.FileName);
+                await File.WriteAllTextAsync(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName, "Unchanged " + changedBinary.FileName);
             }
-            File.WriteAllText(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
+            await File.WriteAllTextAsync(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
             var sut = vContainer.Resolve<IFolderUpdater>();
-            sut.UpdateFolder(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
+            await sut.UpdateFolderAsync(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             foreach (var changedBinary in changedBinaries) {
-                Assert.AreEqual(changedBinary.FileName, File.ReadAllText(sourceFolder.FullName + '\\' + changedBinary.FileName));
-                Assert.AreEqual(changedBinary.FileName, File.ReadAllText(destinationFolder.FullName + '\\' + changedBinary.FileName));
-                Assert.AreEqual("Unchanged " + changedBinary.FileName, File.ReadAllText(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName));
+                Assert.AreEqual(changedBinary.FileName, await File.ReadAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName));
+                Assert.AreEqual(changedBinary.FileName, await File.ReadAllTextAsync(destinationFolder.FullName + '\\' + changedBinary.FileName));
+                Assert.AreEqual("Unchanged " + changedBinary.FileName, await File.ReadAllTextAsync(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName));
             }
             Assert.IsTrue(File.Exists(destinationFolder.FullName + @"\SomeNewFile.txt"));
-            Assert.AreEqual("SomeNewFile", File.ReadAllText(destinationFolder.FullName + @"\SomeNewFile.txt"));
+            Assert.AreEqual("SomeNewFile", await File.ReadAllTextAsync(destinationFolder.FullName + @"\SomeNewFile.txt"));
         }
 
         private void CleanUpFolder(IFolder folder) {

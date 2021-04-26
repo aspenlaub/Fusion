@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
@@ -110,7 +111,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             return true;
         }
 
-        public void UpdateFolder(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
+        public async Task UpdateFolderAsync(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
                 bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
             var changedBinaries = vChangedBinariesLister.ListChangedBinaries(repositoryId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return; }
@@ -156,7 +157,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 return;
             }
 
-            var pushedHeadTipShas = vPushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos);
+            var pushedHeadTipShas = await vPushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return; }
 
             if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {
@@ -171,7 +172,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeedId));
 
-            vPushedHeadTipShaRepository.Add(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
+            await vPushedHeadTipShaRepository.AddAsync(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
         }
     }
 }

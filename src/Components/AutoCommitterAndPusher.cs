@@ -130,10 +130,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             if (!noRebuildRequired) { return; }
 
             var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
-            if (!pushedHeadTipShaRepository.Get(nugetFeedId, errorsAndInfos).Contains(headTipShaBeforePush)) { return; }
+            if (!(await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos)).Contains(headTipShaBeforePush)) { return; }
 
             var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
-            pushedHeadTipShaRepository.Add(nugetFeedId, headTipSha, errorsAndInfos);
+            await pushedHeadTipShaRepository.AddAsync(nugetFeedId, headTipSha, errorsAndInfos);
         }
     }
 }

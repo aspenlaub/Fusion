@@ -35,7 +35,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             vContainer = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
             var containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter());
             var pushedHeadTipShaRepositoryMock = new Mock<IPushedHeadTipShaRepository>();
-            pushedHeadTipShaRepositoryMock.Setup(r => r.Get(It.IsAny<string>(), It.IsAny<IErrorsAndInfos>())).Returns(new List<string>());
+            pushedHeadTipShaRepositoryMock.Setup(r => r.GetAsync(It.IsAny<string>(), It.IsAny<IErrorsAndInfos>())).Returns(Task.FromResult(new List<string>()));
             containerBuilder.RegisterInstance(pushedHeadTipShaRepositoryMock.Object);
             vContainerWithMockedPushedHeadTipShaRepository = containerBuilder.Build();
 
@@ -68,7 +68,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var sut = vContainer.Resolve<INugetPackageToPushFinder>();
             var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, PakledCoreTarget.Folder().ParentFolder().SubFolder(PakledCoreTarget.SolutionId + @"Bin\Release"), PakledCoreTarget.Folder(), PakledCoreTarget.Folder().SubFolder("src").FullName + @"\" + PakledCoreTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            var source = nugetFeed.UrlOrResolvedFolder(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(source, packageToPush.FeedUrl);
         }
@@ -141,14 +141,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var sut = vContainer.Resolve<INugetPackageToPushFinder>();
             var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabStandardTarget.Folder().ParentFolder().SubFolder(ChabStandardTarget.SolutionId + @"Bin\Release"), ChabStandardTarget.Folder(), ChabStandardTarget.Folder().SubFolder("src").FullName + @"\" + ChabStandardTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            var source = nugetFeed.UrlOrResolvedFolder(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(source, packageToPush.FeedUrl);
 
             sut = vContainerWithMockedPushedHeadTipShaRepository.Resolve<INugetPackageToPushFinder>();
             packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabStandardTarget.Folder().ParentFolder().SubFolder(ChabStandardTarget.SolutionId + @"Bin\Release"), ChabStandardTarget.Folder(), ChabStandardTarget.Folder().SubFolder("src").FullName + @"\" + ChabStandardTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            source = nugetFeed.UrlOrResolvedFolder(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
+            source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(source, packageToPush.FeedUrl);
         }
