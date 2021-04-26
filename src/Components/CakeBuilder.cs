@@ -31,7 +31,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 "});",
                 "RunTarget(\"Build\");"
             };
-            var folder = new Folder(Path.GetTempPath()).SubFolder(nameof(CakeBuilder));
+            var folder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(CakeBuilder));
             folder.CreateIfNecessary();
             var cakeFileName = folder.FullName + @"\" + "build-" + Guid.NewGuid() + ".cake";
             File.WriteAllText(cakeFileName, string.Join("\r\n", cakeScript));
