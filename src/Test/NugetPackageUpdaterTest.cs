@@ -18,7 +18,7 @@ using LibGit2Sharp;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
     public class NugetPackageUpdaterTest {
-        private static readonly TestTargetFolder PakledConsumerCoreTarget = new TestTargetFolder(nameof(NugetPackageUpdaterTest), "PakledConsumerCore");
+        private static readonly TestTargetFolder PakledConsumerCoreTarget = new(nameof(NugetPackageUpdaterTest), "PakledConsumerCore");
         private const string PakledConsumerCoreHeadTipSha = "a1e7e4ce2906ce52ff48e7b102bd4d4522d66c97"; // Before PakledCore update
         private const string PakledCoreVersion = "2.0.610.1192"; // Before PakledCore update
         private static IContainer vContainer;

@@ -25,8 +25,8 @@ using Autofac;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     [TestClass]
     public class NugetPackageToPushFinderTest {
-        protected static TestTargetFolder PakledCoreTarget = new TestTargetFolder(nameof(NugetPackageToPushFinderTest), "PakledCore");
-        protected static TestTargetFolder ChabStandardTarget = new TestTargetFolder(nameof(NugetPackageToPushFinderTest), "ChabStandard");
+        protected static TestTargetFolder PakledTarget = new(nameof(NugetPackageToPushFinderTest), "Pakled");
+        protected static TestTargetFolder ChabTarget = new(nameof(NugetPackageToPushFinderTest), "Chab");
         private static IContainer vContainer, vContainerWithMockedPushedHeadTipShaRepository;
         protected static ITestTargetRunner TargetRunner;
 
@@ -44,14 +44,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [TestInitialize]
         public void Initialize() {
-            PakledCoreTarget.Delete();
-            ChabStandardTarget.Delete();
+            PakledTarget.Delete();
+            ChabTarget.Delete();
         }
 
         [TestCleanup]
         public void TestCleanup() {
-            PakledCoreTarget.Delete();
-            ChabStandardTarget.Delete();
+            PakledTarget.Delete();
+            ChabTarget.Delete();
         }
 
         [TestMethod]
@@ -60,13 +60,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
             var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
 
-            CloneTarget(PakledCoreTarget, errorsAndInfos);
+            CloneTarget(PakledTarget, errorsAndInfos);
 
-            RunCakeScript(PakledCoreTarget, true, errorsAndInfos);
+            RunCakeScript(PakledTarget, true, errorsAndInfos);
 
             errorsAndInfos = new ErrorsAndInfos();
             var sut = vContainer.Resolve<INugetPackageToPushFinder>();
-            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, PakledCoreTarget.Folder().ParentFolder().SubFolder(PakledCoreTarget.SolutionId + @"Bin\Release"), PakledCoreTarget.Folder(), PakledCoreTarget.Folder().SubFolder("src").FullName + @"\" + PakledCoreTarget.SolutionId + ".sln", errorsAndInfos);
+            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, PakledTarget.Folder().ParentFolder().SubFolder(PakledTarget.SolutionId + @"Bin\Release"), PakledTarget.Folder(), PakledTarget.Folder().SubFolder("src").FullName + @"\" + PakledTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -86,23 +86,23 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         public async Task PackageForTheSameCommitIsNotPushed() {
             var errorsAndInfos = new ErrorsAndInfos();
 
-            CloneTarget(PakledCoreTarget, errorsAndInfos);
+            CloneTarget(PakledTarget, errorsAndInfos);
 
-            var packages = await vContainer.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledCoreTarget.SolutionId, errorsAndInfos);
+            var packages = await vContainer.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return; }
             if (!packages.Any()) { return; }
 
             var latestPackageVersion = packages.Max(p => p.Identity.Version.Version);
             var latestPackage = packages.First(p => p.Identity.Version.Version == latestPackageVersion);
 
-            var headTipIdSha = vContainer.Resolve<IGitUtilities>().HeadTipIdSha(PakledCoreTarget.Folder());
+            var headTipIdSha = vContainer.Resolve<IGitUtilities>().HeadTipIdSha(PakledTarget.Folder());
             if (!latestPackage.Tags.Contains(headTipIdSha)) {
-                return; // $"No package has been pushed for {headTipIdSha} and {PakledCoreTarget.SolutionId}, please run build.cake for this solution"
+                return; // $"No package has been pushed for {headTipIdSha} and {PakledTarget.SolutionId}, please run build.cake for this solution"
             }
 
-            RunCakeScript(PakledCoreTarget, false, errorsAndInfos);
+            RunCakeScript(PakledTarget, false, errorsAndInfos);
 
-            packages = await vContainer.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledCoreTarget.SolutionId, errorsAndInfos);
+            packages = await vContainer.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(latestPackageVersion, packages.Max(p => p.Identity.Version.Version));
         }
@@ -119,7 +119,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             var projectFactory = vContainer.Resolve<IProjectFactory>();
             var solutionFileFullName = testTargetFolder.Folder().SubFolder("src").FullName + '\\' + testTargetFolder.SolutionId + ".sln";
             var projectErrorsAndInfos = new ErrorsAndInfos();
-            Assert.IsTrue(projectLogic.DoAllNetStandardOrCoreConfigurationsHaveNuspecs(projectFactory.Load(solutionFileFullName, solutionFileFullName.Replace(".sln", ".csproj"), projectErrorsAndInfos)));
+            Assert.IsTrue(projectLogic.DoAllConfigurationsHaveNuspecs(projectFactory.Load(solutionFileFullName, solutionFileFullName.Replace(".sln", ".csproj"), projectErrorsAndInfos)));
 
             var target = disableNugetPush ? "IgnoreOutdatedBuildCakePendingChangesAndDoNotPush" : "IgnoreOutdatedBuildCakePendingChanges";
             TargetRunner.RunBuildCakeScript(BuildCake.Standard, testTargetFolder, target, errorsAndInfos);
@@ -127,26 +127,26 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         }
 
         [TestMethod]
-        public async Task CanFindNugetPackagesToPushForChabStandard() {
+        public async Task CanFindNugetPackagesToPushForChab() {
             var errorsAndInfos = new ErrorsAndInfos();
             var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
 
-            CloneTarget(ChabStandardTarget, errorsAndInfos);
+            CloneTarget(ChabTarget, errorsAndInfos);
 
-            RunCakeScript(ChabStandardTarget, true, errorsAndInfos);
+            RunCakeScript(ChabTarget, true, errorsAndInfos);
 
             Assert.IsFalse(errorsAndInfos.Infos.Any(i => i.Contains("No test")));
 
             errorsAndInfos = new ErrorsAndInfos();
             var sut = vContainer.Resolve<INugetPackageToPushFinder>();
-            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabStandardTarget.Folder().ParentFolder().SubFolder(ChabStandardTarget.SolutionId + @"Bin\Release"), ChabStandardTarget.Folder(), ChabStandardTarget.Folder().SubFolder("src").FullName + @"\" + ChabStandardTarget.SolutionId + ".sln", errorsAndInfos);
+            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"), ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(source, packageToPush.FeedUrl);
 
             sut = vContainerWithMockedPushedHeadTipShaRepository.Resolve<INugetPackageToPushFinder>();
-            packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabStandardTarget.Folder().ParentFolder().SubFolder(ChabStandardTarget.SolutionId + @"Bin\Release"), ChabStandardTarget.Folder(), ChabStandardTarget.Folder().SubFolder("src").FullName + @"\" + ChabStandardTarget.SolutionId + ".sln", errorsAndInfos);
+            packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"), ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln", errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             source = await nugetFeed.UrlOrResolvedFolderAsync(vContainer.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
