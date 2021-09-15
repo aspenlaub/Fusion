@@ -18,25 +18,25 @@ using NuGet.Protocol;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class NugetPackageToPushFinder : INugetPackageToPushFinder {
-        private readonly IFolderResolver vFolderResolver;
-        private readonly IGitUtilities vGitUtilities;
-        private readonly INugetConfigReader vNugetConfigReader;
-        private readonly INugetFeedLister vNugetFeedLister;
-        private readonly IProjectFactory vProjectFactory;
-        private readonly ISecretRepository vSecretRepository;
-        private readonly IPushedHeadTipShaRepository vPushedHeadTipShaRepository;
-        private readonly IChangedBinariesLister vChangedBinariesLister;
+        private readonly IFolderResolver FolderResolver;
+        private readonly IGitUtilities GitUtilities;
+        private readonly INugetConfigReader NugetConfigReader;
+        private readonly INugetFeedLister NugetFeedLister;
+        private readonly IProjectFactory ProjectFactory;
+        private readonly ISecretRepository SecretRepository;
+        private readonly IPushedHeadTipShaRepository PushedHeadTipShaRepository;
+        private readonly IChangedBinariesLister ChangedBinariesLister;
 
         public NugetPackageToPushFinder(IFolderResolver folderResolver, IGitUtilities gitUtilities, INugetConfigReader nugetConfigReader, INugetFeedLister nugetFeedLister,
                 IProjectFactory projectFactory, IPushedHeadTipShaRepository pushedHeadTipShaRepository, ISecretRepository secretRepository, IChangedBinariesLister changedBinariesLister) {
-            vFolderResolver = folderResolver;
-            vGitUtilities = gitUtilities;
-            vNugetConfigReader = nugetConfigReader;
-            vNugetFeedLister = nugetFeedLister;
-            vProjectFactory = projectFactory;
-            vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
-            vSecretRepository = secretRepository;
-            vChangedBinariesLister = changedBinariesLister;
+            FolderResolver = folderResolver;
+            GitUtilities = gitUtilities;
+            NugetConfigReader = nugetConfigReader;
+            NugetFeedLister = nugetFeedLister;
+            ProjectFactory = projectFactory;
+            PushedHeadTipShaRepository = pushedHeadTipShaRepository;
+            SecretRepository = secretRepository;
+            ChangedBinariesLister = changedBinariesLister;
         }
 
         public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName, IErrorsAndInfos errorsAndInfos) {
@@ -49,12 +49,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             }
 
             errorsAndInfos.Infos.Add(Properties.Resources.LoadingProject);
-            var project = vProjectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
+            var project = ProjectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
             errorsAndInfos.Infos.Add(Properties.Resources.LoadingNugetFeeds);
             var developerSettingsSecret = new DeveloperSettingsSecret();
-            var developerSettings = await vSecretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
+            var developerSettings = await SecretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
             if (developerSettings == null) {
@@ -63,7 +63,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             }
 
             var nugetFeedsSecret = new SecretNugetFeeds();
-            var nugetFeeds = await vSecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+            var nugetFeeds = await SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 return packageToPush;
             }
@@ -77,12 +77,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
             if (!nugetFeed.IsAFolderToResolve()) {
                 var nugetConfigFileFullName = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\NuGet\" + "nuget.config";
-                packageToPush.ApiKey = vNugetConfigReader.GetApiKey(nugetConfigFileFullName, nugetFeed.Id, errorsAndInfos);
+                packageToPush.ApiKey = NugetConfigReader.GetApiKey(nugetConfigFileFullName, nugetFeed.Id, errorsAndInfos);
                 if (errorsAndInfos.Errors.Any()) { return packageToPush; }
             }
 
             errorsAndInfos.Infos.Add(Properties.Resources.IdentifyingFeedUrl);
-            var source = await nugetFeed.UrlOrResolvedFolderAsync(vFolderResolver, errorsAndInfos);
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(FolderResolver, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
             packageToPush.FeedUrl = source;
@@ -104,7 +104,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
             errorsAndInfos.Infos.Add(Properties.Resources.SearchingRemotePackage);
             var packageId = string.IsNullOrWhiteSpace(project.PackageId) ? project.RootNamespace : project.PackageId;
-            var remotePackages = await vNugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
+            var remotePackages = await NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return packageToPush; }
             if (!remotePackages.Any()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NoRemotePackageFilesFound, packageToPush.FeedUrl, packageId));
@@ -112,10 +112,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             }
 
             errorsAndInfos.Infos.Add(Properties.Resources.LoadingPushedHeadTipShas);
-            var pushedHeadTipShas = await vPushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
+            var pushedHeadTipShas = await PushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
-            var headTipIdSha = repositoryFolder == null ? "" : vGitUtilities.HeadTipIdSha(repositoryFolder);
+            var headTipIdSha = repositoryFolder == null ? "" : GitUtilities.HeadTipIdSha(repositoryFolder);
             if (!string.IsNullOrWhiteSpace(headTipIdSha) && pushedHeadTipShas.Contains(headTipIdSha)) {
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, headTipIdSha, nugetFeedId));
                 return packageToPush;
@@ -146,7 +146,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 var tag = tags[0];
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
                 var listerErrorsAndInfos = new ErrorsAndInfos();
-                var changedBinaries = vChangedBinariesLister.ListChangedBinaries(packageId, headTipIdSha, tag, listerErrorsAndInfos);
+                var changedBinaries = ChangedBinariesLister.ListChangedBinaries(packageId, headTipIdSha, tag, listerErrorsAndInfos);
                 if (listerErrorsAndInfos.AnyErrors()) {
                     errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                     errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);

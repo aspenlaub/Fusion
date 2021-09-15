@@ -21,17 +21,17 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         private static readonly TestTargetFolder PakledConsumerCoreTarget = new(nameof(NugetPackageUpdaterTest), "PakledConsumerCore");
         private const string PakledConsumerCoreHeadTipSha = "a1e7e4ce2906ce52ff48e7b102bd4d4522d66c97"; // Before PakledCore update
         private const string PakledCoreVersion = "2.0.610.1192"; // Before PakledCore update
-        private static IContainer vContainer;
+        private static IContainer Container;
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context) {
-            vContainer = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            Container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
         }
 
         [TestInitialize]
         public void Initialize() {
             PakledConsumerCoreTarget.Delete();
-            var gitUtilities = vContainer.Resolve<IGitUtilities>();
+            var gitUtilities = Container.Resolve<IGitUtilities>();
             var url = "https://github.com/aspenlaub/" + PakledConsumerCoreTarget.SolutionId + ".git";
             var errorsAndInfos = new ErrorsAndInfos();
             gitUtilities.Clone(url, "master", PakledConsumerCoreTarget.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
@@ -45,7 +45,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [TestMethod]
         public async Task CanIdentifyNugetPackageOpportunity() {
-            var gitUtilities = vContainer.Resolve<IGitUtilities>();
+            var gitUtilities = Container.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
             gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -56,11 +56,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [TestMethod]
         public async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
-            var gitUtilities = vContainer.Resolve<IGitUtilities>();
+            var gitUtilities = Container.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
             gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            var packageConfigsScanner = vContainer.Resolve<IPackageConfigsScanner>();
+            var packageConfigsScanner = Container.Resolve<IPackageConfigsScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             var dependencyIdsAndVersions = await packageConfigsScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
             MakeCsProjAndConfigChange();
@@ -96,14 +96,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         }
 
         private async Task<bool> NugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
-            var sut = vContainer.Resolve<INugetPackageUpdater>();
+            var sut = Container.Resolve<INugetPackageUpdater>();
             var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             return yesNo;
         }
 
-        private async Task<IYesNoInconclusive> UpdateNugetPackagesAsync() {
-            var sut = vContainer.Resolve<INugetPackageUpdater>();
+        private async Task<YesNoInconclusive> UpdateNugetPackagesAsync() {
+            var sut = Container.Resolve<INugetPackageUpdater>();
             var errorsAndInfos = new ErrorsAndInfos();
             var yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());

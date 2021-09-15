@@ -11,14 +11,14 @@ using LibGit2Sharp;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
-        private readonly IGitUtilities vGitUtilities;
-        private readonly ISecretRepository vSecretRepository;
-        private readonly IPushedHeadTipShaRepository vPushedHeadTipShaRepository;
+        private readonly IGitUtilities GitUtilities;
+        private readonly ISecretRepository SecretRepository;
+        private readonly IPushedHeadTipShaRepository PushedHeadTipShaRepository;
 
         public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository, IPushedHeadTipShaRepository pushedHeadTipShaRepository) {
-            vGitUtilities = gitUtilities;
-            vSecretRepository = secretRepository;
-            vPushedHeadTipShaRepository = pushedHeadTipShaRepository;
+            GitUtilities = gitUtilities;
+            SecretRepository = secretRepository;
+            PushedHeadTipShaRepository = pushedHeadTipShaRepository;
         }
 
         public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -30,7 +30,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
         }
 
         private async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
-            var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
+            var files = GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
             if (files.Count == 0) {
                 if (onlyIfNecessary) { return; }
 
@@ -53,7 +53,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
         }
 
         public async Task AutoCommitAndPushPackageUpdates(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-            var files = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
+            var files = GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
             if (files.Count == 0) {
                 errorsAndInfos.Errors.Add(Properties.Resources.AtLeastOneFileExpected);
                 return;
@@ -68,22 +68,22 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
         }
 
         private async Task AutoCommitAndPushAsync(string nugetFeedId, IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
-            var branchName = vGitUtilities.CheckedOutBranch(repositoryFolder);
+            var branchName = GitUtilities.CheckedOutBranch(repositoryFolder);
             if (branchName != "master") {
                 errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
                 return;
             }
 
-            var headTipShaBeforePush = vGitUtilities.HeadTipIdSha(repositoryFolder);
+            var headTipShaBeforePush = GitUtilities.HeadTipIdSha(repositoryFolder);
 
-            vGitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
+            GitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(Properties.Resources.OwnerAndNameNotFound);
                 return;
             }
 
             var personalAccessTokensSecret = new PersonalAccessTokensSecret();
-            var personalAccessTokens = await vSecretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
+            var personalAccessTokens = await SecretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
             var personalAccessToken = personalAccessTokens.FirstOrDefault(t => t.Owner == owner && t.Purpose == "AutoCommitPush");
             if (personalAccessToken == null) {
                 errorsAndInfos.Errors.Add(Properties.Resources.AutoCommitPushAccessTokenNotFound);
@@ -105,7 +105,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 Commands.Stage(repo, f);
             });
 
-            var checkFiles = vGitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+            var checkFiles = GitUtilities.FilesWithUncommittedChanges(repositoryFolder);
             if (onlyIfNecessary && !checkFiles.Any()) { return; }
 
             if (checkFiles.Count != files.Count) {
@@ -129,10 +129,10 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
             if (!noRebuildRequired) { return; }
 
-            var pushedHeadTipShaRepository = vPushedHeadTipShaRepository;
+            var pushedHeadTipShaRepository = PushedHeadTipShaRepository;
             if (!(await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos)).Contains(headTipShaBeforePush)) { return; }
 
-            var headTipSha = vGitUtilities.HeadTipIdSha(repositoryFolder);
+            var headTipSha = GitUtilities.HeadTipIdSha(repositoryFolder);
             await pushedHeadTipShaRepository.AddAsync(nugetFeedId, headTipSha, errorsAndInfos);
         }
     }

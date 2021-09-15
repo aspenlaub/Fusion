@@ -10,10 +10,10 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class CakeBuilder : ICakeBuilder {
-        private readonly IDotNetCakeRunner vCakeRunner;
+        private readonly IDotNetCakeRunner CakeRunner;
 
         public CakeBuilder(IDotNetCakeRunner cakeRunner) {
-            vCakeRunner = cakeRunner;
+            CakeRunner = cakeRunner;
         }
 
         public bool Build(string solutionFileName, bool debug, string tempFolderName, IErrorsAndInfos errorsAndInfos) {
@@ -35,7 +35,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
             folder.CreateIfNecessary();
             var cakeFileName = folder.FullName + @"\" + "build-" + Guid.NewGuid() + ".cake";
             File.WriteAllText(cakeFileName, string.Join("\r\n", cakeScript));
-            vCakeRunner.CallCake(cakeFileName, errorsAndInfos);
+            CakeRunner.CallCake(cakeFileName, errorsAndInfos);
             if (!errorsAndInfos.Errors.Any(e => e.Contains("The file is locked"))) {
                 errorsAndInfos.Infos.Where(e => e.Contains("The file is locked")).ToList().ForEach(e => errorsAndInfos.Errors.Add(e));
             }

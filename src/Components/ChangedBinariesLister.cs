@@ -14,18 +14,18 @@ using NuGet.Packaging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class ChangedBinariesLister : IChangedBinariesLister {
-        private readonly IBinariesHelper vBinariesHelper;
-        private readonly ICakeBuilder vCakeBuilder;
-        private readonly IFolderDeleter vFolderDeleter;
-        private readonly IGitUtilities vGitUtilities;
-        private readonly INugetPackageRestorer vNugetPackageRestorer;
+        private readonly IBinariesHelper BinariesHelper;
+        private readonly ICakeBuilder CakeBuilder;
+        private readonly IFolderDeleter FolderDeleter;
+        private readonly IGitUtilities GitUtilities;
+        private readonly INugetPackageRestorer NugetPackageRestorer;
 
         public ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder cakeBuilder, IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer) {
-            vBinariesHelper = binariesHelper;
-            vCakeBuilder = cakeBuilder;
-            vFolderDeleter = folderDeleter;
-            vGitUtilities = gitUtilities;
-            vNugetPackageRestorer = nugetPackageRestorer;
+            BinariesHelper = binariesHelper;
+            CakeBuilder = cakeBuilder;
+            FolderDeleter = folderDeleter;
+            GitUtilities = gitUtilities;
+            NugetPackageRestorer = nugetPackageRestorer;
         }
 
         public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
@@ -56,7 +56,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 return;
             }
 
-            if (!vFolderDeleter.CanDeleteFolder(folder)) {
+            if (!FolderDeleter.CanDeleteFolder(folder)) {
                 errorsAndInfos.Errors.Add($"Folder deleter refuses to delete {folder.FullName}");
                 return;
             }
@@ -65,7 +65,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 foreach (var file in Directory.GetFiles(folder.FullName, "*.*", SearchOption.AllDirectories)) {
                     File.SetAttributes(file, FileAttributes.Normal);
                 }
-                vFolderDeleter.DeleteFolder(folder);
+                FolderDeleter.DeleteFolder(folder);
             } catch (Exception e) {
                 errorsAndInfos.Errors.Add($"Could not delete {folder.FullName}");
                 errorsAndInfos.Errors.Add(e.Message);
@@ -84,11 +84,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 compileFolder.CreateIfNecessary();
 
                 var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
-                vGitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
+                GitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
                 var headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;
-                vGitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
+                GitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
                 var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
@@ -101,7 +101,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                 var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
                 var restoreErrorsAndInfos = new ErrorsAndInfos();
-                vNugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
+                NugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
                 if (restoreErrorsAndInfos.AnyErrors()) {
                     errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRestore, repositoryId, headTipIdSha));
                     errorsAndInfos.Errors.AddRange(restoreErrorsAndInfos.Errors);
@@ -110,7 +110,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
                 errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
                 var buildErrorsAndInfos = new ErrorsAndInfos();
-                vCakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
+                CakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
                 if (buildErrorsAndInfos.AnyErrors()) {
                     errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                     errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
@@ -165,7 +165,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                     continue;
                 }
 
-                if (vBinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "", previousContents, currentContents, previousFileInfo,
+                if (BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "", previousContents, currentContents, previousFileInfo,
                     false, currentFileInfo, out var updateReason)) {
                     if (!doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
                         changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = Properties.Resources.OtherFilesRequireUpdateAnyway });
