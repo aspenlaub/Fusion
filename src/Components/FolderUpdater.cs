@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
@@ -96,6 +97,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
                         errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRename, destinationFileInfo.Name, newNameForFileToBeOverwritten.Substring(newNameForFileToBeOverwritten.LastIndexOf('\\') + 1)));
                         return false;
                     }
+                } else {
+                    var destinationFolder = new Folder(destinationFileInfo.FullName.Substring(0, destinationFileInfo.FullName.LastIndexOf('\\')));
+                    destinationFolder.CreateIfNecessary();
                 }
 
                 try {
