@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>Aspenlaub.Net.GitHub.CSharp.Fusion</AssemblyName>
     <RootNamespace>Aspenlaub.Net.GitHub.CSharp.Fusion</RootNamespace>
     <GenerateBuildInfoConfigFile>false</GenerateBuildInfoConfigFile>
@@ -53,6 +53,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.944.584" />
+    <PackageReference Include="Nuclide" Version="2.0.938.1132" />
   </ItemGroup>
 </Project>
