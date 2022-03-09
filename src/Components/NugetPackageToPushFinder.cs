@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -15,6 +16,7 @@ using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
 using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Protocol;
+// ReSharper disable LoopCanBeConvertedToQuery
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
     public class NugetPackageToPushFinder : INugetPackageToPushFinder {
@@ -93,7 +95,12 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components {
 
             errorsAndInfos.Infos.Add(Properties.Resources.SearchingLocalPackage);
             var localPackageRepository = new FindLocalPackagesResourceV2(packageFolderWithBinaries.FullName);
-            var localPackages = localPackageRepository.GetPackages(new NullLogger(), CancellationToken.None).Where(p => !p.Identity.Version.IsPrerelease).ToList();
+            var localPackages = new List<LocalPackageInfo>();
+            foreach (var localPackage in localPackageRepository.GetPackages(new NullLogger(), CancellationToken.None)) {
+                if (localPackage.Identity.Version.IsPrerelease) { continue; }
+
+                localPackages.Add(localPackage);
+            }
             if (!localPackages.Any()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NoPackageFilesFound, packageFolderWithBinaries.FullName));
                 return packageToPush;

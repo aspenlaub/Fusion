@@ -27,6 +27,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
     public class NugetPackageToPushFinderTest {
         protected static TestTargetFolder PakledTarget = new(nameof(NugetPackageToPushFinderTest), "Pakled");
         protected static TestTargetFolder ChabTarget = new(nameof(NugetPackageToPushFinderTest), "Chab");
+        protected static TestTargetFolder VishizhukelNetTarget = new(nameof(NugetPackageToPushFinderTest), "VishizhukelNet");
         private static IContainer Container, ContainerWithMockedPushedHeadTipShaRepository;
         protected static ITestTargetRunner TargetRunner;
 
@@ -151,6 +152,20 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.AreEqual(source, packageToPush.FeedUrl);
+        }
+
+        [TestMethod]
+        public async Task CanCheckForNugetPackagesToPushForVishizhukelNet() {
+            var errorsAndInfos = new ErrorsAndInfos();
+
+            var folderResolver = Container.Resolve<IFolderResolver>();
+            var gitHubFolder = await folderResolver.ResolveAsync("$(GitHub)", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+
+            errorsAndInfos = new ErrorsAndInfos();
+            var sut = Container.Resolve<INugetPackageToPushFinder>();
+            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId + @"Bin\Release"), VishizhukelNetTarget.Folder(), VishizhukelNetTarget.Folder().SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".sln", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
     }
 }
