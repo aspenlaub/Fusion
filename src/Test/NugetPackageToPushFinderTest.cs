@@ -164,7 +164,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
             errorsAndInfos = new ErrorsAndInfos();
             var sut = Container.Resolve<INugetPackageToPushFinder>();
-            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId + @"Bin\Release"), VishizhukelNetTarget.Folder(), VishizhukelNetTarget.Folder().SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".sln", errorsAndInfos);
+            var packageFolderWithBinaries = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId + @"Bin\Release");
+            if (!packageFolderWithBinaries.Exists()) { return; }
+
+            var repositoryFolder = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId);
+            Assert.IsTrue(repositoryFolder.Exists(), $"Folder {repositoryFolder.FullName} does not exist");
+            var solutionFileFullName = repositoryFolder.SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".sln";
+            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, packageFolderWithBinaries, repositoryFolder, solutionFileFullName, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
     }
