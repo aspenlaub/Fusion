@@ -7,34 +7,34 @@ using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 // ReSharper disable UnusedMember.Global
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
-    public static class FusionContainerBuilder {
-        public static IContainer CreateContainerUsingFusionNuclideProtchAndGitty(string applicationName) {
-            return new ContainerBuilder().UseFusionNuclideProtchAndGitty(applicationName, new DummyCsArgumentPrompter()).Build();
-        }
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion;
 
-        public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
-            builder.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
-            builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
-            builder.RegisterType<NugetPackageToPushFinder>().As<INugetPackageToPushFinder>();
-            builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
-            builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
-            builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
-            builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
-            builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
-            return builder;
-        }
+public static class FusionContainerBuilder {
+    public static IContainer CreateContainerUsingFusionNuclideProtchAndGitty(string applicationName) {
+        return new ContainerBuilder().UseFusionNuclideProtchAndGitty(applicationName, new DummyCsArgumentPrompter()).Build();
+    }
 
-        public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
-            services.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
-            services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
-            services.AddTransient<INugetPackageToPushFinder, NugetPackageToPushFinder>();
-            services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
-            services.AddTransient<IFolderUpdater, FolderUpdater>();
-            services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
-            services.AddTransient<ICakeBuilder, CakeBuilder>();
-            services.AddTransient<IBinariesHelper, BinariesHelper>();
-            return services;
-        }
+    public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
+        builder.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
+        builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
+        builder.RegisterType<NugetPackageToPushFinder>().As<INugetPackageToPushFinder>();
+        builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
+        builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
+        builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
+        builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
+        builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
+        return builder;
+    }
+
+    public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
+        services.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
+        services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
+        services.AddTransient<INugetPackageToPushFinder, NugetPackageToPushFinder>();
+        services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
+        services.AddTransient<IFolderUpdater, FolderUpdater>();
+        services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
+        services.AddTransient<ICakeBuilder, CakeBuilder>();
+        services.AddTransient<IBinariesHelper, BinariesHelper>();
+        return services;
     }
 }

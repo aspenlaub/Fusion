@@ -2,13 +2,13 @@
 using System.Xml.Serialization;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Entities {
-    [XmlRoot("ManuallyUpdatedPackages")]
-    public class ManuallyUpdatedPackages : List<ManuallyUpdatedPackage>, ISecretResult<ManuallyUpdatedPackages> {
-        public ManuallyUpdatedPackages Clone() {
-            var clone = new ManuallyUpdatedPackages();
-            clone.AddRange(this);
-            return clone;
-        }
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
+
+[XmlRoot("ManuallyUpdatedPackages")]
+public class ManuallyUpdatedPackages : List<ManuallyUpdatedPackage>, ISecretResult<ManuallyUpdatedPackages> {
+    public ManuallyUpdatedPackages Clone() {
+        var clone = new ManuallyUpdatedPackages();
+        clone.AddRange(this);
+        return clone;
     }
 }
