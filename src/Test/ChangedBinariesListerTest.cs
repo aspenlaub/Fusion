@@ -18,7 +18,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
         private readonly IContainer Container;
 
         public ChangedBinariesListerTest() {
-            Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
         }
 
         [TestMethod]

@@ -33,8 +33,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context) {
-            Container = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
-            var containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter());
+            Container = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+            var containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter());
             var pushedHeadTipShaRepositoryMock = new Mock<IPushedHeadTipShaRepository>();
             pushedHeadTipShaRepositoryMock.Setup(r => r.GetAsync(It.IsAny<string>(), It.IsAny<IErrorsAndInfos>())).Returns(Task.FromResult(new List<string>()));
             containerBuilder.RegisterInstance(pushedHeadTipShaRepositoryMock.Object);

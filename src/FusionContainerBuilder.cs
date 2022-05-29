@@ -9,12 +9,12 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
     public static class FusionContainerBuilder {
-        public static IContainer CreateContainerUsingFusionNuclideProtchAndGitty() {
-            return new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+        public static IContainer CreateContainerUsingFusionNuclideProtchAndGitty(string applicationName) {
+            return new ContainerBuilder().UseFusionNuclideProtchAndGitty(applicationName, new DummyCsArgumentPrompter()).Build();
         }
 
-        public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, ICsArgumentPrompter csArgumentPrompter) {
-            builder.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
+        public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
+            builder.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
             builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
             builder.RegisterType<NugetPackageToPushFinder>().As<INugetPackageToPushFinder>();
             builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
@@ -25,8 +25,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion {
             return builder;
         }
 
-        public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, ICsArgumentPrompter csArgumentPrompter) {
-            services.UseNuclideProtchGittyAndPegh(csArgumentPrompter);
+        public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
+            services.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
             services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
             services.AddTransient<INugetPackageToPushFinder, NugetPackageToPushFinder>();
             services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();

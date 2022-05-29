@@ -10,7 +10,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [TestMethod]
         public void CanConstructAutoCommitterAndPusher() {
-            var container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            var container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
             Assert.IsNotNull(container.Resolve<IAutoCommitterAndPusher>());
         }
     }

@@ -25,7 +25,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
 
         [ClassInitialize]
         public static void ClassInitialize(TestContext context) {
-            Container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            Container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
         }
 
         [TestInitialize]

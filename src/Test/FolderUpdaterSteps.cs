@@ -38,7 +38,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test {
             SourceFiles = new Dictionary<int, string>();
             DestinationFiles = new Dictionary<int, string>();
             UpdateFolderErrorsAndInfos = new ErrorsAndInfos();
-            var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty(new DummyCsArgumentPrompter()).Build();
+            var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
             Sut = container.Resolve<IFolderUpdater>();
         }
 
