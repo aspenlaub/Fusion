@@ -17,33 +17,33 @@ public class FolderUpdaterTest {
     private const string CurrentHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
     private const string RepositoryId = "Pegh";
 
-    private readonly IContainer Container;
-    private readonly IFolder WorkFolder;
+    private readonly IContainer _Container;
+    private readonly IFolder _WorkFolder;
 
     public FolderUpdaterTest() {
-        Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
-        WorkFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest)).SubFolder(RepositoryId);
+        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        _WorkFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest)).SubFolder(RepositoryId);
     }
 
     [TestInitialize]
     public void Initialize() {
-        CleanUpFolder(WorkFolder);
+        CleanUpFolder(_WorkFolder);
     }
 
     [TestCleanup]
     public void Cleanup() {
-        CleanUpFolder(WorkFolder);
+        CleanUpFolder(_WorkFolder);
     }
 
     [TestMethod]
     public async Task CanListAndCopyChangedBinaries() {
-        var lister = Container.Resolve<IChangedBinariesLister>();
+        var lister = _Container.Resolve<IChangedBinariesLister>();
         var errorsAndInfos = new ErrorsAndInfos();
         var changedBinaries = lister.ListChangedBinaries(RepositoryId, BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
         Assert.AreEqual(3, changedBinaries.Count);
-        var sourceFolder = WorkFolder.SubFolder("Source");
+        var sourceFolder = _WorkFolder.SubFolder("Source");
         sourceFolder.CreateIfNecessary();
-        var destinationFolder = WorkFolder.SubFolder("Destination");
+        var destinationFolder = _WorkFolder.SubFolder("Destination");
         destinationFolder.CreateIfNecessary();
         foreach (var changedBinary in changedBinaries) {
             await File.WriteAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName, changedBinary.FileName);
@@ -51,7 +51,7 @@ public class FolderUpdaterTest {
             await File.WriteAllTextAsync(destinationFolder.FullName + @"\Unchanged" + changedBinary.FileName, "Unchanged " + changedBinary.FileName);
         }
         await File.WriteAllTextAsync(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
-        var sut = Container.Resolve<IFolderUpdater>();
+        var sut = _Container.Resolve<IFolderUpdater>();
         await sut.UpdateFolderAsync(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         foreach (var changedBinary in changedBinaries) {
@@ -65,7 +65,7 @@ public class FolderUpdaterTest {
 
     private void CleanUpFolder(IFolder folder) {
         if (folder.Exists()) {
-            Container.Resolve<IFolderDeleter>().DeleteFolder(folder);
+            _Container.Resolve<IFolderDeleter>().DeleteFolder(folder);
         }
     }
 }

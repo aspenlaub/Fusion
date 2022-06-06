@@ -16,58 +16,58 @@ using NuGet.Protocol.Core.Types;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class NugetPackageUpdater : INugetPackageUpdater {
-    private readonly IGitUtilities GitUtilities;
-    private readonly IProcessRunner ProcessRunner;
-    private readonly INugetFeedLister NugetFeedLister;
-    private readonly ISecretRepository SecretRepository;
-    private readonly IPackageConfigsScanner PackageConfigsScanner;
-    private readonly ISimpleLogger SimpleLogger;
-    private readonly IMethodNamesFromStackFramesExtractor MethodNamesFromStackFramesExtractor;
+    private readonly IGitUtilities _GitUtilities;
+    private readonly IProcessRunner _ProcessRunner;
+    private readonly INugetFeedLister _NugetFeedLister;
+    private readonly ISecretRepository _SecretRepository;
+    private readonly IPackageConfigsScanner _PackageConfigsScanner;
+    private readonly ISimpleLogger _SimpleLogger;
+    private readonly IMethodNamesFromStackFramesExtractor _MethodNamesFromStackFramesExtractor;
 
-    private readonly IList<string> EndingsThatAllowReset = new List<string> { "csproj", "config" };
+    private readonly IList<string> _EndingsThatAllowReset = new List<string> { "csproj", "config" };
 
     public NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner processRunner, INugetFeedLister nugetFeedLister, ISecretRepository secretRepository, IPackageConfigsScanner packageConfigsScanner, ISimpleLogger simpleLogger, IMethodNamesFromStackFramesExtractor methodNamesFromStackFramesExtractor) {
-        GitUtilities = gitUtilities;
-        ProcessRunner = processRunner;
-        NugetFeedLister = nugetFeedLister;
-        SecretRepository = secretRepository;
-        PackageConfigsScanner = packageConfigsScanner;
-        SimpleLogger = simpleLogger;
-        MethodNamesFromStackFramesExtractor = methodNamesFromStackFramesExtractor;
+        _GitUtilities = gitUtilities;
+        _ProcessRunner = processRunner;
+        _NugetFeedLister = nugetFeedLister;
+        _SecretRepository = secretRepository;
+        _PackageConfigsScanner = packageConfigsScanner;
+        _SimpleLogger = simpleLogger;
+        _MethodNamesFromStackFramesExtractor = methodNamesFromStackFramesExtractor;
     }
 
     public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        using (SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
-            var methodNamesFromStack = MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
-            SimpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
+        using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
+            var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
+            _SimpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
             var yesNoInconclusive = new YesNoInconclusive();
-            var files = GitUtilities.FilesWithUncommittedChanges(repositoryFolder);
-            yesNoInconclusive.Inconclusive = files.Any(f => EndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
+            var files = _GitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+            yesNoInconclusive.Inconclusive = files.Any(f => _EndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
             yesNoInconclusive.YesNo = false;
             if (yesNoInconclusive.Inconclusive) {
                 errorsAndInfos.Infos.Add("Not all files allow a reset");
-                SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
 
-            SimpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
-            GitUtilities.Reset(repositoryFolder, GitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+            _SimpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
+            _GitUtilities.Reset(repositoryFolder, _GitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.Add("Could not reset");
-                SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
 
-            SimpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
             var projectFileFullNames = Directory.GetFiles(repositoryFolder.SubFolder("src").FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             if (!projectFileFullNames.Any()) {
                 errorsAndInfos.Infos.Add("No project files found");
-                SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
 
             foreach (var projectFileFullName in projectFileFullNames) {
-                SimpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
                 var projectErrorsAndInfos = new ErrorsAndInfos();
                 if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, projectErrorsAndInfos)) {
                     continue;
@@ -78,73 +78,73 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
             if (yesNoInconclusive.YesNo) {
                 errorsAndInfos.Infos.Add("No project was updated");
-                SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
 
-            SimpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
-            GitUtilities.Reset(repositoryFolder, GitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
-            SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
+            _GitUtilities.Reset(repositoryFolder, _GitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+            _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
             return yesNoInconclusive;
         }
     }
 
     public async Task<YesNoInconclusive> UpdateNugetPackagesInSolutionAsync(IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
-        using (SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInSolutionAsync)))) {
-            var methodNamesFromStack = MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
-            SimpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
+        using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInSolutionAsync)))) {
+            var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
+            _SimpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
             var yesNoInconclusive = new YesNoInconclusive();
             var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             if (!projectFileFullNames.Any()) {
-                SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
 
             foreach (var projectFileFullName in projectFileFullNames) {
-                SimpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
                 yesNoInconclusive.YesNo = await UpdateNugetPackagesForProjectAsync(projectFileFullName, yesNoInconclusive.YesNo, errorsAndInfos);
             }
 
-            SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
             return yesNoInconclusive;
         }
     }
 
     private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName, bool yesNo, IErrorsAndInfos errorsAndInfos) {
-        using (SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
-            var methodNamesFromStack = MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
-            SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions", methodNamesFromStack);
+        using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
+            var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
+            _SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions", methodNamesFromStack);
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             var dependencyIdsAndVersions =
-                await PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+                await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
-            SimpleLogger.LogInformationWithCallStack("Retrieving manually updated packages", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack("Retrieving manually updated packages", methodNamesFromStack);
             var secret = new SecretManuallyUpdatedPackages();
-            var manuallyUpdatedPackages = await SecretRepository.GetAsync(secret, errorsAndInfos);
+            var manuallyUpdatedPackages = await _SecretRepository.GetAsync(secret, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) {
-                SimpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
                 return false;
             }
 
             foreach (var id in dependencyIdsAndVersions.Select(dependencyIdsAndVersion => dependencyIdsAndVersion.Key).Where(id => manuallyUpdatedPackages.All(p => p.Id != id))) {
-                SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
+                _SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
                 var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
-                ProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
-                ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
+                _ProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
+                _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
             }
 
-            SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions once more", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions once more", methodNamesFromStack);
             var dependencyIdsAndVersionsAfterUpdate =
-                await PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+                await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
-            SimpleLogger.LogInformationWithCallStack("Determining differences", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack("Determining differences", methodNamesFromStack);
             foreach (var dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
                 var id = dependencyIdsAndVersion.Key;
                 var version = dependencyIdsAndVersion.Value;
                 yesNo = yesNo || !dependencyIdsAndVersions.ContainsKey(id) || version != dependencyIdsAndVersions[id];
             }
 
-            SimpleLogger.LogInformationWithCallStack($"Returning {yesNo}", methodNamesFromStack);
+            _SimpleLogger.LogInformationWithCallStack($"Returning {yesNo}", methodNamesFromStack);
             return yesNo;
         }
     }
@@ -160,7 +160,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         }
 
         var nugetFeedsSecret = new SecretNugetFeeds();
-        var nugetFeeds = await SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+        var nugetFeeds = await _SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return false; }
 
         var feedIds = nugetFeeds.Select(f => f.Id).ToList();
@@ -175,10 +175,10 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
     private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> nugetFeedIds, IErrorsAndInfos errorsAndInfos) {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var dependencyIdsAndVersions = await PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersions = await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
         var secret = new SecretManuallyUpdatedPackages();
-        var manuallyUpdatedPackages = await SecretRepository.GetAsync(secret, errorsAndInfos);
+        var manuallyUpdatedPackages = await _SecretRepository.GetAsync(secret, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return false; }
 
         var yesNo = false;
@@ -189,7 +189,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             IList<IPackageSearchMetadata> remotePackages = null;
             foreach (var nugetFeedId in nugetFeedIds) {
                 var listingErrorsAndInfos = new ErrorsAndInfos();
-                remotePackages = await NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
+                remotePackages = await _NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
                 if (listingErrorsAndInfos.AnyErrors()) {
                     continue;
                 }

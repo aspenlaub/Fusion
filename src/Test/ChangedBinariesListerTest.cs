@@ -16,15 +16,15 @@ public class ChangedBinariesListerTest {
     private const string CurrentProuserHeadTipIdSha = "1719eb27a77904c88886a184ddfbcfeb4419000d";
     private const string PreviousProuserHeadTipIdSha = "7418e247ddee3caf5b841187df868a1ecbaab7bc";
 
-    private readonly IContainer Container;
+    private readonly IContainer _Container;
 
     public ChangedBinariesListerTest() {
-        Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
     }
 
     [TestMethod]
     public void UnchangedPeghBinariesAreNotListed() {
-        var sut = Container.Resolve<IChangedBinariesLister>();
+        var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
         var changedBinaries = sut.ListChangedBinaries("Pegh", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
@@ -34,7 +34,7 @@ public class ChangedBinariesListerTest {
 
     [TestMethod]
     public void CanListChangedPeghBinaries() {
-        var sut = Container.Resolve<IChangedBinariesLister>();
+        var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
         var changedBinaries = sut.ListChangedBinaries("Pegh", BeforeMajorPeghChangeHeadTipSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
@@ -47,7 +47,7 @@ public class ChangedBinariesListerTest {
 
     [TestMethod, Ignore]
     public void CanListChangedProuserBinaries() {
-        var sut = Container.Resolve<IChangedBinariesLister>();
+        var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
         var changedBinaries = sut.ListChangedBinaries("Prouser", PreviousProuserHeadTipIdSha, CurrentProuserHeadTipIdSha, errorsAndInfos);

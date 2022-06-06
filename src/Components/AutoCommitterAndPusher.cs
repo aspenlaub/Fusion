@@ -12,14 +12,14 @@ using LibGit2Sharp;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
-    private readonly IGitUtilities GitUtilities;
-    private readonly ISecretRepository SecretRepository;
-    private readonly IPushedHeadTipShaRepository PushedHeadTipShaRepository;
+    private readonly IGitUtilities _GitUtilities;
+    private readonly ISecretRepository _SecretRepository;
+    private readonly IPushedHeadTipShaRepository _PushedHeadTipShaRepository;
 
     public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository, IPushedHeadTipShaRepository pushedHeadTipShaRepository) {
-        GitUtilities = gitUtilities;
-        SecretRepository = secretRepository;
-        PushedHeadTipShaRepository = pushedHeadTipShaRepository;
+        _GitUtilities = gitUtilities;
+        _SecretRepository = secretRepository;
+        _PushedHeadTipShaRepository = pushedHeadTipShaRepository;
     }
 
     public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -31,7 +31,7 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
     }
 
     private async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
-        var files = GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
+        var files = _GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
         if (files.Count == 0) {
             if (onlyIfNecessary) { return; }
 
@@ -54,7 +54,7 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
     }
 
     public async Task AutoCommitAndPushPackageUpdates(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        var files = GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
+        var files = _GitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
         if (files.Count == 0) {
             errorsAndInfos.Errors.Add(Properties.Resources.AtLeastOneFileExpected);
             return;
@@ -69,22 +69,22 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
     }
 
     private async Task AutoCommitAndPushAsync(string nugetFeedId, IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
-        var branchName = GitUtilities.CheckedOutBranch(repositoryFolder);
+        var branchName = _GitUtilities.CheckedOutBranch(repositoryFolder);
         if (branchName != "master") {
             errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
             return;
         }
 
-        var headTipShaBeforePush = GitUtilities.HeadTipIdSha(repositoryFolder);
+        var headTipShaBeforePush = _GitUtilities.HeadTipIdSha(repositoryFolder);
 
-        GitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
+        _GitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) {
             errorsAndInfos.Errors.Add(Properties.Resources.OwnerAndNameNotFound);
             return;
         }
 
         var personalAccessTokensSecret = new PersonalAccessTokensSecret();
-        var personalAccessTokens = await SecretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
+        var personalAccessTokens = await _SecretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
         var personalAccessToken = personalAccessTokens.FirstOrDefault(t => t.Owner == owner && t.Purpose == "AutoCommitPush");
         if (personalAccessToken == null) {
             errorsAndInfos.Errors.Add(Properties.Resources.AutoCommitPushAccessTokenNotFound);
@@ -106,7 +106,7 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
             Commands.Stage(repo, f);
         });
 
-        var checkFiles = GitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+        var checkFiles = _GitUtilities.FilesWithUncommittedChanges(repositoryFolder);
         if (onlyIfNecessary && !checkFiles.Any()) { return; }
 
         if (checkFiles.Count != files.Count) {
@@ -130,10 +130,10 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
 
         if (!noRebuildRequired) { return; }
 
-        var pushedHeadTipShaRepository = PushedHeadTipShaRepository;
+        var pushedHeadTipShaRepository = _PushedHeadTipShaRepository;
         if (!(await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos)).Contains(headTipShaBeforePush)) { return; }
 
-        var headTipSha = GitUtilities.HeadTipIdSha(repositoryFolder);
+        var headTipSha = _GitUtilities.HeadTipIdSha(repositoryFolder);
         await pushedHeadTipShaRepository.AddAsync(nugetFeedId, headTipSha, errorsAndInfos);
     }
 }

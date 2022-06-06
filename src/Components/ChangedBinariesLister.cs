@@ -15,18 +15,18 @@ using NuGet.Packaging;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class ChangedBinariesLister : IChangedBinariesLister {
-    private readonly IBinariesHelper BinariesHelper;
-    private readonly ICakeBuilder CakeBuilder;
-    private readonly IFolderDeleter FolderDeleter;
-    private readonly IGitUtilities GitUtilities;
-    private readonly INugetPackageRestorer NugetPackageRestorer;
+    private readonly IBinariesHelper _BinariesHelper;
+    private readonly ICakeBuilder _CakeBuilder;
+    private readonly IFolderDeleter _FolderDeleter;
+    private readonly IGitUtilities _GitUtilities;
+    private readonly INugetPackageRestorer _NugetPackageRestorer;
 
     public ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder cakeBuilder, IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer) {
-        BinariesHelper = binariesHelper;
-        CakeBuilder = cakeBuilder;
-        FolderDeleter = folderDeleter;
-        GitUtilities = gitUtilities;
-        NugetPackageRestorer = nugetPackageRestorer;
+        _BinariesHelper = binariesHelper;
+        _CakeBuilder = cakeBuilder;
+        _FolderDeleter = folderDeleter;
+        _GitUtilities = gitUtilities;
+        _NugetPackageRestorer = nugetPackageRestorer;
     }
 
     public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
@@ -57,7 +57,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             return;
         }
 
-        if (!FolderDeleter.CanDeleteFolder(folder)) {
+        if (!_FolderDeleter.CanDeleteFolder(folder)) {
             errorsAndInfos.Errors.Add($"Folder deleter refuses to delete {folder.FullName}");
             return;
         }
@@ -66,7 +66,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             foreach (var file in Directory.GetFiles(folder.FullName, "*.*", SearchOption.AllDirectories)) {
                 File.SetAttributes(file, FileAttributes.Normal);
             }
-            FolderDeleter.DeleteFolder(folder);
+            _FolderDeleter.DeleteFolder(folder);
         } catch (Exception e) {
             errorsAndInfos.Errors.Add($"Could not delete {folder.FullName}");
             errorsAndInfos.Errors.Add(e.Message);
@@ -85,11 +85,11 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             compileFolder.CreateIfNecessary();
 
             var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
-            GitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
+            _GitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
             var headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;
-            GitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
+            _GitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
@@ -102,7 +102,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
-            NugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
+            _NugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
             if (restoreErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRestore, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(restoreErrorsAndInfos.Errors);
@@ -111,7 +111,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
 
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
             var buildErrorsAndInfos = new ErrorsAndInfos();
-            CakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
+            _CakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
             if (buildErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
@@ -166,7 +166,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
                 continue;
             }
 
-            if (BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "", previousContents, currentContents, previousFileInfo,
+            if (_BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "", previousContents, currentContents, previousFileInfo,
                     false, currentFileInfo, out var updateReason)) {
                 if (!doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
                     changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = Properties.Resources.OtherFilesRequireUpdateAnyway });
