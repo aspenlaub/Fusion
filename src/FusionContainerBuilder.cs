@@ -24,6 +24,7 @@ public static class FusionContainerBuilder {
         builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
         builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
         builder.RegisterType<DotNetEfInstaller>().As<IDotNetEfInstaller>();
+        builder.RegisterType<DotNetEfRunner>().As<IDotNetEfRunner>();
         return builder;
     }
 
@@ -37,6 +38,7 @@ public static class FusionContainerBuilder {
         services.AddTransient<ICakeBuilder, CakeBuilder>();
         services.AddTransient<IBinariesHelper, BinariesHelper>();
         services.AddTransient<IDotNetEfInstaller, DotNetEfInstaller>();
+        services.AddTransient<IDotNetEfRunner, DotNetEfRunner>();
         return services;
     }
 }

@@ -53,6 +53,8 @@ public class NugetPackageUpdaterTest {
         var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
         Assert.IsTrue(yesNo);
         Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package PakledCore from {PakledCoreVersion}")));
+        yesNo = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
+        Assert.IsFalse(yesNo);
     }
 
     [TestMethod]
@@ -98,7 +100,16 @@ public class NugetPackageUpdaterTest {
 
     private async Task<bool> NugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
         var sut = Container.Resolve<INugetPackageUpdater>();
-        var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(
+            PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        return yesNo;
+    }
+
+    private async Task<bool> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
+        var sut = Container.Resolve<INugetPackageUpdater>();
+        var yesNo = await sut.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
+            PakledConsumerCoreTarget.Folder(), errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNo;
     }

@@ -198,6 +198,9 @@
   <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
     <value>The files are equal in length but it cannot be ignored</value>
   </data>
+  <data name="FolderNotFound" xml:space="preserve">
+    <value>Folder "{0}" does not exist</value>
+  </data>
   <data name="FoundFile" xml:space="preserve">
     <value>Found file "{0}"</value>
   </data>

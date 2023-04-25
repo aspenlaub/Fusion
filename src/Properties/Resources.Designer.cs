@@ -304,6 +304,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Folder &quot;{0}&quot; does not exist.
+        /// </summary>
+        internal static string FolderNotFound {
+            get {
+                return ResourceManager.GetString("FolderNotFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Found file &quot;{0}&quot;.
         /// </summary>
         internal static string FoundFile {

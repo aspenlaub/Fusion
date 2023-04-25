@@ -149,11 +149,32 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         }
     }
 
-    public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        return await AreThereNugetUpdateOpportunitiesForSolutionAsync(repositoryFolder.SubFolder("src"), errorsAndInfos);
+    public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder,
+            IErrorsAndInfos errorsAndInfos) {
+        return await AreThereNugetUpdateOpportunitiesForSolutionAsync(
+            repositoryFolder.SubFolder("src"), false, errorsAndInfos);
+    }
+
+    public async Task<bool> AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
+            IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+        return await AreThereNugetUpdateOpportunitiesForSolutionAsync(
+            repositoryFolder.SubFolder("src"), true, errorsAndInfos);
     }
 
     public async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
+        return await AreThereNugetUpdateOpportunitiesForSolutionAsync(solutionFolder, false,
+            errorsAndInfos);
+    }
+
+    public async Task<bool> AreThereEntityFrameworkNugetUpdateOpportunitiesForSolutionAsync(
+            IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
+        return await AreThereNugetUpdateOpportunitiesForSolutionAsync(solutionFolder, true,
+                                                                      errorsAndInfos);
+    }
+
+    private async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(
+            IFolder solutionFolder, bool entityFrameworkUpdatesOnly,
+            IErrorsAndInfos errorsAndInfos) {
         var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
         if (!projectFileFullNames.Any()) {
             return false;
@@ -165,7 +186,8 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
         var feedIds = nugetFeeds.Select(f => f.Id).ToList();
         foreach (var projectFileFullName in projectFileFullNames) {
-            if (await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName, feedIds, errorsAndInfos)) {
+            if (await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName,
+                    feedIds, entityFrameworkUpdatesOnly, errorsAndInfos)) {
                 return !errorsAndInfos.AnyErrors();
             }
         }
@@ -173,7 +195,9 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         return false;
     }
 
-    private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(string projectFileFullName, IList<string> nugetFeedIds, IErrorsAndInfos errorsAndInfos) {
+    private async Task<bool> AreThereNugetUpdateOpportunitiesForProjectAsync(
+            string projectFileFullName, IList<string> nugetFeedIds,
+            bool entityFrameworkUpdatesOnly, IErrorsAndInfos errorsAndInfos) {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
         var dependencyIdsAndVersions = await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
@@ -184,7 +208,11 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         var yesNo = false;
         foreach (var dependencyIdsAndVersion in dependencyIdsAndVersions) {
             var id = dependencyIdsAndVersion.Key;
-            if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
+            if (entityFrameworkUpdatesOnly) {
+                if (!id.StartsWith("Microsoft.EntityFramework")) { continue; }
+            } else {
+                if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
+            }
 
             IList<IPackageSearchMetadata> remotePackages = null;
             foreach (var nugetFeedId in nugetFeedIds) {
