@@ -53,8 +53,9 @@ public class NugetPackageUpdaterTest {
         var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
         Assert.IsTrue(yesNo);
         Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package PakledCore from {PakledCoreVersion}")));
-        yesNo = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
-        Assert.IsFalse(yesNo);
+        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
+        Assert.IsFalse(packageUpdateOpportunity.YesNo);
+        Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
     }
 
     [TestMethod]
@@ -103,15 +104,18 @@ public class NugetPackageUpdaterTest {
         var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(
             PakledConsumerCoreTarget.Folder(), errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        return yesNo;
+        var yesNo2 = await sut.AreThereNugetUpdateOpportunitiesForSolutionAsync(
+            PakledConsumerCoreTarget.Folder().SubFolder("src"), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        return yesNo && yesNo2;
     }
 
-    private async Task<bool> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
+    private async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
         var sut = Container.Resolve<INugetPackageUpdater>();
-        var yesNo = await sut.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
+        var packageUpdateOpportunity = await sut.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
             PakledConsumerCoreTarget.Folder(), errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        return yesNo;
+        return packageUpdateOpportunity;
     }
 
     private async Task<YesNoInconclusive> UpdateNugetPackagesAsync() {

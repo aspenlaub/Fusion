@@ -31,6 +31,9 @@ public class DotNetEfRunnerTest : DotNetEfTestBase {
 
         UpdateDatabase(Sut, projectFolder, DotNetEfToy702MigrationId);
         VerifyMigrationIds(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
+
+        UpdateDatabase(Sut, projectFolder, "");
+        VerifyMigrationIds(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
     }
 
     [TestMethod]

@@ -38,46 +38,57 @@ public class DotNetEfTestBase {
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 
-    protected void AddMigration(IDotNetEfRunner runner, IFolder projectFolder, string migrationId) {
+    protected void AddMigration(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string migrationId) {
         var errorsAndInfos = new ErrorsAndInfos();
-        runner.AddMigration(projectFolder, migrationId, errorsAndInfos);
+        dotNetEfRunner.AddMigration(projectFolder, migrationId, errorsAndInfos);
         const string expectedInfo = "Done.";
         Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
     }
 
-    protected void VerifyMigrationIds(IDotNetEfRunner runner, IFolder projectFolder, IList<string> expectedMigrationIds) {
-        var errorsAndInfos = new ErrorsAndInfos();
-        var migrationIds = runner.ListAppliedMigrationIds(projectFolder, errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.AreEqual(expectedMigrationIds.Count, migrationIds.Count);
+    protected void VerifyMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, IList<string> expectedMigrationIds) {
+        var actualMigrationIds = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+        VerifyMigrationIds(expectedMigrationIds, actualMigrationIds);
+    }
+
+    protected void VerifyMigrationIds(IList<string> expectedMigrationIds, IList<string> actualMigrationIds) {
+        Assert.AreEqual(expectedMigrationIds.Count, actualMigrationIds.Count);
         for (var i = 0; i < expectedMigrationIds.Count; i++) {
-            Assert.IsTrue(migrationIds[i].EndsWith(expectedMigrationIds[i]));
+            Assert.IsTrue(actualMigrationIds[i].EndsWith(expectedMigrationIds[i]));
         }
     }
 
-    protected void DropDatabase(IDotNetEfRunner runner, IFolder projectFolder) {
+    protected IList<string> ListAppliedMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
         var errorsAndInfos = new ErrorsAndInfos();
-        runner.DropDatabase(projectFolder, errorsAndInfos);
+        var migrationIds = dotNetEfRunner.ListAppliedMigrationIds(projectFolder, errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        return migrationIds;
+    }
+
+    protected void DropDatabase(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
+        var errorsAndInfos = new ErrorsAndInfos();
+        dotNetEfRunner.DropDatabase(projectFolder, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         const string expectedInfo = $"Dropping database '{DotNetEfToyDatabaseName}'";
         Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
     }
 
-    protected void UpdateDatabase(IDotNetEfRunner runner, IFolder projectFolder, string expectedMigration) {
+    protected void UpdateDatabase(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string expectedMigration) {
         var errorsAndInfos = new ErrorsAndInfos();
-        runner.UpdateDatabase(projectFolder, errorsAndInfos);
+        dotNetEfRunner.UpdateDatabase(projectFolder, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        const string expectedInfoStart = "Applying migration '";
-        var expectedInfo = $"{expectedMigration}'";
+        var expectedInfoStart = string.IsNullOrEmpty(expectedMigration)
+            ? "No migrations were applied" : "Applying migration '";
+        var expectedInfo = string.IsNullOrEmpty(expectedMigration)
+            ? "database is already up to date" : $"{expectedMigration}'";
         Assert.IsTrue(errorsAndInfos.Infos.Any(i
-                                                   => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo)));
+            => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo)));
     }
 
-    protected async Task<bool> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
+    protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
         var updater = Container.Resolve<INugetPackageUpdater>();
-        var yesNo = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
+        var packageUpdateOpportunity = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
             DotNetEfToyTarget.Folder(), errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        return yesNo;
+        return packageUpdateOpportunity;
     }
 }

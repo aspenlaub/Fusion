@@ -35,8 +35,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Interfaces\" />
-    <Folder Include="Entities\" />
     <Folder Include="Components\" />
   </ItemGroup>
   <ItemGroup>
