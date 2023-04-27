@@ -63,11 +63,8 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
         var unexpectedFiles = files
             .Where(f =>
                 !f.EndsWith(".csproj", StringComparison.InvariantCultureIgnoreCase)
-                && !f.Contains(@"Migrations\", StringComparison.InvariantCultureIgnoreCase))
-            .Select(f =>
-                f.Contains("\\", StringComparison.InvariantCulture)
-                    ? f.Substring(f.LastIndexOf("\\", StringComparison.InvariantCulture))
-                    : f)
+                && !f.Contains(@"Migrations\", StringComparison.InvariantCultureIgnoreCase)
+                && !f.Contains("Migrations/", StringComparison.InvariantCultureIgnoreCase))
             .ToList();
         if (unexpectedFiles.Any()) {
             errorsAndInfos.Errors.Add(string.Format(
