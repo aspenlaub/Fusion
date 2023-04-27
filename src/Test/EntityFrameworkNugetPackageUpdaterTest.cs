@@ -36,10 +36,10 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
     [TestMethod]
     public async Task CanUpdateEntityFramework() {
-        var packageConfigsScanner = Container.Resolve<IPackageConfigsScanner>();
+        var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
         var projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
-        var dependencyIdsAndVersions = await packageConfigsScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
 
         var dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
 
@@ -64,7 +64,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
             migrationIdsAfterUpdate.Take(migrationIdsBeforeUpdate.Count).ToList());
         Assert.IsTrue(migrationIdsAfterUpdate.Last().EndsWith(DotNetEfToyDummyMigrationId));
 
-        var dependencyIdsAndVersionsAfterUpdate = await packageConfigsScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
         Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
                         $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
         Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");

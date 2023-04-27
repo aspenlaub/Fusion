@@ -64,16 +64,16 @@ public class NugetPackageUpdaterTest {
         var errorsAndInfos = new ErrorsAndInfos();
         gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var packageConfigsScanner = Container.Resolve<IPackageConfigsScanner>();
+        var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var dependencyIdsAndVersions = await packageConfigsScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
         MakeCsProjAndConfigChange();
         var yesNoInconclusive = await UpdateNugetPackagesAsync();
         Assert.IsTrue(yesNoInconclusive.YesNo);
         Assert.IsFalse(yesNoInconclusive.Inconclusive);
         yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
         Assert.IsFalse(yesNoInconclusive.YesNo);
-        var dependencyIdsAndVersionsAfterUpdate = await packageConfigsScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
         Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
         Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");

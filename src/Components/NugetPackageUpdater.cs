@@ -21,7 +21,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
     private readonly IProcessRunner _ProcessRunner;
     private readonly INugetFeedLister _NugetFeedLister;
     private readonly ISecretRepository _SecretRepository;
-    private readonly IPackageConfigsScanner _PackageConfigsScanner;
+    private readonly IPackageReferencesScanner _PackageReferencesScanner;
     private readonly ISimpleLogger _SimpleLogger;
     private readonly IMethodNamesFromStackFramesExtractor _MethodNamesFromStackFramesExtractor;
     private readonly IDotNetEfRunner _DotNetEfRunner;
@@ -30,14 +30,14 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
     public NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner processRunner,
             INugetFeedLister nugetFeedLister, ISecretRepository secretRepository,
-            IPackageConfigsScanner packageConfigsScanner, ISimpleLogger simpleLogger,
+            IPackageReferencesScanner packageReferencesScanner, ISimpleLogger simpleLogger,
             IMethodNamesFromStackFramesExtractor methodNamesFromStackFramesExtractor,
             IDotNetEfRunner dotNetEfRunner) {
         _GitUtilities = gitUtilities;
         _ProcessRunner = processRunner;
         _NugetFeedLister = nugetFeedLister;
         _SecretRepository = secretRepository;
-        _PackageConfigsScanner = packageConfigsScanner;
+        _PackageReferencesScanner = packageReferencesScanner;
         _SimpleLogger = simpleLogger;
         _MethodNamesFromStackFramesExtractor = methodNamesFromStackFramesExtractor;
         _DotNetEfRunner = dotNetEfRunner;
@@ -130,7 +130,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             _SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions", methodNamesFromStack);
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             var dependencyIdsAndVersions =
-                await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+                await _PackageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             _SimpleLogger.LogInformationWithCallStack("Retrieving manually updated packages", methodNamesFromStack);
             var secret = new SecretManuallyUpdatedPackages();
@@ -173,7 +173,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
             _SimpleLogger.LogInformationWithCallStack("Retrieving dependency ids and versions once more", methodNamesFromStack);
             var dependencyIdsAndVersionsAfterUpdate =
-                await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+                await _PackageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             _SimpleLogger.LogInformationWithCallStack("Determining differences", methodNamesFromStack);
             foreach (var dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
@@ -239,7 +239,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             string projectFileFullName, IList<string> nugetFeedIds,
             bool entityFrameworkUpdatesOnly, IErrorsAndInfos errorsAndInfos) {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var dependencyIdsAndVersions = await _PackageConfigsScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+        var dependencyIdsAndVersions = await _PackageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
         var packageUpdateOpportunity = new PackageUpdateOpportunity();
 
         var secret = new SecretManuallyUpdatedPackages();
