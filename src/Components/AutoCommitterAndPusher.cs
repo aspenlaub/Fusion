@@ -60,8 +60,19 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
             return;
         }
 
-        if (!files.All(f => f.EndsWith(".csproj", StringComparison.InvariantCultureIgnoreCase) || f.EndsWith(".config", StringComparison.InvariantCultureIgnoreCase))) {
-            errorsAndInfos.Errors.Add(Properties.Resources.OnlyCsProjAndConfigFilesExpected);
+        var unexpectedFiles = files
+            .Where(f =>
+                !f.EndsWith(".csproj", StringComparison.InvariantCultureIgnoreCase))
+            .Select(f =>
+                f.Contains("\\", StringComparison.InvariantCulture)
+                    ? f.Substring(f.LastIndexOf("\\", StringComparison.InvariantCulture))
+                    : f)
+            .ToList();
+        if (unexpectedFiles.Any()) {
+            errorsAndInfos.Errors.Add(string.Format(
+                Properties.Resources.OnlyCsProjFilesExpected,
+                string.Join(", ", unexpectedFiles))
+            );
             return;
         }
 

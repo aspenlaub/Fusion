@@ -502,11 +502,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Expected .csproj and .config files to commit and push, no other file types.
+        ///   Looks up a localized string similar to Expected .csproj files to commit and push, no other file types: {0}.
         /// </summary>
-        internal static string OnlyCsProjAndConfigFilesExpected {
+        internal static string OnlyCsProjFilesExpected {
             get {
-                return ResourceManager.GetString("OnlyCsProjAndConfigFilesExpected", resourceCulture);
+                return ResourceManager.GetString("OnlyCsProjFilesExpected", resourceCulture);
             }
         }
         
