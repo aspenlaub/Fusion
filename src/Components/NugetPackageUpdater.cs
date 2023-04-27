@@ -114,17 +114,11 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
 
             _SimpleLogger.LogInformationWithCallStack("Checking if project has at least one migration", methodNamesFromStack);
-            if (entityFrameworkOnly) {
-                entityFrameworkOnly = _DotNetEfRunner
-                    .ListAppliedMigrationIds(projectFileFolder, errorsAndInfos)
-                    .Any();
-                if (errorsAndInfos.AnyErrors()) {
-                    _SimpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
-                    return false;
-                }
-            }
+            var projectHasMigrations = entityFrameworkOnly
+                && _DotNetEfRunner.ListAppliedMigrationIds(projectFileFolder, errorsAndInfos)
+                        .Any();
 
-            if (entityFrameworkOnly) {
+            if (entityFrameworkOnly && projectHasMigrations) {
                 _SimpleLogger.LogInformationWithCallStack("Updating database", methodNamesFromStack);
                 _DotNetEfRunner.UpdateDatabase(projectFileFolder, errorsAndInfos);
                 if (errorsAndInfos.AnyErrors()) {
@@ -158,7 +152,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
             }
 
-            if (entityFrameworkOnly) {
+            if (entityFrameworkOnly && projectHasMigrations) {
                 _SimpleLogger.LogInformationWithCallStack("Adding migration", methodNamesFromStack);
                 if (string.IsNullOrEmpty(migrationId)) {
                     migrationId = ids[0].Replace(".", "");
