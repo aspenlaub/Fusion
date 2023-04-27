@@ -264,8 +264,8 @@
   <data name="OnlyCakeFilesExpected" xml:space="preserve">
     <value>Expected cake files to commit and push, no other file types</value>
   </data>
-  <data name="OnlyCsProjFilesExpected" xml:space="preserve">
-    <value>Expected .csproj files to commit and push, no other file types: {0}</value>
+  <data name="OnlyCsProjFilesAndMigrationsExpected" xml:space="preserve">
+    <value>Expected .csproj and migration files to commit and push, no other file types: {0}</value>
   </data>
   <data name="OtherFilesRequireUpdateAnyway" xml:space="preserve">
     <value>Other files require update anyway</value>
