@@ -144,7 +144,8 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 .Select(dependencyIdsAndVersion => dependencyIdsAndVersion.Key)
                 .Where(id => entityFrameworkOnly
                        ? id.StartsWith(MicrosoftEntityFrameworkPrefix)
-                       : manuallyUpdatedPackages.All(p => p.Id != id))
+                       : !id.StartsWith(MicrosoftEntityFrameworkPrefix)
+                        && manuallyUpdatedPackages.All(p => p.Id != id))
                 .ToList();
             foreach (var id in ids) {
                 _SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
@@ -251,6 +252,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             if (entityFrameworkUpdatesOnly) {
                 if (!id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
             } else {
+                if (id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
                 if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
             }
 
