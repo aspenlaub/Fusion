@@ -23,6 +23,10 @@ public class DotNetEfTestBase {
     protected const string DotNetEfToy702MigrationId = "20230425060415_EntityFrameworkCore702";
     protected const string DotNetEfToyDummyMigrationId = "DummyEntityFrameworkCore";
 
+    protected static readonly TestTargetFolder DotNetEfToyTarget2
+        = new(nameof(DotNetEfInstallerTest) + "2", "DotNetEfToy");
+    protected const string DotNetEfToyHeadTipSha2 = "254cc7ae90cc2c37b306d9d541187ae28d0f06e7";
+
     private static IContainer PrivateContainer;
     public static IContainer Container
         => PrivateContainer ??= new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
@@ -35,6 +39,14 @@ public class DotNetEfTestBase {
         gitUtilities.Clone(url, "master", DotNetEfToyTarget.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         gitUtilities.Reset(DotNetEfToyTarget.Folder(), DotNetEfToyHeadTipSha, errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+
+        DotNetEfToyTarget2.Delete();
+        url = "https://github.com/aspenlaub/" + DotNetEfToyTarget2.SolutionId + ".git";
+        errorsAndInfos = new ErrorsAndInfos();
+        gitUtilities.Clone(url, "master", DotNetEfToyTarget2.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        gitUtilities.Reset(DotNetEfToyTarget2.Folder(), DotNetEfToyHeadTipSha2, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 
@@ -84,10 +96,10 @@ public class DotNetEfTestBase {
             => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo)));
     }
 
-    protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
+    protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(TestTargetFolder testTargetFolder, IErrorsAndInfos errorsAndInfos) {
         var updater = Container.Resolve<INugetPackageUpdater>();
         var packageUpdateOpportunity = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
-            DotNetEfToyTarget.Folder(), errorsAndInfos);
+            testTargetFolder.Folder(), errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return packageUpdateOpportunity;
     }

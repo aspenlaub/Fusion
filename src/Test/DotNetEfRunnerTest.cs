@@ -13,6 +13,7 @@ public class DotNetEfRunnerTest : DotNetEfTestBase {
     [TestCleanup]
     public void TestCleanup() {
         DotNetEfToyTarget.Delete();
+        DotNetEfToyTarget2.Delete();
     }
 
     [TestInitialize]

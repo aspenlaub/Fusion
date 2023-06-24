@@ -2,6 +2,8 @@
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities.Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
@@ -15,6 +17,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
     [TestCleanup]
     public void TestCleanup() {
         DotNetEfToyTarget.Delete();
+        DotNetEfToyTarget2.Delete();
     }
 
     [TestInitialize]
@@ -25,7 +28,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
     [TestMethod]
     public async Task EntityFrameworkUpdateIsAvailable() {
         var errorsAndInfos = new ErrorsAndInfos();
-        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
+        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(DotNetEfToyTarget, errorsAndInfos);
         Assert.IsTrue(packageUpdateOpportunity.YesNo);
         var potentialMigrationId = packageUpdateOpportunity.PotentialMigrationId;
         Assert.IsTrue(potentialMigrationId.StartsWith("MicrosoftEntityFrameworkCoreTools"));
@@ -36,21 +39,30 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
     [TestMethod]
     public async Task CanUpdateEntityFramework() {
+        await CanUpdateEntityFramework(DotNetEfToyTarget);
+    }
+
+    [TestMethod]
+    public async Task CanUpdateEntityFramework2() {
+        await CanUpdateEntityFramework(DotNetEfToyTarget2);
+    }
+
+    private async Task CanUpdateEntityFramework(TestTargetFolder testTargetFolder) {
         var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
+        var projectFolder = testTargetFolder.Folder().SubFolder("src");
         var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
 
         var dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
 
         var migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
 
-        var yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync();
+        var yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync(testTargetFolder);
         Assert.IsTrue(yesNoInconclusive.YesNo);
         Assert.IsFalse(yesNoInconclusive.Inconclusive);
 
         var errorsAndInfos = new ErrorsAndInfos();
-        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
+        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(testTargetFolder, errorsAndInfos);
         Assert.IsFalse(packageUpdateOpportunity.YesNo);
         Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
@@ -71,10 +83,10 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
     }
 
-    private async Task<YesNoInconclusive> UpdateEntityFrameworkPackagesAsync() {
+    private async Task<YesNoInconclusive> UpdateEntityFrameworkPackagesAsync(ITestTargetFolder testTargetFolder) {
         var sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(DotNetEfToyTarget.Folder(),
+        var yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
             DotNetEfToyDummyMigrationId, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
