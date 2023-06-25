@@ -39,15 +39,15 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
     [TestMethod]
     public async Task CanUpdateEntityFramework() {
-        await CanUpdateEntityFramework(DotNetEfToyTarget);
+        await CanUpdateEntityFramework(DotNetEfToyTarget, DotNetEfToy702MigrationId);
     }
 
     [TestMethod]
     public async Task CanUpdateEntityFramework2() {
-        await CanUpdateEntityFramework(DotNetEfToyTarget2);
+        await CanUpdateEntityFramework(DotNetEfToyTarget2, DotNetEfToy705MigrationId);
     }
 
-    private async Task CanUpdateEntityFramework(TestTargetFolder testTargetFolder) {
+    private async Task CanUpdateEntityFramework(TestTargetFolder testTargetFolder, string lastMigrationIdBeforeUpdate) {
         var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
         var projectFolder = testTargetFolder.Folder().SubFolder("src");
@@ -56,6 +56,15 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         var dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
 
         var migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+
+        if (migrationIdsBeforeUpdate.Count > 0 && migrationIdsBeforeUpdate[^1] != lastMigrationIdBeforeUpdate) {
+            if (migrationIdsBeforeUpdate.Contains(lastMigrationIdBeforeUpdate)) {
+                DropDatabase(dotNetEfRunner, projectFolder);
+            }
+            UpdateDatabase(dotNetEfRunner, projectFolder, lastMigrationIdBeforeUpdate);
+        }
+
+        migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
 
         var yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync(testTargetFolder);
         Assert.IsTrue(yesNoInconclusive.YesNo);
