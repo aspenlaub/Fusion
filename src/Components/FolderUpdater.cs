@@ -116,9 +116,9 @@ public class FolderUpdater : IFolderUpdater {
         return true;
     }
 
-    public async Task UpdateFolderAsync(string repositoryId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
+    public async Task UpdateFolderAsync(string repositoryId, string branchId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
         bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
-        var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(repositoryId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
         var anyCopies = false;

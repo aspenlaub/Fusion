@@ -29,7 +29,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
         _NugetPackageRestorer = nugetPackageRestorer;
     }
 
-    public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
+    public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
         IList<BinaryToUpdate> changedBinaries = new List<BinaryToUpdate>();
 
         var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
@@ -37,9 +37,9 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             CleanUpFolder(workFolder, errorsAndInfos);
             if (!errorsAndInfos.AnyErrors()) {
                 workFolder.CreateIfNecessary();
-                changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
+                changedBinaries = ListChangedBinaries(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
                 if (changedBinaries.Any()) {
-                    changedBinaries = ListChangedBinaries(repositoryId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, false);
+                    changedBinaries = ListChangedBinaries(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, false);
                 }
             }
         } catch (Exception e) {
@@ -73,7 +73,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
         }
     }
 
-    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string previousHeadTipIdSha, string currentHeadTipIdSha, IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
+    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
         var changedBinaries = new List<BinaryToUpdate>();
         var compileFolder = workFolder.SubFolder("Compile");
         var previousTargetFolder = workFolder.SubFolder("Previous");
@@ -85,7 +85,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             compileFolder.CreateIfNecessary();
 
             var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
-            _GitUtilities.Clone(url, "master", compileFolder, new CloneOptions { BranchName = "master" }, false, errorsAndInfos);
+            _GitUtilities.Clone(url, branchId, compileFolder, new CloneOptions { BranchName = branchId }, false, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
             var headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;

@@ -15,11 +15,14 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
     private readonly IGitUtilities _GitUtilities;
     private readonly ISecretRepository _SecretRepository;
     private readonly IPushedHeadTipShaRepository _PushedHeadTipShaRepository;
+    private readonly IBranchesWithPackagesRepository _BranchesWithPackagesRepository;
 
-    public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository, IPushedHeadTipShaRepository pushedHeadTipShaRepository) {
+    public AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository,
+            IPushedHeadTipShaRepository pushedHeadTipShaRepository, IBranchesWithPackagesRepository branchesWithPackagesRepository) {
         _GitUtilities = gitUtilities;
         _SecretRepository = secretRepository;
         _PushedHeadTipShaRepository = pushedHeadTipShaRepository;
+        _BranchesWithPackagesRepository = branchesWithPackagesRepository;
     }
 
     public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -79,8 +82,9 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
 
     private async Task AutoCommitAndPushAsync(string nugetFeedId, IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
         var branchName = _GitUtilities.CheckedOutBranch(repositoryFolder);
-        if (branchName != "master") {
-            errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMaster);
+        var branchesWithPackages = await _BranchesWithPackagesRepository.GetBranchIdsAsync(errorsAndInfos);
+        if (!branchesWithPackages.Contains(branchName)) {
+            errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMasterOrBranchWithPackages);
             return;
         }
 

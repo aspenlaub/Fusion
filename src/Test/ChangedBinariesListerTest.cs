@@ -27,7 +27,7 @@ public class ChangedBinariesListerTest {
         var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = sut.ListChangedBinaries("Pegh", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsFalse(changedBinaries.Any());
     }
@@ -37,7 +37,7 @@ public class ChangedBinariesListerTest {
         var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = sut.ListChangedBinaries("Pegh", BeforeMajorPeghChangeHeadTipSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.AreEqual(3, changedBinaries.Count);
         Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll"));
@@ -50,7 +50,7 @@ public class ChangedBinariesListerTest {
         var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = sut.ListChangedBinaries("Prouser", PreviousProuserHeadTipIdSha, CurrentProuserHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = sut.ListChangedBinaries("Prouser", "master", PreviousProuserHeadTipIdSha, CurrentProuserHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.AreEqual(9, changedBinaries.Count);
         Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Prouser.deps.json"));

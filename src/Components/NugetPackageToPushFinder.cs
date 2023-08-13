@@ -42,7 +42,7 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
         _ChangedBinariesLister = changedBinariesLister;
     }
 
-    public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName, string branchId, IErrorsAndInfos errorsAndInfos) {
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
         var projectFileFullName = solutionFileFullName.Replace(".sln", ".csproj");
@@ -154,7 +154,7 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
             var tag = tags[0];
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
             var listerErrorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(packageId, headTipIdSha, tag, listerErrorsAndInfos);
+            var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(packageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
             if (listerErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                 errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);

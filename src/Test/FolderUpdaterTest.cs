@@ -39,7 +39,7 @@ public class FolderUpdaterTest {
     public async Task CanListAndCopyChangedBinaries() {
         var lister = _Container.Resolve<IChangedBinariesLister>();
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = lister.ListChangedBinaries(RepositoryId, BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = lister.ListChangedBinaries(RepositoryId, "master", BeforeMajorChangeHeadTipSha, CurrentHeadTipIdSha, errorsAndInfos);
         Assert.AreEqual(3, changedBinaries.Count);
         var sourceFolder = _WorkFolder.SubFolder("Source");
         sourceFolder.CreateIfNecessary();
@@ -52,7 +52,7 @@ public class FolderUpdaterTest {
         }
         await File.WriteAllTextAsync(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
         var sut = _Container.Resolve<IFolderUpdater>();
-        await sut.UpdateFolderAsync(RepositoryId, BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
+        await sut.UpdateFolderAsync(RepositoryId, "master", BeforeMajorChangeHeadTipSha, sourceFolder, CurrentHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         foreach (var changedBinary in changedBinaries) {
             Assert.AreEqual(changedBinary.FileName, await File.ReadAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName));

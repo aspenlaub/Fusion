@@ -142,11 +142,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to It is not the master branch that is checked out.
+        ///   Looks up a localized string similar to It is not the master branch that is checked out, nor is it a branch that produces packages.
         /// </summary>
-        internal static string CheckedOutBranchIsNotMaster {
+        internal static string CheckedOutBranchIsNotMasterOrBranchWithPackages {
             get {
-                return ResourceManager.GetString("CheckedOutBranchIsNotMaster", resourceCulture);
+                return ResourceManager.GetString("CheckedOutBranchIsNotMasterOrBranchWithPackages", resourceCulture);
             }
         }
         

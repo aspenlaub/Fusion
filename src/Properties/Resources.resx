@@ -144,8 +144,8 @@
   <data name="CanUpdatePackageFromTo" xml:space="preserve">
     <value>Could update package {0} from {1} to {2}</value>
   </data>
-  <data name="CheckedOutBranchIsNotMaster" xml:space="preserve">
-    <value>It is not the master branch that is checked out</value>
+  <data name="CheckedOutBranchIsNotMasterOrBranchWithPackages" xml:space="preserve">
+    <value>It is not the master branch that is checked out, nor is it a branch that produces packages</value>
   </data>
   <data name="CheckingIfThereAreChangedBinaries" xml:space="preserve">
     <value>Checking if there are changed binaries between head tip shas "{0}" and "{1}"</value>
