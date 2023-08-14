@@ -100,7 +100,7 @@ public class DotNetEfTestBase {
     protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(TestTargetFolder testTargetFolder, IErrorsAndInfos errorsAndInfos) {
         var updater = Container.Resolve<INugetPackageUpdater>();
         var packageUpdateOpportunity = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
-            testTargetFolder.Folder(), errorsAndInfos);
+            testTargetFolder.Folder(), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return packageUpdateOpportunity;
     }

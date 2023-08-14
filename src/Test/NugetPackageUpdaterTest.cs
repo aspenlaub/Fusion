@@ -102,10 +102,10 @@ public class NugetPackageUpdaterTest {
     private async Task<bool> NugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
         var sut = Container.Resolve<INugetPackageUpdater>();
         var yesNo = await sut.AreThereNugetUpdateOpportunitiesAsync(
-            PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            PakledConsumerCoreTarget.Folder(), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         var yesNo2 = await sut.AreThereNugetUpdateOpportunitiesForSolutionAsync(
-            PakledConsumerCoreTarget.Folder().SubFolder("src"), errorsAndInfos);
+            PakledConsumerCoreTarget.Folder().SubFolder("src"), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNo && yesNo2;
     }
@@ -113,7 +113,7 @@ public class NugetPackageUpdaterTest {
     private async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(IErrorsAndInfos errorsAndInfos) {
         var sut = Container.Resolve<INugetPackageUpdater>();
         var packageUpdateOpportunity = await sut.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
-            PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            PakledConsumerCoreTarget.Folder(), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return packageUpdateOpportunity;
     }
@@ -121,7 +121,7 @@ public class NugetPackageUpdaterTest {
     private async Task<YesNoInconclusive> UpdateNugetPackagesAsync() {
         var sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        var yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(PakledConsumerCoreTarget.Folder(), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }

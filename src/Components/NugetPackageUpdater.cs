@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
@@ -43,16 +44,19 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         _DotNetEfRunner = dotNetEfRunner;
     }
 
-    public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", errorsAndInfos);
+    public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
+            string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch, errorsAndInfos);
     }
 
-    public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string migrationId, IErrorsAndInfos errorsAndInfos) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, errorsAndInfos);
+    public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
+            string migrationId, string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch, errorsAndInfos);
     }
 
     protected async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-            bool entityFrameworkOnly, string migrationId, IErrorsAndInfos errorsAndInfos) {
+            bool entityFrameworkOnly, string migrationId, string checkedOutBranch,
+            IErrorsAndInfos errorsAndInfos) {
         using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
             var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             _SimpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
@@ -87,7 +91,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 var projectErrorsAndInfos = new ErrorsAndInfos();
                 if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName,
                         yesNoInconclusive.YesNo, entityFrameworkOnly,
-                        migrationId, projectErrorsAndInfos)) {
+                        migrationId, checkedOutBranch, projectErrorsAndInfos)) {
                     continue;
                 }
 
@@ -108,7 +112,8 @@ public class NugetPackageUpdater : INugetPackageUpdater {
     }
 
     private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName,
-            bool yesNo, bool entityFrameworkOnly, string migrationId, IErrorsAndInfos errorsAndInfos) {
+            bool yesNo, bool entityFrameworkOnly, string migrationId,
+            string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
             var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
@@ -145,7 +150,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 .Where(id => entityFrameworkOnly
                        ? id.StartsWith(MicrosoftEntityFrameworkPrefix)
                        : !id.StartsWith(MicrosoftEntityFrameworkPrefix)
-                        && manuallyUpdatedPackages.All(p => p.Id != id))
+                        && manuallyUpdatedPackages.All(p => !p.Matches(id, checkedOutBranch, projectFileFullName)))
                 .ToList();
             foreach (var id in ids) {
                 _SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
@@ -189,26 +194,27 @@ public class NugetPackageUpdater : INugetPackageUpdater {
     }
 
     public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder,
-            IErrorsAndInfos errorsAndInfos) {
+            string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         var packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(
-            repositoryFolder.SubFolder("src"), false, errorsAndInfos);
+            repositoryFolder.SubFolder("src"), false, checkedOutBranch, errorsAndInfos);
         return packageUpdateOpportunity.YesNo;
     }
 
     public async Task<IPackageUpdateOpportunity> AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
-            IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
+            IFolder repositoryFolder, string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         return await AreThereNugetUpdateOpportunitiesForSolutionAsync(
-            repositoryFolder.SubFolder("src"), true, errorsAndInfos);
+            repositoryFolder.SubFolder("src"), true, checkedOutBranch, errorsAndInfos);
     }
 
-    public async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder, IErrorsAndInfos errorsAndInfos) {
+    public async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder,
+            string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         var packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(solutionFolder,
-            false, errorsAndInfos);
+            false, checkedOutBranch, errorsAndInfos);
         return packageUpdateOpportunity.YesNo;
     }
 
     private async Task<IPackageUpdateOpportunity> AreThereNugetUpdateOpportunitiesForSolutionAsync(
-            IFolder solutionFolder, bool entityFrameworkUpdatesOnly,
+            IFolder solutionFolder, bool entityFrameworkUpdatesOnly, string checkedOutBranch,
             IErrorsAndInfos errorsAndInfos) {
         IPackageUpdateOpportunity packageUpdateOpportunity = new PackageUpdateOpportunity();
         var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
@@ -224,7 +230,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         foreach (var projectFileFullName in projectFileFullNames) {
             packageUpdateOpportunity
                 = await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName,
-                    feedIds, entityFrameworkUpdatesOnly, errorsAndInfos);
+                    feedIds, entityFrameworkUpdatesOnly, checkedOutBranch, errorsAndInfos);
             if (!packageUpdateOpportunity.YesNo) {
                 continue;
             }
@@ -238,7 +244,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
 
     private async Task<IPackageUpdateOpportunity> AreThereNugetUpdateOpportunitiesForProjectAsync(
             string projectFileFullName, IList<string> nugetFeedIds,
-            bool entityFrameworkUpdatesOnly, IErrorsAndInfos errorsAndInfos) {
+            bool entityFrameworkUpdatesOnly, string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
         var dependencyIdsAndVersions = await _PackageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
         var packageUpdateOpportunity = new PackageUpdateOpportunity();
@@ -253,7 +259,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 if (!id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
             } else {
                 if (id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
-                if (manuallyUpdatedPackages.Any(p => p.Id == id)) { continue; }
+                if (manuallyUpdatedPackages.Any(p => p.Matches(id, checkedOutBranch, projectFileFullName))) { continue; }
             }
 
             IList<IPackageSearchMetadata> remotePackages = null;

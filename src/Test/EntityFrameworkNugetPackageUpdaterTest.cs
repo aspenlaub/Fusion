@@ -96,7 +96,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         var sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
         var yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
-            DotNetEfToyDummyMigrationId, errorsAndInfos);
+            DotNetEfToyDummyMigrationId, "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }
