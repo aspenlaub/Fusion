@@ -8,7 +8,7 @@ public class ManuallyUpdatedPackage : IManuallyUpdatedPackage {
     [Key, XmlAttribute("id")]
     public string Id { get; set; }
 
-    [XmlAttribute("id")]
+    [XmlAttribute("branch")]
     public string Branch { get; set; }
 
     [XmlAttribute("projectfileinfix")]
