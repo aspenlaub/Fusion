@@ -118,7 +118,7 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
 
         errorsAndInfos.Infos.Add(Properties.Resources.SearchingRemotePackage);
         var packageId = string.IsNullOrWhiteSpace(project.PackageId) ? project.RootNamespace : project.PackageId;
-        packageId += _BranchesWithPackagesRepository.PackageInfix(branchId);
+        packageId += _BranchesWithPackagesRepository.PackageInfix(branchId, true);
         var remotePackages = await _NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
         if (!remotePackages.Any()) {
