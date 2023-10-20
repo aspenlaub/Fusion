@@ -38,6 +38,9 @@
     <Folder Include="Components\" />
   </ItemGroup>
   <ItemGroup>
+    <PackageReference Include="Nuclide-UpToDate" Version="2.0.1549.633" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -49,8 +52,5 @@
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
     </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.1542.611" />
   </ItemGroup>
 </Project>
