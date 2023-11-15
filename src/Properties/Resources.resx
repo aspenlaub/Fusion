@@ -180,6 +180,9 @@
   <data name="FailedToRestore" xml:space="preserve">
     <value>Failed to restore nuget packages for '{0}' at head tip ID sha '{1}'</value>
   </data>
+  <data name="FileChangedAfterCompilingAgain" xml:space="preserve">
+    <value>File "{0}" was changed after compiling again (reson: "{1}")</value>
+  </data>
   <data name="FileIsNew" xml:space="preserve">
     <value>File is new</value>
   </data>
