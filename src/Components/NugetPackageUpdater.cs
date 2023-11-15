@@ -282,6 +282,10 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 continue;
             }
 
+            if (entityFrameworkUpdatesOnly) {
+                remotePackages = remotePackages.Where(p => p.Identity.Version.Major == version.Major).ToList();
+            }
+
             var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
             if (latestRemotePackageVersion <= version || latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) == true) {
                 continue;
