@@ -95,7 +95,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             foreach (var csProjFile in csProjFiles) {
                 var contents = File.ReadAllLines(csProjFile).ToList();
-                contents = contents.Select(AdjustLineIfVersioningRelated).ToList();
+                contents = contents.Select(AdjustLineIfVersioningRelated).Select(MakeDeterministic).ToList();
                 File.WriteAllLines(csProjFile, contents);
             }
 
@@ -214,7 +214,12 @@ public class ChangedBinariesLister : IChangedBinariesLister {
     }
 
     private string AdjustLineIfVersioningRelated(string s) {
+        if (s.Contains("<Version>")) { return "    <Version>2.0.24.7</Version>"; }
         if (s.Contains("<VersionDays>")) { return "    <VersionDays>24</VersionDays>"; }
         return s.Contains("<VersionMinutes") ? "    <VersionMinutes>7</VersionMinutes>" : s;
+    }
+
+    private string MakeDeterministic(string s) {
+        return s.Contains("<Deterministic") ? "    <Deterministic>true</Deterministic>" : s;
     }
 }
