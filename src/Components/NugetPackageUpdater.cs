@@ -50,7 +50,8 @@ public class NugetPackageUpdater : INugetPackageUpdater {
     }
 
     public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-            string migrationId, string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
+            string migrationId, string checkedOutBranch,
+            IErrorsAndInfos errorsAndInfos) {
         return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch, errorsAndInfos);
     }
 
@@ -69,6 +70,14 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
+            var nugetFeedsSecret = new SecretNugetFeeds();
+            var nugetFeeds = await _SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+            if (errorsAndInfos.Errors.Any()) {
+                _SimpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                return yesNoInconclusive;
+            }
+
+            var nugetFeedIds = nugetFeeds.Select(f => f.Id).ToList();
 
             _SimpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
             _GitUtilities.Reset(repositoryFolder, _GitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
@@ -89,7 +98,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             foreach (var projectFileFullName in projectFileFullNames) {
                 _SimpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
                 var projectErrorsAndInfos = new ErrorsAndInfos();
-                if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName,
+                if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName, nugetFeedIds,
                         yesNoInconclusive.YesNo, entityFrameworkOnly,
                         migrationId, checkedOutBranch, projectErrorsAndInfos)) {
                     continue;
@@ -112,7 +121,7 @@ public class NugetPackageUpdater : INugetPackageUpdater {
     }
 
     private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName,
-            bool yesNo, bool entityFrameworkOnly, string migrationId,
+            IList<string> nugetFeedIds, bool yesNo, bool entityFrameworkOnly, string migrationId,
             string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         using (_SimpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
             var methodNamesFromStack = _MethodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
@@ -155,7 +164,17 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             foreach (var id in ids) {
                 _SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
                 _ProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
-                _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
+                var dependencyIdAndVersion = dependencyIdsAndVersions.First(d => d.Key == id);
+                var version = Version.Parse(dependencyIdAndVersion.Value);
+                var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, true, id, version);
+                if (latestRemotePackageVersion == null) {
+                    continue;
+                }
+                if (entityFrameworkOnly) {
+                    _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id + " -v " + latestRemotePackageVersion, projectFileFolder, errorsAndInfos);
+                } else {
+                    _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
+                }
             }
 
             if (entityFrameworkOnly && projectHasMigrations) {
@@ -226,11 +245,11 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         var nugetFeeds = await _SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageUpdateOpportunity; }
 
-        var feedIds = nugetFeeds.Select(f => f.Id).ToList();
+        var nugetFeedIds = nugetFeeds.Select(f => f.Id).ToList();
         foreach (var projectFileFullName in projectFileFullNames) {
             packageUpdateOpportunity
                 = await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName,
-                    feedIds, entityFrameworkUpdatesOnly, checkedOutBranch, errorsAndInfos);
+                    nugetFeedIds, entityFrameworkUpdatesOnly, checkedOutBranch, errorsAndInfos);
             if (!packageUpdateOpportunity.YesNo) {
                 continue;
             }
@@ -262,32 +281,12 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 if (manuallyUpdatedPackages.Any(p => p.Matches(id, checkedOutBranch, projectFileFullName))) { continue; }
             }
 
-            IList<IPackageSearchMetadata> remotePackages = null;
-            foreach (var nugetFeedId in nugetFeedIds) {
-                var listingErrorsAndInfos = new ErrorsAndInfos();
-                remotePackages = await _NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
-                if (listingErrorsAndInfos.AnyErrors()) {
-                    continue;
-                }
-                if (remotePackages.Any()) {
-                    break;
-                }
-            }
-
-            if (remotePackages?.Any() != true) {
-                continue;
-            }
-
             if (!Version.TryParse(dependencyIdsAndVersion.Value, out var version)) {
                 continue;
             }
 
-            if (entityFrameworkUpdatesOnly) {
-                remotePackages = remotePackages.Where(p => p.Identity.Version.Major == version.Major).ToList();
-            }
-
-            var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
-            if (latestRemotePackageVersion <= version || latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) == true) {
+            var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkUpdatesOnly, id, version);
+            if (latestRemotePackageVersion == null) {
                 continue;
             }
 
@@ -295,10 +294,41 @@ public class NugetPackageUpdater : INugetPackageUpdater {
             packageUpdateOpportunity.YesNo = true;
             if (entityFrameworkUpdatesOnly) {
                 packageUpdateOpportunity.PotentialMigrationId
-                    = (id + (latestRemotePackageVersion?.ToString(3) ?? "")).Replace(".", "");
+                    = (id + latestRemotePackageVersion.ToString(3)).Replace(".", "");
             }
         }
 
         return packageUpdateOpportunity;
+    }
+
+    private async Task<Version> IdentifyLatestRemotePackageVersion(IEnumerable<string> nugetFeedIds,
+        bool entityFrameworkUpdatesOnly, string id, Version version) {
+        IList<IPackageSearchMetadata> remotePackages = null;
+        foreach (var nugetFeedId in nugetFeedIds) {
+            var listingErrorsAndInfos = new ErrorsAndInfos();
+            remotePackages = await _NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
+            if (listingErrorsAndInfos.AnyErrors()) {
+                continue;
+            }
+
+            if (remotePackages.Any()) {
+                break;
+            }
+        }
+
+        if (remotePackages?.Any() != true) {
+            return null;
+        }
+
+        if (entityFrameworkUpdatesOnly) {
+            remotePackages = remotePackages.Where(p => p.Identity.Version.Major == version.Major).ToList();
+        }
+
+        var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
+        if (latestRemotePackageVersion <= version || latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) == true) {
+            return null;
+        }
+
+        return latestRemotePackageVersion;
     }
 }
