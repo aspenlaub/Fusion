@@ -14,11 +14,8 @@ public class ChangedBinariesListerTest {
     private const string PreviousPeghHeadTipIdSha = "6e314114c347c17776bdd8367cc5d0f1687a7775";
     private const string CurrentPeghHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
 
-    private readonly IContainer _Container;
-
-    public ChangedBinariesListerTest() {
-        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
-    }
+    private readonly IContainer _Container
+        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
 
     [TestMethod]
     public void UnchangedPeghBinariesAreNotListed() {
@@ -27,9 +24,7 @@ public class ChangedBinariesListerTest {
         var errorsAndInfos = new ErrorsAndInfos();
         var changedBinaries = sut.ListChangedBinaries("Pegh", "master", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        if (changedBinaries.Any()) {
-            Assert.Inconclusive("TODO fix the broken changed binaries lister");
-        }
+        Assert.IsFalse(changedBinaries.Any());
     }
 
     [TestMethod]

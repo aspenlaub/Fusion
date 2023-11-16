@@ -92,6 +92,17 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             _GitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
+            var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
+            CleanUpFolder(compileFolder.SubFolder(".git"), folderCleanUpErrorsAndInfos);
+            if (folderCleanUpErrorsAndInfos.AnyErrors()) {
+                errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
+                return changedBinaries;
+            }
+
+            var files = Directory.GetFiles(compileFolder.FullName, "build.*", SearchOption.TopDirectoryOnly).ToList();
+            files.AddRange(Directory.GetFiles(compileFolder.FullName, ".git*", SearchOption.TopDirectoryOnly).ToList());
+            files.ForEach(File.Delete);
+
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             foreach (var csProjFile in csProjFiles) {
                 var contents = File.ReadAllLines(csProjFile).ToList();
@@ -120,7 +131,6 @@ public class ChangedBinariesLister : IChangedBinariesLister {
 
             var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
             var targetFolder = previous ? previousTargetFolder : currentTargetFolder;
-            var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
             CleanUpFolder(targetFolder, folderCleanUpErrorsAndInfos);
             if (folderCleanUpErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
