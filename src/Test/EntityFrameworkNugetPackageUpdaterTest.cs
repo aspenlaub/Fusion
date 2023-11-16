@@ -33,7 +33,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         var potentialMigrationId = packageUpdateOpportunity.PotentialMigrationId;
         Assert.IsTrue(potentialMigrationId.StartsWith("MicrosoftEntityFrameworkCoreTools"));
         Assert.AreNotEqual("MicrosoftEntityFrameworkCoreTools7050", potentialMigrationId);
-        const string expectedInfo = "Could update package Microsoft.EntityFrameworkCore.Tools from 7.0.2";
+        const string expectedInfo = "Could update package Microsoft.EntityFrameworkCore.Tools from 7.0.2 to 7.";
         Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
     }
 

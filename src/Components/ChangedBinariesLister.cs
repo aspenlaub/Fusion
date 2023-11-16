@@ -92,10 +92,21 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             _GitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
+            var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
+            CleanUpFolder(compileFolder.SubFolder(".git"), folderCleanUpErrorsAndInfos);
+            if (folderCleanUpErrorsAndInfos.AnyErrors()) {
+                errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
+                return changedBinaries;
+            }
+
+            var files = Directory.GetFiles(compileFolder.FullName, "build.*", SearchOption.TopDirectoryOnly).ToList();
+            files.AddRange(Directory.GetFiles(compileFolder.FullName, ".git*", SearchOption.TopDirectoryOnly).ToList());
+            files.ForEach(File.Delete);
+
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             foreach (var csProjFile in csProjFiles) {
                 var contents = File.ReadAllLines(csProjFile).ToList();
-                contents = contents.Select(AdjustLineIfVersioningRelated).ToList();
+                contents = contents.Select(AdjustLineIfVersioningRelated).Select(MakeDeterministic).ToList();
                 File.WriteAllLines(csProjFile, contents);
             }
 
@@ -120,7 +131,6 @@ public class ChangedBinariesLister : IChangedBinariesLister {
 
             var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
             var targetFolder = previous ? previousTargetFolder : currentTargetFolder;
-            var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
             CleanUpFolder(targetFolder, folderCleanUpErrorsAndInfos);
             if (folderCleanUpErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
@@ -129,7 +139,8 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             targetFolder.CreateIfNecessary();
             var shortFileNames = Directory.GetFiles(binFolder.FullName, "*.*", SearchOption.AllDirectories)
                 .Where(f => !f.StartsWith(binFolder.FullName + @"\ref\"))
-                .Select(f => f.Substring(binFolder.FullName.Length + 1));
+                .Select(f => f.Substring(binFolder.FullName.Length + 1))
+                .ToList();
             foreach (var shortFileName in shortFileNames) {
                 var sourceFileName = binFolder.FullName + '\\' + shortFileName;
                 var destinationFileName = targetFolder.FullName + '\\' + shortFileName;
@@ -166,7 +177,8 @@ public class ChangedBinariesLister : IChangedBinariesLister {
                 continue;
             }
 
-            if (_BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "", previousContents, currentContents, previousFileInfo,
+            if (_BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "",
+                    previousContents, currentContents, previousFileInfo,
                     false, currentFileInfo, out var updateReason)) {
                 if (!doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
                     changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = Properties.Resources.OtherFilesRequireUpdateAnyway });
@@ -182,7 +194,12 @@ public class ChangedBinariesLister : IChangedBinariesLister {
     }
 
     private string AdjustLineIfVersioningRelated(string s) {
+        if (s.Contains("<Version>")) { return "    <Version>2.0.24.7</Version>"; }
         if (s.Contains("<VersionDays>")) { return "    <VersionDays>24</VersionDays>"; }
         return s.Contains("<VersionMinutes") ? "    <VersionMinutes>7</VersionMinutes>" : s;
+    }
+
+    private string MakeDeterministic(string s) {
+        return s.Contains("<Deterministic") ? "    <Deterministic>true</Deterministic>" : s;
     }
 }

@@ -250,6 +250,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to File &quot;{0}&quot; was changed after compiling again (reson: &quot;{1}&quot;).
+        /// </summary>
+        internal static string FileChangedAfterCompilingAgain {
+            get {
+                return ResourceManager.GetString("FileChangedAfterCompilingAgain", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to File is new.
         /// </summary>
         internal static string FileIsNew {
