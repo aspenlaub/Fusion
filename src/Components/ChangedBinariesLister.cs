@@ -152,36 +152,6 @@ public class ChangedBinariesLister : IChangedBinariesLister {
                     errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToCopy, sourceFileName, destinationFileName));
                 }
             }
-
-            CleanUpFolder(binFolder, folderCleanUpErrorsAndInfos);
-            if (folderCleanUpErrorsAndInfos.AnyErrors()) {
-                errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
-                return changedBinaries;
-            }
-
-            errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
-            buildErrorsAndInfos = new ErrorsAndInfos();
-            _CakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
-            if (buildErrorsAndInfos.AnyErrors()) {
-                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
-                errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
-                return changedBinaries;
-            }
-
-            foreach (var shortFileName in shortFileNames) {
-                var sourceFileName = binFolder.FullName + '\\' + shortFileName;
-                var destinationFileName = targetFolder.FullName + '\\' + shortFileName;
-
-                var sourceFileInfo = new FileInfo(sourceFileName);
-                var destinationFileInfo = new FileInfo(destinationFileName);
-                var equal = _BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesEvenIfOnlySlightlyChanged,
-                    "", File.ReadAllBytes(sourceFileName), File.ReadAllBytes(destinationFileName), sourceFileInfo, false,
-                    destinationFileInfo, out var updateReason);
-                if (equal) { continue; }
-
-                errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FileChangedAfterCompilingAgain, shortFileName, updateReason));
-                return changedBinaries;
-            }
         }
 
         foreach (var shortFileName in Directory.GetFiles(currentTargetFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => f.Substring(currentTargetFolder.FullName.Length + 1))) {
