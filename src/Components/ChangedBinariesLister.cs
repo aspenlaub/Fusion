@@ -93,21 +93,24 @@ public class ChangedBinariesLister : IChangedBinariesLister {
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
             var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
-            CleanUpFolder(compileFolder.SubFolder(".git"), folderCleanUpErrorsAndInfos);
-            if (folderCleanUpErrorsAndInfos.AnyErrors()) {
-                errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
-                return changedBinaries;
-            }
-
-            var files = Directory.GetFiles(compileFolder.FullName, "build.*", SearchOption.TopDirectoryOnly).ToList();
-            files.AddRange(Directory.GetFiles(compileFolder.FullName, ".git*", SearchOption.TopDirectoryOnly).ToList());
-            files.ForEach(File.Delete);
-
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
+            var linksBuildCake = false;
             foreach (var csProjFile in csProjFiles) {
                 var contents = File.ReadAllLines(csProjFile).ToList();
                 contents = contents.Select(AdjustLineIfVersioningRelated).Select(MakeDeterministic).ToList();
                 File.WriteAllLines(csProjFile, contents);
+                linksBuildCake = linksBuildCake
+                    || contents.Any(l => l.Contains("Link=\"build.cake\"")
+                            || l.Contains("Include=\"..\\build.cake\"")
+                            || l.Contains("Include=\"..\\..\\build.cake\"")
+                       );
+            }
+
+            RemoveNonSourceCodeFiles(compileFolder, linksBuildCake, folderCleanUpErrorsAndInfos);
+            if (folderCleanUpErrorsAndInfos.AnyErrors()) {
+                errorsAndInfos.Infos.AddRange(folderCleanUpErrorsAndInfos.Infos);
+                errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
+                return changedBinaries;
             }
 
             var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
@@ -191,6 +194,30 @@ public class ChangedBinariesLister : IChangedBinariesLister {
         }
 
         return changedBinaries;
+    }
+
+    private void RemoveNonSourceCodeFiles(IFolder compileFolder, bool linksBuildCake, IErrorsAndInfos errorsAndInfos) {
+        CleanUpFolder(compileFolder.SubFolder(".git"), errorsAndInfos);
+        if (errorsAndInfos.AnyErrors()) { return; }
+
+        var files = Directory.GetFiles(compileFolder.FullName, ".git*", SearchOption.TopDirectoryOnly).ToList();
+        if (!linksBuildCake) {
+            files.AddRange(Directory.GetFiles(compileFolder.FullName, "build.*", SearchOption.TopDirectoryOnly).ToList());
+        }
+        foreach (var file in files) {
+            if (!File.Exists(file)) {
+                errorsAndInfos.Infos.Add($"File no longer exists: {file}");
+                continue;
+            }
+
+            try {
+                File.Delete(file);
+            } catch (Exception e) {
+                errorsAndInfos.Errors.Add($"Could not delete file: {file}");
+                errorsAndInfos.Errors.Add(e.Message);
+                return;
+            }
+        }
     }
 
     private string AdjustLineIfVersioningRelated(string s) {
