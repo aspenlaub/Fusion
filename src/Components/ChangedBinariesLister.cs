@@ -99,7 +99,11 @@ public class ChangedBinariesLister : IChangedBinariesLister {
                 var contents = File.ReadAllLines(csProjFile).ToList();
                 contents = contents.Select(AdjustLineIfVersioningRelated).Select(MakeDeterministic).ToList();
                 File.WriteAllLines(csProjFile, contents);
-                linksBuildCake = linksBuildCake || contents.Any(l => l.Contains("Link=\"build.cake\""));
+                linksBuildCake = linksBuildCake
+                    || contents.Any(l => l.Contains("Link=\"build.cake\"")
+                            || l.Contains("Include=\"..\\build.cake\"")
+                            || l.Contains("Include=\"..\\..\\build.cake\"")
+                       );
             }
 
             RemoveNonSourceCodeFiles(compileFolder, linksBuildCake, folderCleanUpErrorsAndInfos);
