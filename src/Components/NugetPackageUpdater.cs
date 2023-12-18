@@ -163,13 +163,13 @@ public class NugetPackageUpdater : INugetPackageUpdater {
                 .ToList();
             foreach (var id in ids) {
                 _SimpleLogger.LogInformationWithCallStack($"Updating dependency {id}", methodNamesFromStack);
-                _ProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
                 var dependencyIdAndVersion = dependencyIdsAndVersions.First(d => d.Key == id);
                 var version = Version.Parse(dependencyIdAndVersion.Value);
-                var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, true, id, version);
+                var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkOnly, id, version);
                 if (latestRemotePackageVersion == null) {
                     continue;
                 }
+                _ProcessRunner.RunProcess("dotnet", "remove " + projectFileFullName + " package " + id, projectFileFolder, errorsAndInfos);
                 if (entityFrameworkOnly) {
                     _ProcessRunner.RunProcess("dotnet", "add " + projectFileFullName + " package " + id + " -v " + latestRemotePackageVersion, projectFileFolder, errorsAndInfos);
                 } else {
