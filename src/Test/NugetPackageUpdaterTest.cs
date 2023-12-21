@@ -69,10 +69,14 @@ public class NugetPackageUpdaterTest {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
         var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
         MakeCsProjAndConfigChange();
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder());
+        errorsAndInfos = new ErrorsAndInfos();
+        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsTrue(yesNoInconclusive.YesNo);
         Assert.IsFalse(yesNoInconclusive.Inconclusive);
+        errorsAndInfos = new ErrorsAndInfos();
         yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsFalse(yesNoInconclusive.YesNo);
         var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
         Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
@@ -83,11 +87,15 @@ public class NugetPackageUpdaterTest {
 
     [TestMethod]
     public async Task CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges() {
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder());
+        var errorsAndInfos = new ErrorsAndInfos();
+        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         if (yesNoInconclusive.YesNo) { return; }
 
         MakeCsProjAndConfigChange();
-        yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder());
+        errorsAndInfos = new ErrorsAndInfos();
+        yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsFalse(yesNoInconclusive.YesNo);
         Assert.IsFalse(yesNoInconclusive.Inconclusive);
     }
@@ -95,7 +103,9 @@ public class NugetPackageUpdaterTest {
     [TestMethod]
     public async Task ErrorWhenAskedToUpdateNugetPackagesWithCsChange() {
         MakeCsChange();
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder());
+        var errorsAndInfos = new ErrorsAndInfos();
+        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsFalse(yesNoInconclusive.YesNo);
         Assert.IsTrue(yesNoInconclusive.Inconclusive);
     }
@@ -118,7 +128,9 @@ public class NugetPackageUpdaterTest {
             var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
-            var yesNoInconclusive = await UpdateNugetPackagesAsync(target.Folder());
+            errorsAndInfos = new ErrorsAndInfos();
+            var yesNoInconclusive = await UpdateNugetPackagesAsync(target.Folder(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
             yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
@@ -150,9 +162,8 @@ public class NugetPackageUpdaterTest {
         return packageUpdateOpportunity;
     }
 
-    private async Task<YesNoInconclusive> UpdateNugetPackagesAsync(IFolder targetFolder) {
+    private async Task<YesNoInconclusive> UpdateNugetPackagesAsync(IFolder targetFolder, IErrorsAndInfos errorsAndInfos) {
         var sut = Container.Resolve<INugetPackageUpdater>();
-        var errorsAndInfos = new ErrorsAndInfos();
         var yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(targetFolder, "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
