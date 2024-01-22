@@ -134,8 +134,15 @@ public class FolderUpdater : IFolderUpdater {
             anyCopies = true;
         }
 
-        foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*").Select(f => new FileInfo(f))) {
-            var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.Name);
+        var sourceFileInfos = Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories)
+           .Select(f => new FileInfo(f))
+           .ToList();
+        foreach (var sourceFileInfo in sourceFileInfos) {
+            if (sourceFileInfo.DirectoryName == null) { continue; }
+
+            var destinationFileInfo = new FileInfo(destinationFolder.FullName
+                + sourceFileInfo.DirectoryName.Substring(sourceFolder.FullName.Length)
+                + '\\' + sourceFileInfo.Name);
             if (destinationFileInfo.Exists) { continue; }
 
             CopyFileReturnSuccess(sourceFileInfo, destinationFileInfo, errorsAndInfos);
