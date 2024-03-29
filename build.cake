@@ -1,8 +1,9 @@
 #load "solution.cake"
-#addin nuget:?package=Cake.Git&version=3.0.0
+#addin nuget:?package=LibGit2Sharp&version=0.30.0
+#addin nuget:?package=Cake.Git&version=4.0.0
 #addin nuget:?package=System.Runtime.Loader
 #addin nuget:?package=Microsoft.Bcl.AsyncInterfaces
-#addin nuget:?package=Fusion-DotnetSeven&loaddependencies=true&version=2.0.1643.1127
+#addin nuget:?package=Fusion-DotnetEight&loaddependencies=true&version=2.0.1710.1044
 
 using Regex = System.Text.RegularExpressions.Regex;
 using Microsoft.Extensions.DependencyInjection;
@@ -106,6 +107,42 @@ Setup(ctx => {
 Task("UpdateBuildCake")
   .Description("Update cake")
   .Does(() => {
+    var oldContents = System.IO.File.ReadAllText(buildCakeFileName);
+    if (!System.IO.Directory.Exists(tempFolder)) {
+      System.IO.Directory.CreateDirectory(tempFolder);
+    }
+    if (System.IO.File.Exists(tempCakeBuildFileName)) {
+      System.IO.File.Delete(tempCakeBuildFileName);
+    }
+    string latestBuildCakeContent;
+    using (var client = new HttpClient()) {
+        latestBuildCakeContent = client.GetStringAsync(latestBuildCakeUrl).Result;
+    }
+    System.IO.File.WriteAllText(tempCakeBuildFileName, latestBuildCakeContent);
+    if (Regex.Replace(oldContents, @"\s", "") != Regex.Replace(System.IO.File.ReadAllText(tempCakeBuildFileName), @"\s", "")) {
+      Information("Updating cake");
+      System.IO.File.Delete(buildCakeFileName);
+      System.IO.File.Move(tempCakeBuildFileName, buildCakeFileName); 
+      var autoErrorsAndInfos = new ErrorsAndInfos();
+      container.Resolve<IAutoCommitterAndPusher>().AutoCommitAndPushSingleCakeFileIfNecessaryAsync(mainNugetFeedId, new Folder(repositoryFolder), autoErrorsAndInfos).Wait();
+      if (autoErrorsAndInfos.Errors.Any()) {
+        throw new Exception(autoErrorsAndInfos.ErrorsToString());
+      }
+      throw new Exception("Your cake file has been updated. Please retry running it.");
+    } else {
+      Information("The cake is up-to-date");
+      System.IO.File.Delete(tempCakeBuildFileName);
+      var autoErrorsAndInfos = new ErrorsAndInfos();
+      container.Resolve<IAutoCommitterAndPusher>().AutoCommitAndPushSingleCakeFileIfNecessaryAsync(mainNugetFeedId, new Folder(repositoryFolder), autoErrorsAndInfos).Wait();
+      if (autoErrorsAndInfos.Errors.Any()) {
+        throw new Exception(autoErrorsAndInfos.ErrorsToString());
+      }
+    }
+    var pinErrorsAndInfos = new ErrorsAndInfos();
+    container.Resolve<IPinnedAddInVersionChecker>().CheckPinnedAddInVersionsAsync(new Folder(repositoryFolder), pinErrorsAndInfos).Wait();
+    if (pinErrorsAndInfos.Errors.Any()) {
+      throw new Exception(pinErrorsAndInfos.ErrorsToString());
+    }
   });
 
 Task("Clean")
