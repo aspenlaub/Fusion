@@ -1,51 +1,87 @@
-﻿using System.Collections.Generic;
-using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Autofac;
-using NuGet.Packaging;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
 [TestClass]
 public class DotNetBuilderTest {
-    protected IDotNetBuilder Sut;
-    private IFolderResolver _FolderResolver;
+    private IDotNetBuilder _Sut;
+    private IContainer _Container;
+    private AutomationTestHelper _AutomationTestHelper;
 
     [TestInitialize]
     public void Initialize() {
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
-        Sut = container.Resolve<IDotNetBuilder>();
-        _FolderResolver = container.Resolve<IFolderResolver>();
+        _AutomationTestHelper = new AutomationTestHelper(nameof(DotNetBuilderTest));
+        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        _Sut = _Container.Resolve<IDotNetBuilder>();
     }
 
     [TestMethod]
-    public async Task CanBuildSolution() {
-        var folder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(CakeBuilderTest));
-        folder.CreateIfNecessary();
-        var files = GetAssemblyFileNames(folder);
-        files.ForEach(File.Delete);
-        var errorsAndInfos = new ErrorsAndInfos();
-        var csharpFolder = await _FolderResolver.ResolveAsync("$(CSharp)", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        var solutionFolder = csharpFolder.SubFolder("TheLittleThings");
-        var solutionFileName = solutionFolder.FullName + @"\TheLittleThings.sln";
-        Assert.IsTrue(File.Exists(solutionFileName));
-        Sut.Build(solutionFileName, true, folder.FullName, errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
-        files = GetAssemblyFileNames(folder);
-        Assert.AreEqual(5, files.Count);
+    public void CanDebugBuildSolutionThatCompilesInDebug() {
+        CanOrCannotBuild("Compiles", true, true);
     }
 
-    private static List<string> GetAssemblyFileNames(IFolder folder) {
-        var files = Directory.GetFiles(folder.FullName, "*TheLittle*.exe").ToList();
-        files.AddRange(Directory.GetFiles(folder.FullName, "*TheLittle*.dll"));
-        return files;
+    [TestMethod]
+    public void CanReleaseBuildSolutionThatCompilesInRelease() {
+        CanOrCannotBuild("Compiles", false, true);
+    }
+
+    [TestMethod]
+    public void CanDebugBuildSolutionThatCompilesInDebugOnly() {
+        CanOrCannotBuild("CompilesInDebug", true, true);
+    }
+
+    [TestMethod]
+    public void CannotReleaseBuildSolutionThatCompilesInDebugOnly() {
+        CanOrCannotBuild("CompilesInDebug", false, false);
+    }
+
+    [TestMethod]
+    public void CannotDebugBuildSolutionThatCompilesInReleaseOnly() {
+        CanOrCannotBuild("CompilesInRelease", true, false);
+    }
+
+    [TestMethod]
+    public void CanReleaseBuildSolutionThatCompilesInReleaseOnly() {
+        CanOrCannotBuild("CompilesInRelease", false, true);
+    }
+
+    [TestMethod]
+    public void CannotDebugBuildSolutionThatDoesNotCompile() {
+        CanOrCannotBuild("DoesNotCompile", true, false);
+    }
+
+    [TestMethod]
+    public void CannotReleaseBuildSolutionThatDoesNotCompile() {
+        CanOrCannotBuild("DoesNotCompile", false, false);
+    }
+
+    protected void CanOrCannotBuild(string solutionId, bool debug, bool buildExpected) {
+        var solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.sln";
+        Assert.IsTrue(File.Exists(solutionFileName));
+
+        var finalFolderName = _AutomationTestHelper.FinalFolder.FullName + '\\' + solutionId + @"Bin\" + (debug ? "Debug" : "Release") + @"\";
+        if (Directory.Exists(finalFolderName)) {
+            var deleter = new FolderDeleter();
+            var canDelete = deleter.CanDeleteFolder(new Folder(finalFolderName), out _);
+            Assert.IsTrue(canDelete);
+            deleter.DeleteFolder(new Folder(finalFolderName));
+        }
+
+        Directory.CreateDirectory(finalFolderName);
+        var errorsAndInfos = new ErrorsAndInfos();
+        var buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
+        Assert.AreEqual(buildExpected, buildSucceeded);
+        if (!buildSucceeded) {
+            return;
+        }
+
+        Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 }
