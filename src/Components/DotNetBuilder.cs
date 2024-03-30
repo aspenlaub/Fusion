@@ -1,9 +1,9 @@
 ﻿using System;
+using System.Linq;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
-using System.Linq;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
@@ -20,9 +20,25 @@ public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
             solutionFileName.Substring(0, solutionFileName.LastIndexOf("\\", StringComparison.Ordinal))
         );
         processRunner.RunProcess(DotNetExecutableFileName, arguments, solutionFolder, errorsAndInfos);
-        if (!errorsAndInfos.Errors.Any(e => e.Contains("The file is locked"))) {
-            errorsAndInfos.Infos.Where(e => e.Contains("The file is locked")).ToList().ForEach(e => errorsAndInfos.Errors.Add(e));
-        }
+        InfosToErrors(errorsAndInfos, "the file is locked", "");
+        InfosToErrors(errorsAndInfos, "failed", "");
+        InfosToErrors(errorsAndInfos, "error", "0 error");
         return !errorsAndInfos.Errors.Any();
+    }
+
+    private void InfosToErrors(IErrorsAndInfos errorsAndInfos, string cue, string ignore) {
+        if (errorsAndInfos.Errors.Any(e =>
+                e.Contains(cue, StringComparison.InvariantCultureIgnoreCase)
+                && (string.IsNullOrEmpty(ignore)
+                    || !e.Contains(ignore, StringComparison.InvariantCultureIgnoreCase)))) {
+            return;
+        }
+
+        errorsAndInfos.Infos.Where(e =>
+                e.Contains(cue, StringComparison.InvariantCultureIgnoreCase)
+                && (string.IsNullOrEmpty(ignore)
+                    || !e.Contains(ignore, StringComparison.InvariantCultureIgnoreCase)))
+            .ToList()
+            .ForEach(errorsAndInfos.Errors.Add);
     }
 }
