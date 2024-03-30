@@ -16,14 +16,14 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class ChangedBinariesLister : IChangedBinariesLister {
     private readonly IBinariesHelper _BinariesHelper;
-    private readonly ICakeBuilder _CakeBuilder;
+    private readonly IDotNetBuilder _DotNetBuilder;
     private readonly IFolderDeleter _FolderDeleter;
     private readonly IGitUtilities _GitUtilities;
     private readonly INugetPackageRestorer _NugetPackageRestorer;
 
-    public ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder cakeBuilder, IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer) {
+    public ChangedBinariesLister(IBinariesHelper binariesHelper, IDotNetBuilder dotnetBuilder, IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer) {
         _BinariesHelper = binariesHelper;
-        _CakeBuilder = cakeBuilder;
+        _DotNetBuilder = dotnetBuilder;
         _FolderDeleter = folderDeleter;
         _GitUtilities = gitUtilities;
         _NugetPackageRestorer = nugetPackageRestorer;
@@ -125,7 +125,7 @@ public class ChangedBinariesLister : IChangedBinariesLister {
 
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
             var buildErrorsAndInfos = new ErrorsAndInfos();
-            _CakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
+            _DotNetBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
             if (buildErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
