@@ -14,21 +14,16 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
 [TestClass]
 public class FolderUpdaterTest {
-    private const string PreviousPeghHeadTipIdSha = "932cb235841ce7ab5afc80fcbc3220c4ae54933e";
-    private const string CurrentPeghHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
     private const string PeghRepositoryId = "Pegh";
 
     private const string PreviousDummyServiceHeadTipIdSha = "4e131bd4e80c73ca037ec57994041cae0d48b2c9";
     private const string CurrentDummyServiceHeadTipIdSha = "8d5bfbe50fb55fdcd3d18a87e9057eaad6b8e075";
     private const string DummyServiceRepositoryId = "DummyService";
 
-    private readonly IContainer _Container;
-    private readonly IFolder _WorkFolder;
-
-    public FolderUpdaterTest() {
-        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
-        _WorkFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest));
-    }
+    private readonly IContainer _Container
+        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+    private readonly IFolder _WorkFolder
+        = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest));
 
     [TestInitialize]
     public void Initialize() {
@@ -44,7 +39,9 @@ public class FolderUpdaterTest {
     public async Task CanListAndCopyChangedPeghBinaries() {
         var lister = _Container.Resolve<IChangedBinariesLister>();
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = lister.ListChangedBinaries(PeghRepositoryId, "master", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = lister.ListChangedBinaries(PeghRepositoryId, "master",
+            ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
+            ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
         Assert.AreEqual(3, changedBinaries.Count);
         var sourceFolder = _WorkFolder.SubFolder("Source");
         sourceFolder.CreateIfNecessary();
@@ -57,7 +54,10 @@ public class FolderUpdaterTest {
         }
         await File.WriteAllTextAsync(sourceFolder.FullName + @"\SomeNewFile.txt", "SomeNewFile");
         var sut = _Container.Resolve<IFolderUpdater>();
-        await sut.UpdateFolderAsync(PeghRepositoryId, "master", PreviousPeghHeadTipIdSha, sourceFolder, CurrentPeghHeadTipIdSha, destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
+        await sut.UpdateFolderAsync(PeghRepositoryId, "master",
+            ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
+            sourceFolder, ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha,
+            destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         foreach (var changedBinary in changedBinaries) {
             Assert.AreEqual(changedBinary.FileName, await File.ReadAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName));

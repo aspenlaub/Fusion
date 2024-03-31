@@ -10,9 +10,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
 [TestClass]
 public class ChangedBinariesListerTest {
-    private const string BeforeMajorPeghChangeHeadTipSha = "932cb235841ce7ab5afc80fcbc3220c4ae54933e";
-    private const string PreviousPeghHeadTipIdSha = "6e314114c347c17776bdd8367cc5d0f1687a7775";
-    private const string CurrentPeghHeadTipIdSha = "b09bf637ae6eb84e098c81da6281034ea685f307";
+    internal const string BeforeMajorPeghChangeHeadTipSha = "78d200008e60a19c2ce5ee79d944bc8de16d3ea1";
+    private const string MajorPeghChangeHeadTipIdSha = "c64e00c219dfb5a3ac378eeae0f8297a98790514";
+    internal const string AfterMajorPeghChangeHeadTipIdSha = "694dadf8f51db5cd5ae4705bb7687ecaa17596a6";
 
     private const string PreviousShatilayaHeadTipIdSha = "e8f2ae2cf737e1886ab4a0da30cd5dc0a4509ca1";
     private const string CurrentShatilayaHeadTipIdSha = "bdba763bf1a70defd567b4b5b7b75767c2c23873";
@@ -28,7 +28,7 @@ public class ChangedBinariesListerTest {
         var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", PreviousPeghHeadTipIdSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", MajorPeghChangeHeadTipIdSha, AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsFalse(changedBinaries.Any());
     }
@@ -38,7 +38,7 @@ public class ChangedBinariesListerTest {
         var sut = _Container.Resolve<IChangedBinariesLister>();
         Assert.IsNotNull(sut);
         var errorsAndInfos = new ErrorsAndInfos();
-        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, CurrentPeghHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = sut.ListChangedBinaries("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, MajorPeghChangeHeadTipIdSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.AreEqual(3, changedBinaries.Count);
         Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll"));
