@@ -6,6 +6,8 @@ using System.IO;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Autofac;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
+using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
@@ -63,25 +65,33 @@ public class DotNetBuilderTest {
     }
 
     protected void CanOrCannotBuild(string solutionId, bool debug, bool buildExpected) {
-        var solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.sln";
-        Assert.IsTrue(File.Exists(solutionFileName));
+        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        var id = nameof(CanOrCannotBuild) + solutionId
+            + (debug ? "Debug" : "Release")
+            + (buildExpected ? "Build" : "NoBuild");
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(id))) {
+            simpleLogger.LogInformation("Starting test");
+            var solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.sln";
+            Assert.IsTrue(File.Exists(solutionFileName));
 
-        var finalFolderName = _AutomationTestHelper.FinalFolder.FullName + '\\' + solutionId + @"Bin\" + (debug ? "Debug" : "Release") + @"\";
-        if (Directory.Exists(finalFolderName)) {
-            var deleter = new FolderDeleter();
-            var canDelete = deleter.CanDeleteFolder(new Folder(finalFolderName), out _);
-            Assert.IsTrue(canDelete);
-            deleter.DeleteFolder(new Folder(finalFolderName));
+            var finalFolderName = _AutomationTestHelper.FinalFolder.FullName + '\\' + solutionId + @"Bin\" + (debug ? "Debug" : "Release") + @"\";
+            if (Directory.Exists(finalFolderName)) {
+                var deleter = new FolderDeleter();
+                var canDelete = deleter.CanDeleteFolder(new Folder(finalFolderName), out _);
+                Assert.IsTrue(canDelete);
+                deleter.DeleteFolder(new Folder(finalFolderName));
+            }
+
+            Directory.CreateDirectory(finalFolderName);
+            var errorsAndInfos = new ErrorsAndInfos();
+            var buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
+            Assert.AreEqual(buildExpected, buildSucceeded);
+            if (!buildSucceeded) {
+                return;
+            }
+
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            simpleLogger.LogInformation("Test passed");
         }
-
-        Directory.CreateDirectory(finalFolderName);
-        var errorsAndInfos = new ErrorsAndInfos();
-        var buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
-        Assert.AreEqual(buildExpected, buildSucceeded);
-        if (!buildSucceeded) {
-            return;
-        }
-
-        Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 }
