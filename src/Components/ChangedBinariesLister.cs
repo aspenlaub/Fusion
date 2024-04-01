@@ -14,7 +14,7 @@ using NuGet.Packaging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
-public class ChangedBinariesLister(IBinariesHelper binariesHelper, IDotNetBuilder dotnetBuilder,
+public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder cakeBuilder,
         IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer)
     : IChangedBinariesLister {
 
@@ -114,7 +114,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IDotNetBuilde
 
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
             var buildErrorsAndInfos = new ErrorsAndInfos();
-            dotnetBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
+            cakeBuilder.Build(solutionFileName, false, "", buildErrorsAndInfos);
             if (buildErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);
