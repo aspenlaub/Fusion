@@ -35,9 +35,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Components\" />
-  </ItemGroup>
-  <ItemGroup>
     <Compile Update="Properties\Resources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -51,6 +48,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.1710.770" />
+    <PackageReference Include="Nuclide" Version="2.0.1713.510" />
   </ItemGroup>
 </Project>

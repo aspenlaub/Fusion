@@ -58,21 +58,27 @@ public class NugetPackageToPushFinderTest {
 
     [TestMethod]
     public async Task CanFindNugetPackagesToPushForPakled() {
-        var errorsAndInfos = new ErrorsAndInfos();
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanFindNugetPackagesToPushForPakled)))) {
+            var errorsAndInfos = new ErrorsAndInfos();
 
-        var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
+            var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
 
-        CloneTarget(PakledTarget, errorsAndInfos);
+            CloneTarget(PakledTarget, errorsAndInfos);
 
-        RunCakeScript(PakledTarget, true, errorsAndInfos);
+            RunCakeScript(PakledTarget, true, errorsAndInfos);
 
-        errorsAndInfos = new ErrorsAndInfos();
-        var sut = Container.Resolve<INugetPackageToPushFinder>();
-        var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, PakledTarget.Folder().ParentFolder().SubFolder(PakledTarget.SolutionId + @"Bin\Release"), PakledTarget.Folder(), PakledTarget.Folder().SubFolder("src").FullName + @"\" + PakledTarget.SolutionId + ".sln", "master", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.AreEqual(source, packageToPush.FeedUrl);
+            errorsAndInfos = new ErrorsAndInfos();
+            var sut = Container.Resolve<INugetPackageToPushFinder>();
+            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed,
+                                                                 PakledTarget.Folder().ParentFolder().SubFolder(PakledTarget.SolutionId + @"Bin\Release"), PakledTarget.Folder(),
+                                                                 PakledTarget.Folder().SubFolder("src").FullName + @"\" + PakledTarget.SolutionId + ".sln", "master",
+                                                                 errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.AreEqual(source, packageToPush.FeedUrl);
+        }
     }
 
     private static async Task<NugetFeed> GetNugetFeedAsync(IErrorsAndInfos errorsAndInfos) {
@@ -86,27 +92,37 @@ public class NugetPackageToPushFinderTest {
 
     [TestMethod]
     public async Task PackageForTheSameCommitIsNotPushed() {
-        var errorsAndInfos = new ErrorsAndInfos();
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(PackageForTheSameCommitIsNotPushed)))) {
+            var errorsAndInfos = new ErrorsAndInfos();
 
-        CloneTarget(PakledTarget, errorsAndInfos);
+            CloneTarget(PakledTarget, errorsAndInfos);
 
-        var packages = await Container.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
-        if (errorsAndInfos.AnyErrors()) { return; }
-        if (!packages.Any()) { return; }
+            var packages = await Container.Resolve<INugetFeedLister>()
+                                          .ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
+            if (errorsAndInfos.AnyErrors()) {
+                return;
+            }
 
-        var latestPackageVersion = packages.Max(p => p.Identity.Version.Version);
-        var latestPackage = packages.First(p => p.Identity.Version.Version == latestPackageVersion);
+            if (!packages.Any()) {
+                return;
+            }
 
-        var headTipIdSha = Container.Resolve<IGitUtilities>().HeadTipIdSha(PakledTarget.Folder());
-        if (!latestPackage.Tags.Contains(headTipIdSha)) {
-            return; // $"No package has been pushed for {headTipIdSha} and {PakledTarget.SolutionId}, please run build.cake for this solution"
+            var latestPackageVersion = packages.Max(p => p.Identity.Version.Version);
+            var latestPackage = packages.First(p => p.Identity.Version.Version == latestPackageVersion);
+
+            var headTipIdSha = Container.Resolve<IGitUtilities>().HeadTipIdSha(PakledTarget.Folder());
+            if (!latestPackage.Tags.Contains(headTipIdSha)) {
+                return; // $"No package has been pushed for {headTipIdSha} and {PakledTarget.SolutionId}, please run build.cake for this solution"
+            }
+
+            RunCakeScript(PakledTarget, false, errorsAndInfos);
+
+            packages = await Container.Resolve<INugetFeedLister>()
+                                      .ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.AreEqual(latestPackageVersion, packages.Max(p => p.Identity.Version.Version));
         }
-
-        RunCakeScript(PakledTarget, false, errorsAndInfos);
-
-        packages = await Container.Resolve<INugetFeedLister>().ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.AreEqual(latestPackageVersion, packages.Max(p => p.Identity.Version.Version));
     }
 
     private static void CloneTarget(ITestTargetFolder testTargetFolder, IErrorsAndInfos errorsAndInfos) {
@@ -130,48 +146,60 @@ public class NugetPackageToPushFinderTest {
 
     [TestMethod]
     public async Task CanFindNugetPackagesToPushForChab() {
-        var errorsAndInfos = new ErrorsAndInfos();
-        var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanFindNugetPackagesToPushForChab)))) {
+            var errorsAndInfos = new ErrorsAndInfos();
+            var nugetFeed = await GetNugetFeedAsync(errorsAndInfos);
 
-        CloneTarget(ChabTarget, errorsAndInfos);
+            CloneTarget(ChabTarget, errorsAndInfos);
 
-        RunCakeScript(ChabTarget, true, errorsAndInfos);
+            RunCakeScript(ChabTarget, true, errorsAndInfos);
 
-        Assert.IsFalse(errorsAndInfos.Infos.Any(i => i.Contains("No test")));
+            Assert.IsFalse(errorsAndInfos.Infos.Any(i => i.Contains("No test")));
 
-        errorsAndInfos = new ErrorsAndInfos();
-        var sut = Container.Resolve<INugetPackageToPushFinder>();
-        var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"), ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln", "master", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.AreEqual(source, packageToPush.FeedUrl);
+            errorsAndInfos = new ErrorsAndInfos();
+            var sut = Container.Resolve<INugetPackageToPushFinder>();
+            var packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"),
+                                                                 ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln",
+                                                                 "master", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.AreEqual(source, packageToPush.FeedUrl);
 
-        sut = ContainerWithMockedPushedHeadTipShaRepository.Resolve<INugetPackageToPushFinder>();
-        packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"), ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln", "master", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.AreEqual(source, packageToPush.FeedUrl);
+            sut = ContainerWithMockedPushedHeadTipShaRepository.Resolve<INugetPackageToPushFinder>();
+            packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"),
+                                                             ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".sln", "master",
+                                                             errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            source = await nugetFeed.UrlOrResolvedFolderAsync(Container.Resolve<IFolderResolver>(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.AreEqual(source, packageToPush.FeedUrl);
+        }
     }
 
     [TestMethod]
     public async Task CanCheckForNugetPackagesToPushForVishizhukelNet() {
-        var errorsAndInfos = new ErrorsAndInfos();
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanCheckForNugetPackagesToPushForVishizhukelNet)))) {
+            var errorsAndInfos = new ErrorsAndInfos();
 
-        var folderResolver = Container.Resolve<IFolderResolver>();
-        var gitHubFolder = await folderResolver.ResolveAsync("$(GitHub)", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var folderResolver = Container.Resolve<IFolderResolver>();
+            var gitHubFolder = await folderResolver.ResolveAsync("$(GitHub)", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
 
-        errorsAndInfos = new ErrorsAndInfos();
-        var sut = Container.Resolve<INugetPackageToPushFinder>();
-        var packageFolderWithBinaries = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId + @"Bin\Release");
-        if (!packageFolderWithBinaries.Exists()) { return; }
+            errorsAndInfos = new ErrorsAndInfos();
+            var sut = Container.Resolve<INugetPackageToPushFinder>();
+            var packageFolderWithBinaries = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId + @"Bin\Release");
+            if (!packageFolderWithBinaries.Exists()) {
+                return;
+            }
 
-        var repositoryFolder = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId);
-        Assert.IsTrue(repositoryFolder.Exists(), $"Folder {repositoryFolder.FullName} does not exist");
-        var solutionFileFullName = repositoryFolder.SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".sln";
-        await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, packageFolderWithBinaries, repositoryFolder, solutionFileFullName, "master", errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var repositoryFolder = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId);
+            Assert.IsTrue(repositoryFolder.Exists(), $"Folder {repositoryFolder.FullName} does not exist");
+            var solutionFileFullName = repositoryFolder.SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".sln";
+            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, packageFolderWithBinaries, repositoryFolder, solutionFileFullName, "master", errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        }
     }
 }
