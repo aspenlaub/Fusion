@@ -7,7 +7,6 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Autofac;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
@@ -70,7 +69,6 @@ public class DotNetBuilderTest {
             + (debug ? "Debug" : "Release")
             + (buildExpected ? "Build" : "NoBuild");
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(id))) {
-            simpleLogger.LogInformation("Starting test");
             var solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.sln";
             Assert.IsTrue(File.Exists(solutionFileName));
 
@@ -91,7 +89,6 @@ public class DotNetBuilderTest {
             }
 
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            simpleLogger.LogInformation("Test passed");
         }
     }
 }

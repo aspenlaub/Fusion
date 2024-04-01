@@ -6,7 +6,6 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Autofac;
-using Microsoft.Extensions.Logging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
@@ -29,14 +28,12 @@ public class ChangedBinariesListerTest {
     public void UnchangedPeghBinariesAreNotListed() {
         var simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UnchangedPeghBinariesAreNotListed)))) {
-            simpleLogger.LogInformation("Starting test");
             var sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
             var changedBinaries = sut.ListChangedBinaries("Pegh", "master", MajorPeghChangeHeadTipIdSha, AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(changedBinaries.Any());
-            simpleLogger.LogInformation("Test passed");
         }
     }
 
@@ -44,7 +41,6 @@ public class ChangedBinariesListerTest {
     public void CanListChangedPeghBinaries() {
         var simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanListChangedPeghBinaries)))) {
-            simpleLogger.LogInformation("Starting test");
             var sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
@@ -54,7 +50,6 @@ public class ChangedBinariesListerTest {
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll"));
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.pdb"));
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.deps.json"));
-            simpleLogger.LogInformation("Test passed");
         }
     }
 
@@ -62,7 +57,6 @@ public class ChangedBinariesListerTest {
     public void CanHandleLinkedBuildCake() {
         var simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanHandleLinkedBuildCake)))) {
-            simpleLogger.LogInformation("Starting test");
             var sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
@@ -75,7 +69,6 @@ public class ChangedBinariesListerTest {
                 CurrentNuclideHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(changedBinaries.Any());
-            simpleLogger.LogInformation("Test passed");
         }
     }
 }

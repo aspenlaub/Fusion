@@ -47,99 +47,118 @@ public class NugetPackageUpdaterTest {
 
     [TestMethod]
     public async Task CanIdentifyNugetPackageOpportunity() {
-        var gitUtilities = Container.Resolve<IGitUtilities>();
-        var errorsAndInfos = new ErrorsAndInfos();
-        gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
-        Assert.IsTrue(yesNo);
-        Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package PakledCore from {PakledCoreVersion}")));
-        var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
-        Assert.IsFalse(packageUpdateOpportunity.YesNo);
-        Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanIdentifyNugetPackageOpportunity)))) {
+            var gitUtilities = Container.Resolve<IGitUtilities>();
+            var errorsAndInfos = new ErrorsAndInfos();
+            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            var yesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
+            Assert.IsTrue(yesNo);
+            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package PakledCore from {PakledCoreVersion}")));
+            var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
+            Assert.IsFalse(packageUpdateOpportunity.YesNo);
+            Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
+        }
     }
 
     [TestMethod]
     public async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
-        var gitUtilities = Container.Resolve<IGitUtilities>();
-        var errorsAndInfos = new ErrorsAndInfos();
-        gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
-        var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
-        MakeCsProjAndConfigChange();
-        errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.IsTrue(yesNoInconclusive.YesNo);
-        Assert.IsFalse(yesNoInconclusive.Inconclusive);
-        errorsAndInfos = new ErrorsAndInfos();
-        yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.IsFalse(yesNoInconclusive.YesNo);
-        var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
-        Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
-            $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
-        Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
-        Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
-    }
-
-    [TestMethod]
-    public async Task CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges() {
-        var errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        if (yesNoInconclusive.YesNo) { return; }
-
-        MakeCsProjAndConfigChange();
-        errorsAndInfos = new ErrorsAndInfos();
-        yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.IsFalse(yesNoInconclusive.YesNo);
-        Assert.IsFalse(yesNoInconclusive.Inconclusive);
-    }
-
-    [TestMethod]
-    public async Task ErrorWhenAskedToUpdateNugetPackagesWithCsChange() {
-        MakeCsChange();
-        var errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        Assert.IsFalse(yesNoInconclusive.YesNo);
-        Assert.IsTrue(yesNoInconclusive.Inconclusive);
-    }
-
-    [TestMethod]
-    public async Task CanUpdatePackagesThatRecentlyCouldNotBeUpdated() {
-        var samples = new Dictionary<string, string> {
-            { "TashClient", "72fa9737ff9347fdec06d11806f483b001d6756c" }
-        };
-        foreach (var sample in samples) {
-            var target = new TestTargetFolder(nameof(NugetPackageUpdaterTest), sample.Key);
-            target.Delete();
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanUpdateNugetPackagesWithCsProjAndConfigChanges)))) {
             var gitUtilities = Container.Resolve<IGitUtilities>();
-            var url = "https://github.com/aspenlaub/" + target.SolutionId + ".git";
             var errorsAndInfos = new ErrorsAndInfos();
-            gitUtilities.Clone(url, "master", target.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
-            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            gitUtilities.Reset(target.Folder(), sample.Value, errorsAndInfos);
+            gitUtilities.Reset(PakledConsumerCoreTarget.Folder(), PakledConsumerCoreHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersions =
+                await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+            MakeCsProjAndConfigChange();
             errorsAndInfos = new ErrorsAndInfos();
-            var yesNoInconclusive = await UpdateNugetPackagesAsync(target.Folder(), errorsAndInfos);
+            var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
+            errorsAndInfos = new ErrorsAndInfos();
             yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(yesNoInconclusive.YesNo);
-            var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+            var dependencyIdsAndVersionsAfterUpdate =
+                await packageReferencesScanner.DependencyIdsAndVersionsAsync(PakledConsumerCoreTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
             Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
                             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
             Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
+        }
+    }
+
+    [TestMethod]
+    public async Task CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges() {
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges)))) {
+            var errorsAndInfos = new ErrorsAndInfos();
+            var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            if (yesNoInconclusive.YesNo) {
+                return;
+            }
+
+            MakeCsProjAndConfigChange();
+            errorsAndInfos = new ErrorsAndInfos();
+            yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.IsFalse(yesNoInconclusive.YesNo);
+            Assert.IsFalse(yesNoInconclusive.Inconclusive);
+        }
+    }
+
+    [TestMethod]
+    public async Task ErrorWhenAskedToUpdateNugetPackagesWithCsChange() {
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(ErrorWhenAskedToUpdateNugetPackagesWithCsChange)))) {
+            MakeCsChange();
+            var errorsAndInfos = new ErrorsAndInfos();
+            var yesNoInconclusive = await UpdateNugetPackagesAsync(PakledConsumerCoreTarget.Folder(), errorsAndInfos);
+            Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            Assert.IsFalse(yesNoInconclusive.YesNo);
+            Assert.IsTrue(yesNoInconclusive.Inconclusive);
+        }
+    }
+
+    [TestMethod]
+    public async Task CanUpdatePackagesThatRecentlyCouldNotBeUpdated() {
+        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanUpdatePackagesThatRecentlyCouldNotBeUpdated)))) {
+            var samples = new Dictionary<string, string> { { "TashClient", "72fa9737ff9347fdec06d11806f483b001d6756c" } };
+            foreach (var sample in samples) {
+                var target = new TestTargetFolder(nameof(NugetPackageUpdaterTest), sample.Key);
+                target.Delete();
+                var gitUtilities = Container.Resolve<IGitUtilities>();
+                var url = "https://github.com/aspenlaub/" + target.SolutionId + ".git";
+                var errorsAndInfos = new ErrorsAndInfos();
+                gitUtilities.Clone(url, "master", target.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
+                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+                gitUtilities.Reset(target.Folder(), sample.Value, errorsAndInfos);
+                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+                var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
+                var dependencyErrorsAndInfos = new ErrorsAndInfos();
+                var dependencyIdsAndVersions =
+                    await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+                errorsAndInfos = new ErrorsAndInfos();
+                var yesNoInconclusive = await UpdateNugetPackagesAsync(target.Folder(), errorsAndInfos);
+                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+                Assert.IsTrue(yesNoInconclusive.YesNo);
+                Assert.IsFalse(yesNoInconclusive.Inconclusive);
+                yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(errorsAndInfos);
+                Assert.IsFalse(yesNoInconclusive.YesNo);
+                var dependencyIdsAndVersionsAfterUpdate =
+                    await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+                Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
+                                $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
+                Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
+                Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
+            }
         }
     }
 
