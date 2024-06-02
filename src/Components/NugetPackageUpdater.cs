@@ -353,10 +353,21 @@ public class NugetPackageUpdater : INugetPackageUpdater {
         }
 
         var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
-        if (latestRemotePackageVersion <= version || latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) == true) {
+        if (latestRemotePackageVersion <= version) {
             return null;
         }
 
-        return latestRemotePackageVersion;
+        if (latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) != true) {
+            return latestRemotePackageVersion;
+        }
+
+        if (latestRemotePackageVersion.Major != version.Major) {
+            throw new NotImplementedException("Investigation required");
+        }
+        if (latestRemotePackageVersion.Minor != version.Minor) {
+            throw new NotImplementedException("Investigation required");
+        }
+
+        return latestRemotePackageVersion.Build <= version.Build ? null : latestRemotePackageVersion;
     }
 }
