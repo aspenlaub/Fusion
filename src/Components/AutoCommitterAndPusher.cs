@@ -84,7 +84,7 @@ public class AutoCommitterAndPusher : IAutoCommitterAndPusher {
         var branchName = _GitUtilities.CheckedOutBranch(repositoryFolder);
         var branchesWithPackages = await _BranchesWithPackagesRepository.GetBranchIdsAsync(errorsAndInfos);
         if (!branchesWithPackages.Contains(branchName)) {
-            errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMasterOrBranchWithPackages);
+            errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMasterMainOrBranchWithPackages);
             return;
         }
 
