@@ -48,6 +48,6 @@
     </EmbeddedResource>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Nuclide" Version="2.0.1960.589" />
+    <PackageReference Include="Nuclide" Version="2.0.1960.838" />
   </ItemGroup>
 </Project>
