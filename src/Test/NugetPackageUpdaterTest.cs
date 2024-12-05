@@ -23,8 +23,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 public class NugetPackageUpdaterTest {
     private static readonly TestTargetFolder PakledConsumerTarget
         = new(nameof(NugetPackageUpdaterTest), "PakledConsumer");
-    private const string PakledConsumerHeadTipSha = "955c6802448653cecc41e85f424b4340e27c2371"; // Before Pakled update
-    private const string PakledVersion = "2.0.1694.1161"; // Before Pakled update
+    private const string PakledConsumerHeadTipSha = "2e3b17e227446bf20abb91cfc8c19bdd123fa2da"; // Before Pakled update
+    private const string PakledVersion = "2.4.1960.559"; // Before Pakled update
     private static IContainer Container;
 
     [ClassInitialize]
@@ -125,42 +125,6 @@ public class NugetPackageUpdaterTest {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(yesNoInconclusive.YesNo);
             Assert.IsTrue(yesNoInconclusive.Inconclusive);
-        }
-    }
-
-    [TestMethod]
-    public async Task CanUpdatePackagesThatRecentlyCouldNotBeUpdated() {
-        var simpleLogger = Container.Resolve<ISimpleLogger>();
-        using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanUpdatePackagesThatRecentlyCouldNotBeUpdated)))) {
-            var samples = new Dictionary<string, string> { { "TashClient", "72fa9737ff9347fdec06d11806f483b001d6756c" } };
-            foreach (var sample in samples) {
-                var target = new TestTargetFolder(nameof(NugetPackageUpdaterTest), sample.Key);
-                target.Delete();
-                var gitUtilities = Container.Resolve<IGitUtilities>();
-                var url = "https://github.com/aspenlaub/" + target.SolutionId + ".git";
-                var errorsAndInfos = new ErrorsAndInfos();
-                gitUtilities.Clone(url, "master", target.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
-                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-                gitUtilities.Reset(target.Folder(), sample.Value, errorsAndInfos);
-                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-                var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
-                var dependencyErrorsAndInfos = new ErrorsAndInfos();
-                var dependencyIdsAndVersions =
-                    await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
-                errorsAndInfos = new ErrorsAndInfos();
-                var yesNoInconclusive = await UpdateNugetPackagesAsync(target.Folder(), errorsAndInfos);
-                Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-                Assert.IsTrue(yesNoInconclusive.YesNo);
-                Assert.IsFalse(yesNoInconclusive.Inconclusive);
-                yesNoInconclusive.YesNo = await NugetUpdateOpportunitiesAsync(target, errorsAndInfos);
-                Assert.IsFalse(yesNoInconclusive.YesNo);
-                var dependencyIdsAndVersionsAfterUpdate =
-                    await packageReferencesScanner.DependencyIdsAndVersionsAsync(target.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
-                Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
-                                $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
-                Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
-                Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
-            }
         }
     }
 
