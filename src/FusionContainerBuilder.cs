@@ -1,10 +1,15 @@
 ﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Components;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
+using DotNetCakeInstaller = Aspenlaub.Net.GitHub.CSharp.Fusion.Components.DotNetCakeInstaller;
+using IDotNetCakeInstaller = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IDotNetCakeInstaller;
+
 // ReSharper disable UnusedMember.Global
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion;
@@ -26,6 +31,7 @@ public static class FusionContainerBuilder {
         builder.RegisterType<DotNetEfInstaller>().As<IDotNetEfInstaller>();
         builder.RegisterType<DotNetEfRunner>().As<IDotNetEfRunner>();
         builder.RegisterType<DotNetBuilder>().As<IDotNetBuilder>();
+        builder.RegisterType<DotNetCakeInstaller>().As<IDotNetCakeInstaller>();
         return builder;
     }
 
@@ -41,6 +47,7 @@ public static class FusionContainerBuilder {
         services.AddTransient<IDotNetEfInstaller, DotNetEfInstaller>();
         services.AddTransient<IDotNetEfRunner, DotNetEfRunner>();
         services.AddTransient<IDotNetBuilder, DotNetBuilder>();
+        services.AddTransient<IDotNetCakeInstaller, DotNetCakeInstaller>();
         return services;
     }
 }
