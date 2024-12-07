@@ -11,16 +11,9 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
-public class FolderUpdater : IFolderUpdater {
-    private readonly IBinariesHelper _BinariesHelper;
-    private readonly IChangedBinariesLister _ChangedBinariesLister;
-    private readonly IPushedHeadTipShaRepository _PushedHeadTipShaRepository;
-
-    public FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesLister changedBinariesLister, IPushedHeadTipShaRepository  pushedHeadTipShaRepository) {
-        _BinariesHelper = binariesHelper;
-        _ChangedBinariesLister = changedBinariesLister;
-        _PushedHeadTipShaRepository = pushedHeadTipShaRepository;
-    }
+public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesLister changedBinariesLister,
+        IPushedHeadTipShaRepository pushedHeadTipShaRepository)
+            : IFolderUpdater {
 
     public void UpdateFolder(IFolder sourceFolder, IFolder destinationFolder, FolderUpdateMethod folderUpdateMethod, IErrorsAndInfos errorsAndInfos) {
         UpdateFolder(sourceFolder, destinationFolder, folderUpdateMethod, "", errorsAndInfos);
@@ -46,7 +39,7 @@ public class FolderUpdater : IFolderUpdater {
                     var sourceContents = File.ReadAllBytes(sourceFileInfo.FullName);
                     var destinationContents = File.ReadAllBytes(destinationFileInfo.FullName);
                     if (sourceContents.Length == destinationContents.Length) {
-                        if (_BinariesHelper.CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
+                        if (binariesHelper.CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
                             continue;
                         }
                     } else {
@@ -118,7 +111,7 @@ public class FolderUpdater : IFolderUpdater {
 
     public async Task UpdateFolderAsync(string repositoryId, string branchId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
         bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
-        var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
+        var changedBinaries = changedBinariesLister.ListChangedBinaries(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
         var anyCopies = false;
@@ -169,7 +162,7 @@ public class FolderUpdater : IFolderUpdater {
             return;
         }
 
-        var pushedHeadTipShas = await _PushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
+        var pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return; }
 
         if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {
@@ -184,6 +177,6 @@ public class FolderUpdater : IFolderUpdater {
 
         errorsAndInfos.Infos.Add(string.Format(Properties.Resources.AddingEquivalentHeadTipSha, sourceHeadTipIdSha, destinationHeadTipIdSha, nugetFeedId));
 
-        await _PushedHeadTipShaRepository.AddAsync(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
+        await pushedHeadTipShaRepository.AddAsync(nugetFeedId, destinationHeadTipIdSha, repositoryId, "", errorsAndInfos);
     }
 }

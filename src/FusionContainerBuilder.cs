@@ -1,7 +1,5 @@
 ﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Gitty.Components;
-using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;

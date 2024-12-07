@@ -1,3 +1,4 @@
+using Aspenlaub.Net.GitHub.CSharp.Gitty;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
@@ -5,7 +6,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Autofac;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace Aspenlaub.Net.GitHub.CSharp.Gitty.Test;
+namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
 [TestClass]
 public class DotNetCakeInstallerTest {

@@ -9,14 +9,8 @@ using NuGet.Packaging;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
-public class DotNetEfRunner : IDotNetEfRunner {
+public class DotNetEfRunner(IProcessRunner processRunner) : IDotNetEfRunner {
     private const string DotNetExecutableFileName = "dotnet";
-
-    private readonly IProcessRunner _ProcessRunner;
-
-    public DotNetEfRunner(IProcessRunner processRunner) {
-        _ProcessRunner = processRunner;
-    }
 
     public void DropDatabase(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
         if (!projectFolder.Exists()) {
@@ -25,7 +19,7 @@ public class DotNetEfRunner : IDotNetEfRunner {
         }
 
         const string arguments = "ef database drop -f";
-        _ProcessRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        processRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
     }
 
     public void UpdateDatabase(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
@@ -35,7 +29,7 @@ public class DotNetEfRunner : IDotNetEfRunner {
         }
 
         const string arguments = "ef database update";
-        _ProcessRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        processRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
     }
 
     public IList<string> ListAppliedMigrationIds(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
@@ -46,7 +40,7 @@ public class DotNetEfRunner : IDotNetEfRunner {
 
         const string arguments = "ef migrations list";
         var runnerErrorsAndInfos = new ErrorsAndInfos();
-        _ProcessRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, runnerErrorsAndInfos);
+        processRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, runnerErrorsAndInfos);
         if (runnerErrorsAndInfos.AnyErrors()) {
             errorsAndInfos.Errors.AddRange(runnerErrorsAndInfos.Errors);
             return new List<string>();
@@ -65,6 +59,6 @@ public class DotNetEfRunner : IDotNetEfRunner {
         }
 
         var arguments = "ef migrations add " + migrationId;
-        _ProcessRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        processRunner.RunProcess(DotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
     }
 }
