@@ -178,6 +178,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could not install cake tool.
+        /// </summary>
+        internal static string CouldNotInstallCakeTool {
+            get {
+                return ResourceManager.GetString("CouldNotInstallCakeTool", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not install dotnet entity framework tool.
         /// </summary>
         internal static string CouldNotInstallEfTool {

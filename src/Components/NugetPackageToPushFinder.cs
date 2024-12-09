@@ -20,35 +20,17 @@ using NuGet.Protocol;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
-public class NugetPackageToPushFinder : INugetPackageToPushFinder {
-    private readonly IFolderResolver _FolderResolver;
-    private readonly IGitUtilities _GitUtilities;
-    private readonly INugetConfigReader _NugetConfigReader;
-    private readonly INugetFeedLister _NugetFeedLister;
-    private readonly IProjectFactory _ProjectFactory;
-    private readonly ISecretRepository _SecretRepository;
-    private readonly IPushedHeadTipShaRepository _PushedHeadTipShaRepository;
-    private readonly IChangedBinariesLister _ChangedBinariesLister;
-    private readonly IBranchesWithPackagesRepository _BranchesWithPackagesRepository;
-
-    public NugetPackageToPushFinder(IFolderResolver folderResolver, IGitUtilities gitUtilities,
-        INugetConfigReader nugetConfigReader, INugetFeedLister nugetFeedLister, IProjectFactory projectFactory,
-        IPushedHeadTipShaRepository pushedHeadTipShaRepository, ISecretRepository secretRepository,
-        IChangedBinariesLister changedBinariesLister, IBranchesWithPackagesRepository branchesWithPackagesRepository) {
-        _FolderResolver = folderResolver;
-        _GitUtilities = gitUtilities;
-        _NugetConfigReader = nugetConfigReader;
-        _NugetFeedLister = nugetFeedLister;
-        _ProjectFactory = projectFactory;
-        _PushedHeadTipShaRepository = pushedHeadTipShaRepository;
-        _SecretRepository = secretRepository;
-        _ChangedBinariesLister = changedBinariesLister;
-        _BranchesWithPackagesRepository = branchesWithPackagesRepository;
-    }
+public class NugetPackageToPushFinder(
+        IFolderResolver folderResolver, IGitUtilities gitUtilities,
+        INugetConfigReader nugetConfigReader, INugetFeedLister nugetFeedLister,
+        IProjectFactory projectFactory, IPushedHeadTipShaRepository pushedHeadTipShaRepository,
+        ISecretRepository secretRepository, IChangedBinariesLister changedBinariesLister,
+        IBranchesWithPackagesRepository branchesWithPackagesRepository)
+            : INugetPackageToPushFinder {
 
     public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId,
-            IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName,
-            string branchId, IErrorsAndInfos errorsAndInfos) {
+                                                             IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName,
+                                                             string branchId, IErrorsAndInfos errorsAndInfos) {
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
         var projectFileFullName = solutionFileFullName.Replace(".sln", ".csproj");
@@ -58,12 +40,12 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingProject);
-        var project = _ProjectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
+        var project = projectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingNugetFeeds);
         var developerSettingsSecret = new DeveloperSettingsSecret();
-        var developerSettings = await _SecretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
+        var developerSettings = await secretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
         if (developerSettings == null) {
@@ -72,7 +54,7 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
         }
 
         var nugetFeedsSecret = new SecretNugetFeeds();
-        var nugetFeeds = await _SecretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+        var nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) {
             return packageToPush;
         }
@@ -86,12 +68,12 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
 
         if (!nugetFeed.IsAFolderToResolve()) {
             var nugetConfigFileFullName = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\NuGet\" + "nuget.config";
-            packageToPush.ApiKey = _NugetConfigReader.GetApiKey(nugetConfigFileFullName, nugetFeed.Id, errorsAndInfos);
+            packageToPush.ApiKey = nugetConfigReader.GetApiKey(nugetConfigFileFullName, nugetFeed.Id, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return packageToPush; }
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.IdentifyingFeedUrl);
-        var source = await nugetFeed.UrlOrResolvedFolderAsync(_FolderResolver, errorsAndInfos);
+        var source = await nugetFeed.UrlOrResolvedFolderAsync(folderResolver, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
         packageToPush.FeedUrl = source;
@@ -118,8 +100,8 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
 
         errorsAndInfos.Infos.Add(Properties.Resources.SearchingRemotePackage);
         var packageId = string.IsNullOrWhiteSpace(project.PackageId) ? project.RootNamespace : project.PackageId;
-        packageId += _BranchesWithPackagesRepository.PackageInfix(branchId, true);
-        var remotePackages = await _NugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
+        packageId += branchesWithPackagesRepository.PackageInfix(branchId, true);
+        var remotePackages = await nugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
         if (!remotePackages.Any()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NoRemotePackageFilesFound, packageToPush.FeedUrl, packageId));
@@ -127,10 +109,10 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingPushedHeadTipShas);
-        var pushedHeadTipShas = await _PushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
+        var pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
-        var headTipIdSha = repositoryFolder == null ? "" : _GitUtilities.HeadTipIdSha(repositoryFolder);
+        var headTipIdSha = repositoryFolder == null ? "" : gitUtilities.HeadTipIdSha(repositoryFolder);
         if (!string.IsNullOrWhiteSpace(headTipIdSha) && pushedHeadTipShas.Contains(headTipIdSha)) {
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, headTipIdSha, nugetFeedId));
             return packageToPush;
@@ -161,7 +143,7 @@ public class NugetPackageToPushFinder : INugetPackageToPushFinder {
             var tag = tags[0];
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
             var listerErrorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = _ChangedBinariesLister.ListChangedBinaries(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
+            var changedBinaries = changedBinariesLister.ListChangedBinaries(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
             if (listerErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                 errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);
