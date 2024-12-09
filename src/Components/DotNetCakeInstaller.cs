@@ -10,9 +10,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class DotNetCakeInstaller : IDotNetCakeInstaller {
     private const string CakeToolId = "cake.tool";
-    private const string VeryOldPinnedCakeToolVersion = "3.1.0";
-    private const string OldPinnedCakeToolVersion = "4.0.0";
-    private const string PinnedCakeToolVersion = "4.2.0";
+    private const string VeryOldPinnedCakeToolVersion = "2.3.0";
+    private const string OldPinnedCakeToolVersion = "3.1.0";
+    private const string PinnedCakeToolVersion = "4.0.0";
     private const string DotNetExecutableFileName = "dotnet";
     private const string DotNetToolListArguments = "tool list --global";
     private const string DotNetInstallCakeToolArguments = "tool install Cake.Tool --version "
@@ -50,7 +50,11 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
             || IsGlobalDotNetCakeInstalled(OldPinnedCakeToolVersion, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        _ProcessRunner.RunProcess(DotNetExecutableFileName, oldPinnedCakeToolVersionInstalled ? DotNetUpdateCakeToolArguments : DotNetInstallCakeToolArguments, _WorkingFolder, errorsAndInfos);
+        _ProcessRunner.RunProcess(DotNetExecutableFileName,
+            oldPinnedCakeToolVersionInstalled
+                ? DotNetUpdateCakeToolArguments
+                : DotNetInstallCakeToolArguments,
+            _WorkingFolder, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
         if (IsGlobalDotNetCakeInstalled(PinnedCakeToolVersion, errorsAndInfos)) { return; }
