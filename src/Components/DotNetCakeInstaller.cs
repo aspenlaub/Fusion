@@ -10,9 +10,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class DotNetCakeInstaller : IDotNetCakeInstaller {
     private const string CakeToolId = "cake.tool";
-    private const string VeryOldPinnedCakeToolVersion = "2.3.0";
-    private const string OldPinnedCakeToolVersion = "3.1.0";
-    private const string PinnedCakeToolVersion = "4.0.0";
+    private const string VeryOldPinnedCakeToolVersion = "3.1.0";
+    private const string OldPinnedCakeToolVersion = "4.0.0";
+    private const string PinnedCakeToolVersion = "5.0.0";
     private const string DotNetExecutableFileName = "dotnet";
     private const string DotNetToolListArguments = "tool list --global";
     private const string DotNetInstallCakeToolArguments = "tool install Cake.Tool --version "
