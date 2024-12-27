@@ -25,7 +25,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
         IDotNetEfRunner dotNetEfRunner)
             : INugetPackageUpdater {
 
-    private const string MicrosoftEntityFrameworkPrefix = "Microsoft.EntityFramework";
+    private const string _microsoftEntityFrameworkPrefix = "Microsoft.EntityFramework";
 
     private readonly IList<string> _EndingsThatAllowReset = new List<string> { "csproj", "config" };
 
@@ -149,8 +149,8 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             var ids = dependencyIdsAndVersions
                 .Select(dependencyIdsAndVersion => dependencyIdsAndVersion.Key)
                 .Where(id => entityFrameworkOnly
-                       ? id.StartsWith(MicrosoftEntityFrameworkPrefix)
-                       : !id.StartsWith(MicrosoftEntityFrameworkPrefix)
+                       ? id.StartsWith(_microsoftEntityFrameworkPrefix)
+                       : !id.StartsWith(_microsoftEntityFrameworkPrefix)
                         && manuallyUpdatedPackages.All(p => !p.Matches(id, checkedOutBranch, projectFileFullName)))
                 .ToList();
             foreach (var id in ids) {
@@ -287,9 +287,9 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
         foreach (var dependencyIdsAndVersion in dependencyIdsAndVersions) {
             var id = dependencyIdsAndVersion.Key;
             if (entityFrameworkUpdatesOnly) {
-                if (!id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
+                if (!id.StartsWith(_microsoftEntityFrameworkPrefix)) { continue; }
             } else {
-                if (id.StartsWith(MicrosoftEntityFrameworkPrefix)) { continue; }
+                if (id.StartsWith(_microsoftEntityFrameworkPrefix)) { continue; }
                 if (manuallyUpdatedPackages.Any(p => p.Matches(id, checkedOutBranch, projectFileFullName))) { continue; }
             }
 

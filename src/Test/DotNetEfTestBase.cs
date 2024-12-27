@@ -28,9 +28,9 @@ public class DotNetEfTestBase {
     protected const string DotNetEfToyHeadTipSha2 = "254cc7ae90cc2c37b306d9d541187ae28d0f06e7";
     protected const string DotNetEfToy705MigrationId = "20230428080002_MicrosoftEntityFrameworkCoreTools705";
 
-    private static IContainer PrivateContainer;
+    private static IContainer _privateContainer;
     public static IContainer Container
-        => PrivateContainer ??= new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        => _privateContainer ??= new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
 
     public void InitializeTarget() {
         DotNetEfToyTarget.Delete();
