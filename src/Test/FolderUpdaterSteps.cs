@@ -10,8 +10,9 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Autofac;
-using TechTalk.SpecFlow;
+using Reqnroll;
 using IFolderUpdater = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IFolderUpdater;
+
 // ReSharper disable UnusedMember.Global
 // ReSharper disable StringLiteralTypo
 
