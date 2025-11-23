@@ -14,6 +14,7 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using NuGet.Packaging;
 using NuGet.Protocol.Core.Types;
+using Version = System.Version;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
@@ -44,10 +45,10 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             bool entityFrameworkOnly, string migrationId, string checkedOutBranch,
             IErrorsAndInfos errorsAndInfos) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
-            var methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
+            IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             simpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
             var yesNoInconclusive = new YesNoInconclusive();
-            var files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+            IList<string> files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
             yesNoInconclusive.Inconclusive = files.Any(f => _EndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
             yesNoInconclusive.YesNo = false;
             if (yesNoInconclusive.Inconclusive) {
@@ -56,7 +57,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 return yesNoInconclusive;
             }
             var nugetFeedsSecret = new SecretNugetFeeds();
-            var nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+            NugetFeeds nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) {
                 simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
@@ -80,7 +81,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 return yesNoInconclusive;
             }
 
-            foreach (var projectFileFullName in projectFileFullNames) {
+            foreach (string projectFileFullName in projectFileFullNames) {
                 simpleLogger.LogInformationWithCallStack($"Analyzing project file {projectFileFullName}", methodNamesFromStack);
                 var projectErrorsAndInfos = new ErrorsAndInfos();
                 var projectReducedErrorsAndInfos = new ErrorsAndInfos();
@@ -112,14 +113,14 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             IList<string> nugetFeedIds, bool yesNo, bool entityFrameworkOnly, string migrationId,
             string checkedOutBranch, IErrorsAndInfos projectErrorsAndInfos, IErrorsAndInfos projectReducedErrorsAndInfos) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
-            var methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
+            IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
 
             LogProjectPackageUpdateMessage("Checking if project has at least one migration",
                 projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-            var projectHasMigrations = entityFrameworkOnly
-               && dotNetEfRunner.ListAppliedMigrationIds(projectFileFolder, projectErrorsAndInfos)
-                                 .Any();
+            bool projectHasMigrations = entityFrameworkOnly
+                                        && dotNetEfRunner.ListAppliedMigrationIds(projectFileFolder, projectErrorsAndInfos)
+                                                         .Any();
 
             if (entityFrameworkOnly && projectHasMigrations) {
                 LogProjectPackageUpdateMessage( "Updating database",
@@ -134,13 +135,13 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             LogProjectPackageUpdateMessage( "Retrieving dependency ids and versions",
                     projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var dependencyIdsAndVersions =
+            IDictionary<string, string> dependencyIdsAndVersions =
                 await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             LogProjectPackageUpdateMessage( "Retrieving manually updated packages",
                     projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
             var secret = new SecretManuallyUpdatedPackages();
-            var manuallyUpdatedPackages = await secretRepository.GetAsync(secret, projectErrorsAndInfos);
+            ManuallyUpdatedPackages manuallyUpdatedPackages = await secretRepository.GetAsync(secret, projectErrorsAndInfos);
             if (projectErrorsAndInfos.AnyErrors()) {
                 simpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
                 return false;
@@ -153,17 +154,17 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                        : !id.StartsWith(_microsoftEntityFrameworkPrefix)
                         && manuallyUpdatedPackages.All(p => !p.Matches(id, checkedOutBranch, projectFileFullName)))
                 .ToList();
-            foreach (var id in ids) {
+            foreach (string id in ids) {
                 LogProjectPackageUpdateMessage( $"Updating dependency {id}",
                         projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-                var dependencyIdAndVersion = dependencyIdsAndVersions.First(d => d.Key == id);
+                KeyValuePair<string, string> dependencyIdAndVersion = dependencyIdsAndVersions.First(d => d.Key == id);
                 var version = System.Version.Parse(dependencyIdAndVersion.Value);
-                var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkOnly, id, version);
+                Version latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkOnly, id, version);
                 if (latestRemotePackageVersion == null) {
                     continue;
                 }
 
-                var arguments = "remove " + projectFileFullName + " package " + id;
+                string arguments = "remove " + projectFileFullName + " package " + id;
                 processRunner.RunProcess("dotnet", arguments, projectFileFolder, projectErrorsAndInfos);
                 projectErrorsAndInfos.Infos.Add(arguments);
                 projectReducedErrorsAndInfos.Infos.Add(arguments);
@@ -200,14 +201,14 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
             LogProjectPackageUpdateMessage( "Retrieving dependency ids and versions once more",
                     projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-            var dependencyIdsAndVersionsAfterUpdate =
+            IDictionary<string, string> dependencyIdsAndVersionsAfterUpdate =
                 await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
 
             LogProjectPackageUpdateMessage( "Determining differences",
                     projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-            foreach (var dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
-                var id = dependencyIdsAndVersion.Key;
-                var version = dependencyIdsAndVersion.Value;
+            foreach (KeyValuePair<string, string> dependencyIdsAndVersion in dependencyIdsAndVersionsAfterUpdate) {
+                string id = dependencyIdsAndVersion.Key;
+                string version = dependencyIdsAndVersion.Value;
                 yesNo = yesNo || !dependencyIdsAndVersions.ContainsKey(id) || version != dependencyIdsAndVersions[id];
             }
 
@@ -226,7 +227,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
     public async Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder,
                                                                   string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
-        var packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(
+        IPackageUpdateOpportunity packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(
             repositoryFolder.SubFolder("src"), false, checkedOutBranch, errorsAndInfos);
         return packageUpdateOpportunity.YesNo;
     }
@@ -239,8 +240,8 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
     public async Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder,
             string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
-        var packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(solutionFolder,
-            false, checkedOutBranch, errorsAndInfos);
+        IPackageUpdateOpportunity packageUpdateOpportunity = await AreThereNugetUpdateOpportunitiesForSolutionAsync(solutionFolder,
+                                                                                                                    false, checkedOutBranch, errorsAndInfos);
         return packageUpdateOpportunity.YesNo;
     }
 
@@ -254,11 +255,11 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
         }
 
         var nugetFeedsSecret = new SecretNugetFeeds();
-        var nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+        NugetFeeds nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageUpdateOpportunity; }
 
         var nugetFeedIds = nugetFeeds.Select(f => f.Id).ToList();
-        foreach (var projectFileFullName in projectFileFullNames) {
+        foreach (string projectFileFullName in projectFileFullNames) {
             packageUpdateOpportunity
                 = await AreThereNugetUpdateOpportunitiesForProjectAsync(projectFileFullName,
                     nugetFeedIds, entityFrameworkUpdatesOnly, checkedOutBranch, errorsAndInfos);
@@ -277,15 +278,15 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             string projectFileFullName, IList<string> nugetFeedIds,
             bool entityFrameworkUpdatesOnly, string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
         var dependencyErrorsAndInfos = new ErrorsAndInfos();
-        var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
+        IDictionary<string, string> dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')), true, true, dependencyErrorsAndInfos);
         var packageUpdateOpportunity = new PackageUpdateOpportunity();
 
         var secret = new SecretManuallyUpdatedPackages();
-        var manuallyUpdatedPackages = await secretRepository.GetAsync(secret, errorsAndInfos);
+        ManuallyUpdatedPackages manuallyUpdatedPackages = await secretRepository.GetAsync(secret, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return packageUpdateOpportunity; }
 
-        foreach (var dependencyIdsAndVersion in dependencyIdsAndVersions) {
-            var id = dependencyIdsAndVersion.Key;
+        foreach (KeyValuePair<string, string> dependencyIdsAndVersion in dependencyIdsAndVersions) {
+            string id = dependencyIdsAndVersion.Key;
             if (entityFrameworkUpdatesOnly) {
                 if (!id.StartsWith(_microsoftEntityFrameworkPrefix)) { continue; }
             } else {
@@ -293,11 +294,11 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 if (manuallyUpdatedPackages.Any(p => p.Matches(id, checkedOutBranch, projectFileFullName))) { continue; }
             }
 
-            if (!System.Version.TryParse(dependencyIdsAndVersion.Value, out var version)) {
+            if (!System.Version.TryParse(dependencyIdsAndVersion.Value, out Version version)) {
                 continue;
             }
 
-            var latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkUpdatesOnly, id, version);
+            Version latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkUpdatesOnly, id, version);
             if (latestRemotePackageVersion == null) {
                 continue;
             }
@@ -316,7 +317,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
     private async Task<System.Version> IdentifyLatestRemotePackageVersion(IEnumerable<string> nugetFeedIds,
         bool entityFrameworkUpdatesOnly, string id, System.Version version) {
         IList<IPackageSearchMetadata> remotePackages = null;
-        foreach (var nugetFeedId in nugetFeedIds) {
+        foreach (string nugetFeedId in nugetFeedIds) {
             var listingErrorsAndInfos = new ErrorsAndInfos();
             remotePackages = await nugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, id, listingErrorsAndInfos);
             if (listingErrorsAndInfos.AnyErrors()) {
@@ -336,7 +337,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             remotePackages = remotePackages.Where(p => p.Identity.Version.Major == version.Major).ToList();
         }
 
-        var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
+        Version latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
         if (latestRemotePackageVersion <= version) {
             return null;
         }
