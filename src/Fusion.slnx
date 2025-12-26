@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="Fusion.csproj" />
+  <Project Path="Test/Fusion.Test.csproj" />
+</Solution>
