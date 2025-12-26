@@ -19,7 +19,7 @@ public class AutomationTestHelper : IDisposable {
     public IFolder FinalFolder => AutomationTestProjectsFolder.SubFolder("Final");
 
     public AutomationTestHelper(string subFolder) {
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
         var errorsAndInfos = new ErrorsAndInfos();
         const string url = "https://github.com/aspenlaub/AutomationTestProjects.git";
         AutomationTestProjectsFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(subFolder);
@@ -36,11 +36,9 @@ public class AutomationTestHelper : IDisposable {
         TempFolder.CreateIfNecessary();
 
         // ReSharper disable once LoopCanBePartlyConvertedToQuery
-        foreach (var solutionFileFullName in Directory.GetFiles(AutomationTestProjectsFolder.FullName, "*.sln", SearchOption.AllDirectories)) {
+        foreach (string solutionFileFullName in Directory.GetFiles(AutomationTestProjectsFolder.FullName, "*.sln", SearchOption.AllDirectories)) {
             var folder = new Folder(solutionFileFullName.Substring(0, solutionFileFullName.LastIndexOf('\\')));
-            if (!File.Exists(folder.FullName + @"\packages.config")) { continue; }
-
-            folder.SubFolder("packages").CreateIfNecessary();
+            Assert.IsFalse(File.Exists(folder.FullName + @"\packages.config"));
         }
     }
 

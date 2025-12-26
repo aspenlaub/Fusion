@@ -64,25 +64,25 @@ public class DotNetBuilderTest {
     }
 
     protected void CanOrCannotBuild(string solutionId, bool debug, bool buildExpected) {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
-        var id = nameof(CanOrCannotBuild) + solutionId
-            + (debug ? "Debug" : "Release")
-            + (buildExpected ? "Build" : "NoBuild");
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
+        string id = nameof(CanOrCannotBuild) + solutionId
+             + (debug ? "Debug" : "Release")
+             + (buildExpected ? "Build" : "NoBuild");
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(id))) {
-            var solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.sln";
+            string solutionFileName = _AutomationTestHelper.AutomationTestProjectsFolder.SubFolder(solutionId).FullName + $"\\{solutionId}.slnx";
             Assert.IsTrue(File.Exists(solutionFileName));
 
-            var finalFolderName = _AutomationTestHelper.FinalFolder.FullName + '\\' + solutionId + @"Bin\" + (debug ? "Debug" : "Release") + @"\";
+            string finalFolderName = _AutomationTestHelper.FinalFolder.FullName + '\\' + solutionId + @"Bin\" + (debug ? "Debug" : "Release") + @"\";
             if (Directory.Exists(finalFolderName)) {
                 var deleter = new FolderDeleter();
-                var canDelete = deleter.CanDeleteFolder(new Folder(finalFolderName), out _);
+                bool canDelete = deleter.CanDeleteFolder(new Folder(finalFolderName), out _);
                 Assert.IsTrue(canDelete);
                 deleter.DeleteFolder(new Folder(finalFolderName));
             }
 
             Directory.CreateDirectory(finalFolderName);
             var errorsAndInfos = new ErrorsAndInfos();
-            var buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
+            bool buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
             Assert.AreEqual(buildExpected, buildSucceeded);
             if (!buildSucceeded) {
                 return;

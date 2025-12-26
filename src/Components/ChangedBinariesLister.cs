@@ -21,7 +21,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
     public IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
         IList<BinaryToUpdate> changedBinaries = new List<BinaryToUpdate>();
 
-        var workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
+        IFolder workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
         try {
             CleanUpFolder(workFolder, errorsAndInfos);
             if (!errorsAndInfos.AnyErrors()) {
@@ -52,7 +52,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
         }
 
         try {
-            foreach (var file in Directory.GetFiles(folder.FullName, "*.*", SearchOption.AllDirectories)) {
+            foreach (string file in Directory.GetFiles(folder.FullName, "*.*", SearchOption.AllDirectories)) {
                 File.SetAttributes(file, FileAttributes.Normal);
             }
             folderDeleter.DeleteFolder(folder);
@@ -64,27 +64,27 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
 
     private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
         var changedBinaries = new List<BinaryToUpdate>();
-        var compileFolder = workFolder.SubFolder("Compile");
-        var previousTargetFolder = workFolder.SubFolder("Previous");
-        var currentTargetFolder = workFolder.SubFolder("Current");
+        IFolder compileFolder = workFolder.SubFolder("Compile");
+        IFolder previousTargetFolder = workFolder.SubFolder("Previous");
+        IFolder currentTargetFolder = workFolder.SubFolder("Current");
 
-        foreach (var previous in new[] { true, false}) {
+        foreach (bool previous in new[] { true, false}) {
             CleanUpFolder(compileFolder, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
             compileFolder.CreateIfNecessary();
 
-            var url = "https://github.com/aspenlaub/" + repositoryId + ".git";
+            string url = "https://github.com/aspenlaub/" + repositoryId + ".git";
             gitUtilities.Clone(url, branchId, compileFolder, new CloneOptions { BranchName = branchId }, false, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
-            var headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;
+            string headTipIdSha = previous ? previousHeadTipIdSha : currentHeadTipIdSha;
             gitUtilities.Reset(compileFolder, headTipIdSha, errorsAndInfos);
             if (errorsAndInfos.AnyErrors()) { return changedBinaries; }
 
             var folderCleanUpErrorsAndInfos = new ErrorsAndInfos();
             var csProjFiles = Directory.GetFiles(workFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
-            var linksBuildCake = false;
-            foreach (var csProjFile in csProjFiles) {
+            bool linksBuildCake = false;
+            foreach (string csProjFile in csProjFiles) {
                 var contents = File.ReadAllLines(csProjFile).ToList();
                 contents = contents.Select(AdjustLineIfVersioningRelated).Select(MakeDeterministic).ToList();
                 File.WriteAllLines(csProjFile, contents);
@@ -102,7 +102,10 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
                 return changedBinaries;
             }
 
-            var solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
+            string solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".slnx";
+            if (!File.Exists(solutionFileName)) {
+                solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
+            }
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
             nugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
@@ -121,8 +124,8 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
                 return changedBinaries;
             }
 
-            var binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
-            var targetFolder = previous ? previousTargetFolder : currentTargetFolder;
+            IFolder binFolder = compileFolder.SubFolder("src").SubFolder("bin").SubFolder("Release");
+            IFolder targetFolder = previous ? previousTargetFolder : currentTargetFolder;
             CleanUpFolder(targetFolder, folderCleanUpErrorsAndInfos);
             if (folderCleanUpErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.AddRange(folderCleanUpErrorsAndInfos.Errors);
@@ -133,9 +136,9 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
                 .Where(f => !f.StartsWith(binFolder.FullName + @"\ref\"))
                 .Select(f => f.Substring(binFolder.FullName.Length + 1))
                 .ToList();
-            foreach (var shortFileName in shortFileNames) {
-                var sourceFileName = binFolder.FullName + '\\' + shortFileName;
-                var destinationFileName = targetFolder.FullName + '\\' + shortFileName;
+            foreach (string shortFileName in shortFileNames) {
+                string sourceFileName = binFolder.FullName + '\\' + shortFileName;
+                string destinationFileName = targetFolder.FullName + '\\' + shortFileName;
                 try {
                     var destinationFolder = new Folder(destinationFileName.Substring(0, destinationFileName.LastIndexOf('\\')));
                     destinationFolder.CreateIfNecessary();
@@ -146,9 +149,9 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
             }
         }
 
-        foreach (var shortFileName in Directory.GetFiles(currentTargetFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => f.Substring(currentTargetFolder.FullName.Length + 1))) {
-            var previousFileName = previousTargetFolder.FullName + '\\' + shortFileName;
-            var currentFileName = currentTargetFolder.FullName + '\\' + shortFileName;
+        foreach (string shortFileName in Directory.GetFiles(currentTargetFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => f.Substring(currentTargetFolder.FullName.Length + 1))) {
+            string previousFileName = previousTargetFolder.FullName + '\\' + shortFileName;
+            string currentFileName = currentTargetFolder.FullName + '\\' + shortFileName;
             if (!File.Exists(previousFileName)) {
                 changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = Properties.Resources.FileIsNew });
                 continue;
@@ -157,21 +160,21 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
             var previousFileInfo = new FileInfo(previousFileName);
             var currentFileInfo = new FileInfo(currentFileName);
 
-            var previousContents = File.ReadAllBytes(previousFileName);
-            var currentContents = File.ReadAllBytes(currentFileName);
+            byte[] previousContents = File.ReadAllBytes(previousFileName);
+            byte[] currentContents = File.ReadAllBytes(currentFileName);
             if (previousContents.Length != currentContents.Length) {
                 changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = string.Format(Properties.Resources.FilesDifferInLength, previousContents.Length, currentContents.Length) });
                 continue;
             }
 
-            var differences = previousContents.Where((t, i) => t != currentContents[i]).Count();
+            int differences = previousContents.Where((t, i) => t != currentContents[i]).Count();
             if (differences == 0) {
                 continue;
             }
 
             if (binariesHelper.CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod.AssembliesButNotIfOnlySlightlyChanged, "",
                     previousContents, currentContents, previousFileInfo,
-                    false, currentFileInfo, out var updateReason)) {
+                    false, currentFileInfo, out string updateReason)) {
                 if (!doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
                     changedBinaries.Add(new BinaryToUpdate { FileName = shortFileName, UpdateReason = Properties.Resources.OtherFilesRequireUpdateAnyway });
                 }
@@ -193,7 +196,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
         if (!linksBuildCake) {
             files.AddRange(Directory.GetFiles(compileFolder.FullName, "build.*", SearchOption.TopDirectoryOnly).ToList());
         }
-        foreach (var file in files) {
+        foreach (string file in files) {
             if (!File.Exists(file)) {
                 errorsAndInfos.Infos.Add($"File no longer exists: {file}");
                 continue;
