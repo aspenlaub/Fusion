@@ -16,6 +16,9 @@ using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
 using NuGet.Common;
 using NuGet.Packaging;
 using NuGet.Protocol;
+using NuGet.Protocol.Core.Types;
+using Version = System.Version;
+
 // ReSharper disable LoopCanBeConvertedToQuery
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
@@ -33,19 +36,21 @@ public class NugetPackageToPushFinder(
                                                              string branchId, IErrorsAndInfos errorsAndInfos) {
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
-        var projectFileFullName = solutionFileFullName.Replace(".sln", ".csproj");
+        string projectFileFullName = solutionFileFullName
+            .Replace(".slnx", ".csproj")
+            .Replace(".sln", ".csproj");
         if (!File.Exists(projectFileFullName)) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.ProjectFileNotFound, projectFileFullName));
             return packageToPush;
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingProject);
-        var project = projectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
+        IProject project = projectFactory.Load(solutionFileFullName, projectFileFullName, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingNugetFeeds);
         var developerSettingsSecret = new DeveloperSettingsSecret();
-        var developerSettings = await secretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
+        DeveloperSettings developerSettings = await secretRepository.GetAsync(developerSettingsSecret, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
 
         if (developerSettings == null) {
@@ -54,26 +59,26 @@ public class NugetPackageToPushFinder(
         }
 
         var nugetFeedsSecret = new SecretNugetFeeds();
-        var nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
+        NugetFeeds nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) {
             return packageToPush;
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.IdentifyingNugetFeed);
-        var nugetFeed = nugetFeeds.FirstOrDefault(f => f.Id == nugetFeedId);
+        NugetFeed nugetFeed = nugetFeeds.FirstOrDefault(f => f.Id == nugetFeedId);
         if (nugetFeed == null) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.UnknownNugetFeed, nugetFeedId, nugetFeedsSecret.Guid + ".xml"));
             return packageToPush;
         }
 
         if (!nugetFeed.IsAFolderToResolve()) {
-            var nugetConfigFileFullName = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\NuGet\" + "nuget.config";
+            string nugetConfigFileFullName = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData) + @"\NuGet\" + "nuget.config";
             packageToPush.ApiKey = nugetConfigReader.GetApiKey(nugetConfigFileFullName, nugetFeed.Id, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) { return packageToPush; }
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.IdentifyingFeedUrl);
-        var source = await nugetFeed.UrlOrResolvedFolderAsync(folderResolver, errorsAndInfos);
+        string source = await nugetFeed.UrlOrResolvedFolderAsync(folderResolver, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
         packageToPush.FeedUrl = source;
@@ -85,7 +90,7 @@ public class NugetPackageToPushFinder(
         errorsAndInfos.Infos.Add(Properties.Resources.SearchingLocalPackage);
         var localPackageRepository = new FindLocalPackagesResourceV2(packageFolderWithBinaries.FullName);
         var localPackages = new List<LocalPackageInfo>();
-        foreach (var localPackage in localPackageRepository.GetPackages(new NullLogger(), CancellationToken.None)) {
+        foreach (LocalPackageInfo localPackage in localPackageRepository.GetPackages(new NullLogger(), CancellationToken.None)) {
             if (localPackage.Identity.Version.IsPrerelease) { continue; }
 
             localPackages.Add(localPackage);
@@ -95,13 +100,13 @@ public class NugetPackageToPushFinder(
             return packageToPush;
         }
 
-        var latestLocalPackageVersion = localPackages.Max(p => p.Identity.Version.Version);
+        Version latestLocalPackageVersion = localPackages.Max(p => p.Identity.Version.Version);
         errorsAndInfos.Infos.Add(string.Format(Properties.Resources.FoundLocalPackage, latestLocalPackageVersion));
 
         errorsAndInfos.Infos.Add(Properties.Resources.SearchingRemotePackage);
-        var packageId = string.IsNullOrWhiteSpace(project.PackageId) ? project.RootNamespace : project.PackageId;
+        string packageId = string.IsNullOrWhiteSpace(project.PackageId) ? project.RootNamespace : project.PackageId;
         packageId += branchesWithPackagesRepository.PackageInfix(branchId, true);
-        var remotePackages = await nugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
+        IList<IPackageSearchMetadata> remotePackages = await nugetFeedLister.ListReleasedPackagesAsync(nugetFeedId, packageId, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return packageToPush; }
         if (!remotePackages.Any()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.NoRemotePackageFilesFound, packageToPush.FeedUrl, packageId));
@@ -109,16 +114,16 @@ public class NugetPackageToPushFinder(
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.LoadingPushedHeadTipShas);
-        var pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
+        List<string> pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return packageToPush; }
 
-        var headTipIdSha = repositoryFolder == null ? "" : gitUtilities.HeadTipIdSha(repositoryFolder);
+        string headTipIdSha = repositoryFolder == null ? "" : gitUtilities.HeadTipIdSha(repositoryFolder);
         if (!string.IsNullOrWhiteSpace(headTipIdSha) && pushedHeadTipShas.Contains(headTipIdSha)) {
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.HeadTipShaHasAlreadyBeenPushed, headTipIdSha, nugetFeedId));
             return packageToPush;
         }
 
-        var latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
+        Version latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
         errorsAndInfos.Infos.Add(string.Format(Properties.Resources.FoundRemotePackage, latestRemotePackageVersion));
         if (latestRemotePackageVersion >= latestLocalPackageVersion) {
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.RemotePackageHasHigherOrEqualVersion, headTipIdSha));
@@ -126,7 +131,7 @@ public class NugetPackageToPushFinder(
         }
 
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingRemotePackageTag);
-        var remotePackage = remotePackages.First(p => p.Identity.Version.Version == latestRemotePackageVersion);
+        IPackageSearchMetadata remotePackage = remotePackages.First(p => p.Identity.Version.Version == latestRemotePackageVersion);
         if (!string.IsNullOrEmpty(remotePackage.Tags) && !string.IsNullOrWhiteSpace(headTipIdSha)) {
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.TagsAre, remotePackage.Tags));
             var tags = remotePackage.Tags.Split(' ').ToList();
@@ -140,10 +145,10 @@ public class NugetPackageToPushFinder(
                 return packageToPush;
             }
 
-            var tag = tags[0];
+            string tag = tags[0];
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
             var listerErrorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = changedBinariesLister.ListChangedBinaries(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = changedBinariesLister.ListChangedBinaries(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
             if (listerErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                 errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);
