@@ -8,10 +8,10 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
-    private const string DotNetExecutableFileName = "dotnet";
+    private const string _dotNetExecutableFileName = "dotnet";
 
     public bool Build(string solutionFileName, bool debug, string tempFolderName, IErrorsAndInfos errorsAndInfos) {
-        var arguments = "build -v m -c " + (debug ? "Debug" : "Release");
+        string arguments = "build " + solutionFileName + " -v m -c " + (debug ? "Debug" : "Release");
         if (!string.IsNullOrEmpty(tempFolderName)) {
             arguments = arguments + " -o \"" + tempFolderName + "\"";
         }
@@ -19,7 +19,7 @@ public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
         var solutionFolder = new Folder(
             solutionFileName.Substring(0, solutionFileName.LastIndexOf("\\", StringComparison.Ordinal))
         );
-        processRunner.RunProcess(DotNetExecutableFileName, arguments, solutionFolder, errorsAndInfos);
+        processRunner.RunProcess(_dotNetExecutableFileName, arguments, solutionFolder, errorsAndInfos);
         InfosToErrors(errorsAndInfos, "the file is locked", "");
         InfosToErrors(errorsAndInfos, "failed", "");
         InfosToErrors(errorsAndInfos, "error", "0 error");
