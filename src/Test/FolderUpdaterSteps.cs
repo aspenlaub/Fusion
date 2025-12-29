@@ -40,7 +40,7 @@ public class FolderUpdaterSteps {
         SourceFiles = new Dictionary<int, string>();
         DestinationFiles = new Dictionary<int, string>();
         UpdateFolderErrorsAndInfos = new ErrorsAndInfos();
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
         Sut = container.Resolve<IFolderUpdater>();
     }
 
@@ -84,7 +84,7 @@ public class FolderUpdaterSteps {
     public void GivenIPlaceAKilobyteFileIntoTheSourceFolder(int p0) {
         var bytes = new List<byte>();
         byte b = 0;
-        for (var i = 0; i < p0 * 1000; i++) {
+        for (int i = 0; i < p0 * 1000; i++) {
             bytes.Add(b);
             b = (byte)((b + 1) % 256);
         }
@@ -99,7 +99,7 @@ public class FolderUpdaterSteps {
     public void GivenIPlaceAKilobyteFileWithDifferencesIntoTheDestinationFolder(int p0, int p1) {
         var bytes = new List<byte>();
         byte b = 0;
-        for (var i = 0; i < p0 * 1000; i++) {
+        for (int i = 0; i < p0 * 1000; i++) {
             if (p1 == 0 || i % 10 != 0) {
                 bytes.Add(b);
             } else {
@@ -129,7 +129,7 @@ public class FolderUpdaterSteps {
     public void WhenIUpdateTheDestinationFolder() {
         LastWriteTimeBeforeUpdate = new Dictionary<string, DateTime>();
         if (DestinationFolder.Exists()) {
-            foreach (var fileName in Directory.GetFiles(DestinationFolder.FullName, "*.*")) {
+            foreach (string fileName in Directory.GetFiles(DestinationFolder.FullName, "*.*")) {
                 LastWriteTimeBeforeUpdate[fileName] = File.GetLastWriteTime(fileName);
             }
         }
@@ -203,7 +203,7 @@ public class FolderUpdaterSteps {
 
     [Then(@"folder update failed because the (.*) kilobyte destination file could not be renamed")]
     public void ThenFolderUpdateFailedBecauseTheKilobyteDestinationFileCouldNotBeRenamed(int p0) {
-        var expectedError = "Failed to rename \"" + p0 + "kilobytes.dll\" into \"~1~" + p0 + "kilobytes.dll\"";
-        Assert.IsTrue(UpdateFolderErrorsAndInfos.Errors.Contains(expectedError));
+        string expectedError = "Failed to rename \"" + p0 + "kilobytes.dll\" into \"~1~" + p0 + "kilobytes.dll\"";
+        Assert.Contains(expectedError, UpdateFolderErrorsAndInfos.Errors);
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
@@ -26,12 +28,12 @@ public class ChangedBinariesListerTest {
 
     [TestMethod]
     public void UnchangedPeghBinariesAreNotListed() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UnchangedPeghBinariesAreNotListed)))) {
-            var sut = _Container.Resolve<IChangedBinariesLister>();
+            IChangedBinariesLister sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = sut.ListChangedBinaries("Pegh", "master", _majorPeghChangeHeadTipIdSha, AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = sut.ListChangedBinaries("Pegh", "master", _majorPeghChangeHeadTipIdSha, AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(changedBinaries.Any());
         }
@@ -39,14 +41,14 @@ public class ChangedBinariesListerTest {
 
     [TestMethod]
     public void CanListChangedPeghBinaries() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanListChangedPeghBinaries)))) {
-            var sut = _Container.Resolve<IChangedBinariesLister>();
+            IChangedBinariesLister sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = sut.ListChangedBinaries("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, _majorPeghChangeHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = sut.ListChangedBinaries("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, _majorPeghChangeHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
-            Assert.AreEqual(3, changedBinaries.Count);
+            Assert.HasCount(3, changedBinaries);
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll"));
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.pdb"));
             Assert.IsTrue(changedBinaries.Any(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.deps.json"));
@@ -55,13 +57,13 @@ public class ChangedBinariesListerTest {
 
     [TestMethod]
     public void CanHandleLinkedBuildCake() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanHandleLinkedBuildCake)))) {
-            var sut = _Container.Resolve<IChangedBinariesLister>();
+            IChangedBinariesLister sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
-            var changedBinaries = sut.ListChangedBinaries("Shatilaya", "master", _previousShatilayaHeadTipIdSha,
-                _currentShatilayaHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = sut.ListChangedBinaries("Shatilaya", "master", _previousShatilayaHeadTipIdSha,
+                                                                            _currentShatilayaHeadTipIdSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(changedBinaries.Any());
 
