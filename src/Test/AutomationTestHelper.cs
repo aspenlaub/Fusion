@@ -36,7 +36,7 @@ public class AutomationTestHelper : IDisposable {
         TempFolder.CreateIfNecessary();
 
         // ReSharper disable once LoopCanBePartlyConvertedToQuery
-        foreach (string solutionFileFullName in Directory.GetFiles(AutomationTestProjectsFolder.FullName, "*.sln", SearchOption.AllDirectories)) {
+        foreach (string solutionFileFullName in Directory.GetFiles(AutomationTestProjectsFolder.FullName, "*.slnx", SearchOption.AllDirectories)) {
             var folder = new Folder(solutionFileFullName.Substring(0, solutionFileFullName.LastIndexOf('\\')));
             Assert.IsFalse(File.Exists(folder.FullName + @"\packages.config"));
         }
