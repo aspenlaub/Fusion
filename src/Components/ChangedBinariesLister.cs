@@ -103,9 +103,6 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
             }
 
             string solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".slnx";
-            if (!File.Exists(solutionFileName)) {
-                solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
-            }
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
             nugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
@@ -213,9 +210,13 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
     }
 
     private string AdjustLineIfVersioningRelated(string s) {
-        if (s.Contains("<Version>")) { return "    <Version>2.0.24.7</Version>"; }
-        if (s.Contains("<VersionDays>")) { return "    <VersionDays>24</VersionDays>"; }
-        return s.Contains("<VersionMinutes") ? "    <VersionMinutes>7</VersionMinutes>" : s;
+        return s.Contains("<Version>")
+            ? "    <Version>2.0.24.7</Version>"
+            : s.Contains("<VersionDays>")
+                ? "    <VersionDays>24</VersionDays>"
+                : s.Contains("<VersionMinutes")
+                    ? "    <VersionMinutes>7</VersionMinutes>"
+                    : s;
     }
 
     private string MakeDeterministic(string s) {

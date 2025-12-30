@@ -37,8 +37,7 @@ public class NugetPackageToPushFinder(
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
         string projectFileFullName = solutionFileFullName
-            .Replace(".slnx", ".csproj")
-            .Replace(".sln", ".csproj");
+            .Replace(".slnx", ".csproj");
         if (!File.Exists(projectFileFullName)) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.ProjectFileNotFound, projectFileFullName));
             return packageToPush;
