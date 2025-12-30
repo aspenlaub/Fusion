@@ -34,8 +34,8 @@ public class DotNetEfTestBase {
 
     public void InitializeTarget() {
         DotNetEfToyTarget.Delete();
-        var gitUtilities = Container.Resolve<IGitUtilities>();
-        var url = "https://github.com/aspenlaub/" + DotNetEfToyTarget.SolutionId + ".git";
+        IGitUtilities gitUtilities = Container.Resolve<IGitUtilities>();
+        string url = "https://github.com/aspenlaub/" + DotNetEfToyTarget.SolutionId + ".git";
         var errorsAndInfos = new ErrorsAndInfos();
         gitUtilities.Clone(url, "master", DotNetEfToyTarget.Folder(), new CloneOptions { BranchName = "master" }, true, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -59,20 +59,20 @@ public class DotNetEfTestBase {
     }
 
     protected void VerifyMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, IList<string> expectedMigrationIds) {
-        var actualMigrationIds = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+        IList<string> actualMigrationIds = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
         VerifyMigrationIds(expectedMigrationIds, actualMigrationIds);
     }
 
     protected void VerifyMigrationIds(IList<string> expectedMigrationIds, IList<string> actualMigrationIds) {
-        Assert.AreEqual(expectedMigrationIds.Count, actualMigrationIds.Count);
-        for (var i = 0; i < expectedMigrationIds.Count; i++) {
-            Assert.IsTrue(actualMigrationIds[i].EndsWith(expectedMigrationIds[i]));
+        Assert.HasCount(expectedMigrationIds.Count, actualMigrationIds);
+        for (int i = 0; i < expectedMigrationIds.Count; i++) {
+            Assert.EndsWith(expectedMigrationIds[i], actualMigrationIds[i]);
         }
     }
 
     protected IList<string> ListAppliedMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
         var errorsAndInfos = new ErrorsAndInfos();
-        var migrationIds = dotNetEfRunner.ListAppliedMigrationIds(projectFolder, errorsAndInfos);
+        IList<string> migrationIds = dotNetEfRunner.ListAppliedMigrationIds(projectFolder, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return migrationIds;
     }
@@ -89,17 +89,17 @@ public class DotNetEfTestBase {
         var errorsAndInfos = new ErrorsAndInfos();
         dotNetEfRunner.UpdateDatabase(projectFolder, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
-        var expectedInfoStart = string.IsNullOrEmpty(expectedMigration)
+        string expectedInfoStart = string.IsNullOrEmpty(expectedMigration)
             ? "No migrations were applied" : "Applying migration '";
-        var expectedInfo = string.IsNullOrEmpty(expectedMigration)
+        string expectedInfo = string.IsNullOrEmpty(expectedMigration)
             ? "database is already up to date" : $"{expectedMigration}'";
         Assert.IsTrue(errorsAndInfos.Infos.Any(i
             => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo)));
     }
 
     protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(TestTargetFolder testTargetFolder, IErrorsAndInfos errorsAndInfos) {
-        var updater = Container.Resolve<INugetPackageUpdater>();
-        var packageUpdateOpportunity = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
+        INugetPackageUpdater updater = Container.Resolve<INugetPackageUpdater>();
+        IPackageUpdateOpportunity packageUpdateOpportunity = await updater.AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(
             testTargetFolder.Folder(), "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return packageUpdateOpportunity;
