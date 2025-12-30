@@ -62,7 +62,8 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
         }
     }
 
-    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
+    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha,
+            IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
         var changedBinaries = new List<BinaryToUpdate>();
         IFolder compileFolder = workFolder.SubFolder("Compile");
         IFolder previousTargetFolder = workFolder.SubFolder("Previous");
@@ -103,6 +104,9 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
             }
 
             string solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".slnx";
+            if (!File.Exists(solutionFileName)) {
+                solutionFileName = solutionFileName.Replace(".slnx", ".sln"); // Some test cases reset to an old commit ID sha
+            }
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
             nugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
