@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
@@ -28,13 +29,13 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
     [TestMethod]
     public async Task EntityFrameworkUpdateIsAvailable() {
-        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(EntityFrameworkUpdateIsAvailable)))) {
             var errorsAndInfos = new ErrorsAndInfos();
-            var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(DotNetEfToyTarget, errorsAndInfos);
+            IPackageUpdateOpportunity packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(DotNetEfToyTarget, errorsAndInfos);
             Assert.IsTrue(packageUpdateOpportunity.YesNo);
-            var potentialMigrationId = packageUpdateOpportunity.PotentialMigrationId;
-            Assert.IsTrue(potentialMigrationId.StartsWith("MicrosoftEntityFrameworkCoreTools"));
+            string potentialMigrationId = packageUpdateOpportunity.PotentialMigrationId;
+            Assert.StartsWith("MicrosoftEntityFrameworkCoreTools", potentialMigrationId);
             Assert.AreNotEqual("MicrosoftEntityFrameworkCoreTools7050", potentialMigrationId);
             const string expectedInfo = "Could update package Microsoft.EntityFrameworkCore.Tools from 7.0.2 to 7.";
             Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
@@ -52,17 +53,17 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
     }
 
     private async Task CanUpdateEntityFramework(TestTargetFolder testTargetFolder, string lastMigrationIdBeforeUpdate) {
-        var simpleLogger = Container.Resolve<ISimpleLogger>();
-        var id = nameof(CanUpdateEntityFramework) + testTargetFolder.SolutionId + lastMigrationIdBeforeUpdate;
+        ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
+        string id = nameof(CanUpdateEntityFramework) + testTargetFolder.SolutionId + lastMigrationIdBeforeUpdate;
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(id))) {
-            var packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
+            IPackageReferencesScanner packageReferencesScanner = Container.Resolve<IPackageReferencesScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
-            var projectFolder = testTargetFolder.Folder().SubFolder("src");
-            var dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
+            IFolder projectFolder = testTargetFolder.Folder().SubFolder("src");
+            IDictionary<string, string> dependencyIdsAndVersions = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
 
-            var dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
+            IDotNetEfRunner dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
 
-            var migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+            IList<string> migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
 
             if (migrationIdsBeforeUpdate.Count > 0 && migrationIdsBeforeUpdate[^1] != lastMigrationIdBeforeUpdate) {
                 if (migrationIdsBeforeUpdate.Contains(lastMigrationIdBeforeUpdate)) {
@@ -74,27 +75,27 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
             migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
 
-            var yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync(testTargetFolder);
+            YesNoInconclusive yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync(testTargetFolder);
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
 
             var errorsAndInfos = new ErrorsAndInfos();
-            var packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(testTargetFolder, errorsAndInfos);
+            IPackageUpdateOpportunity packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(testTargetFolder, errorsAndInfos);
             Assert.IsFalse(packageUpdateOpportunity.YesNo);
             Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
 
-            var migrationIdsAfterUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+            IList<string> migrationIdsAfterUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
 
-            Assert.AreEqual(migrationIdsBeforeUpdate.Count + 1, migrationIdsAfterUpdate.Count,
+            Assert.HasCount(migrationIdsBeforeUpdate.Count + 1, migrationIdsAfterUpdate,
                             "One added and applied migration was expected");
 
             VerifyMigrationIds(migrationIdsBeforeUpdate,
                                migrationIdsAfterUpdate.Take(migrationIdsBeforeUpdate.Count).ToList());
-            Assert.IsTrue(migrationIdsAfterUpdate.Last().EndsWith(DotNetEfToyDummyMigrationId));
+            Assert.EndsWith(DotNetEfToyDummyMigrationId, migrationIdsAfterUpdate.Last());
 
-            var dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
-            Assert.AreEqual(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate.Count,
+            IDictionary<string, string> dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
+            Assert.HasCount(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate,
                             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
             Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
@@ -102,10 +103,10 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
     }
 
     private async Task<YesNoInconclusive> UpdateEntityFrameworkPackagesAsync(ITestTargetFolder testTargetFolder) {
-        var sut = Container.Resolve<INugetPackageUpdater>();
+        INugetPackageUpdater sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
-        var yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
-            DotNetEfToyDummyMigrationId, "master", errorsAndInfos);
+        YesNoInconclusive yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
+                                                                                                            DotNetEfToyDummyMigrationId, "master", errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }
