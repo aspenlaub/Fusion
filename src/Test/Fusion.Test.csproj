@@ -22,8 +22,8 @@
     </PackageReference>
     <PackageReference Include="MSTest.TestAdapter" Version="4.0.2" />
     <PackageReference Include="MSTest.TestFramework" Version="4.0.2" />
-    <PackageReference Include="Reqnroll.MSTest" Version="3.3.2" />
-    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.2" />
+    <PackageReference Include="Reqnroll.MSTest" Version="3.3.3" />
+    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fusion.csproj" />
