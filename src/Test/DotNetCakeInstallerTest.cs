@@ -20,8 +20,12 @@ public class DotNetCakeInstallerTest {
     [TestMethod]
     public void CanInstallGlobalDotNetCakeIfNecessary() {
         var errorsAndInfos = new ErrorsAndInfos();
-        Sut.InstallOrUpdateGlobalDotNetCakeIfNecessary(errorsAndInfos);
-        Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+        Sut.InstallOrUpdateGlobalDotNetCakeIfNecessary(errorsAndInfos, out bool inconclusive);
+        if (inconclusive) {
+            Assert.Inconclusive();
+        } else {
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+        }
     }
 
     [TestMethod]

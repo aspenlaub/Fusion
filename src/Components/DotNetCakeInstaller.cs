@@ -53,7 +53,8 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         return line?.Substring(_cakeToolId.Length).TrimStart().StartsWith(version) == true;
     }
 
-    public void InstallOrUpdateGlobalDotNetCakeIfNecessary(IErrorsAndInfos errorsAndInfos) {
+    public void InstallOrUpdateGlobalDotNetCakeIfNecessary(IErrorsAndInfos errorsAndInfos, out bool inconclusive) {
+        inconclusive = false;
         if (IsGlobalDotNetCakeInstalled(_pinnedCakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
             RestoreProvenPinnedCakeVersion(errorsAndInfos);
             return;
@@ -66,11 +67,8 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
             || IsGlobalDotNetCakeInstalled(_oldPinnedCakeToolVersion, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        if (_pinnedCakeToolVersionMatchingCompiledTargetFramework != _provenPinnedCakeToolVersion) {
-            oldPinnedCakeToolVersionInstalled = true;
-        }
-
-        if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)) {
+        if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)
+            || _pinnedCakeToolVersionMatchingCompiledTargetFramework != _provenPinnedCakeToolVersion) {
             if (errorsAndInfos.AnyErrors()) { return; }
 
             bool skipTest;
@@ -82,6 +80,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
                 skipTest = true;
             }
             if (skipTest) {
+                inconclusive = true;
                 errorsAndInfos.Infos.Clear();
                 errorsAndInfos.Errors.Clear();
                 return;
