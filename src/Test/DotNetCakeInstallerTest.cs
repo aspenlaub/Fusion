@@ -25,9 +25,9 @@ public class DotNetCakeInstallerTest {
     }
 
     [TestMethod]
-    public void GlobalDotNetCakeIsInstalled() {
+    public void ProvenGlobalDotNetCakeIsInstalled() {
         var errorsAndInfos = new ErrorsAndInfos();
-        bool isInstalled = Sut.IsCurrentGlobalDotNetCakeInstalled(errorsAndInfos);
+        bool isInstalled = Sut.IsProvenGlobalDotNetCakeInstalled(errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(isInstalled);
     }
