@@ -18,7 +18,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
 #else
     private const string _veryOldPinnedCakeToolVersion = "3.1.0";
     private const string _oldPinnedCakeToolVersion = "4.0.0";
-    private const string _pinnedCakeToolVersion = "5.0.0";
+    private const string _pinnedCakeToolVersionMatchingCompiledTargetFramework = "5.0.0";
     private const string _runnerUpPinnedCakeToolVersion = "6.0.0";
 #endif
     private const string _provenPinnedCakeToolVersion = "5.0.0";
