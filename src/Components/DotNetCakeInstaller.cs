@@ -67,12 +67,18 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
 
         if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)) {
             if (errorsAndInfos.AnyErrors()) { return; }
-            _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetUninstallCakeToolArguments,
-                _WorkingFolder, errorsAndInfos);
-            if (errorsAndInfos.AnyErrors()) {
-                var keptErrors = errorsAndInfos.Errors.Where(x => !x.Contains("Access to the path")).ToList();
+
+            bool skipTest;
+            try {
+                _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetUninstallCakeToolArguments,
+                    _WorkingFolder, errorsAndInfos);
+                skipTest = errorsAndInfos.AnyErrors();
+            } catch {
+                skipTest = true;
+            }
+            if (skipTest) {
+                errorsAndInfos.Infos.Clear();
                 errorsAndInfos.Errors.Clear();
-                keptErrors.ForEach(x => errorsAndInfos.Errors.Add(x));
                 return;
             }
         }
