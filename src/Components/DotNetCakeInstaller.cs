@@ -66,6 +66,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         if (errorsAndInfos.AnyErrors()) { return; }
 
         if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)) {
+            errorsAndInfos.Errors.Add("We are here, aren't we?");
             if (errorsAndInfos.AnyErrors()) { return; }
 
             bool skipTest;
@@ -103,8 +104,8 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         }
 
         _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetUninstallCakeToolArguments,
-                                  _WorkingFolder, errorsAndInfos);
+            _WorkingFolder, errorsAndInfos);
         _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetInstallCurrentCakeToolArguments,
-                                  _WorkingFolder, errorsAndInfos);
+            _WorkingFolder, errorsAndInfos);
     }
 }
