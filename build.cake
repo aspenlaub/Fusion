@@ -1,9 +1,8 @@
 #load "solution.cake"
 #addin nuget:?package=LibGit2Sharp&version=0.30.0
-#addin nuget:?package=Cake.Git&version=5.0.1
 #addin nuget:?package=System.Runtime.Loader
 #addin nuget:?package=Microsoft.Bcl.AsyncInterfaces
-#addin nuget:?package=Fusion-DotnetTen&loaddependencies=true&version=2.0.2315.402
+#addin nuget:?package=Fusion-DotnetNine&loaddependencies=true&version=2.0.2366.1337
 
 using Regex = System.Text.RegularExpressions.Regex;
 using Microsoft.Extensions.DependencyInjection;
@@ -36,7 +35,7 @@ var masterReleaseCandidateBinFolder = masterReleaseBinFolder.Replace("/Release",
 
 var target = Argument("target", "Default");
 
-var solutionId = solution.Substring(solution.LastIndexOf('/') + 1).Replace(".slnx", "").Replace(".sln", "");
+var solutionId = solution.Substring(solution.LastIndexOf('/') + 1).Replace(".slnx", "");
 var debugBinFolder = MakeAbsolute(Directory("./src/bin/Debug")).FullPath;
 var releaseBinFolder = MakeAbsolute(Directory("./src/bin/Release")).FullPath;
 var testResultsFolder = MakeAbsolute(Directory("./TestResults")).FullPath;
@@ -179,7 +178,7 @@ Task("UpdateNuspec")
   .Description("Update nuspec if necessary")
   .Does(async () => {
     var solutionFileFullName = solution.Replace('/', '\\');
-    var nuSpecFile = solutionFileFullName.Replace(".slnx", ".nuspec").Replace(".sln", ".nuspec");
+    var nuSpecFile = solutionFileFullName.Replace(".slnx", ".nuspec");
     var nuSpecErrorsAndInfos = new ErrorsAndInfos();
     var headTipIdSha = container.Resolve<IGitUtilities>().HeadTipIdSha(new Folder(repositoryFolder));
     await container.Resolve<INuSpecCreator>().CreateNuSpecFileIfRequiredOrPresentAsync(true, solutionFileFullName, currentGitBranch, new List<string> { headTipIdSha }, nuSpecErrorsAndInfos);
@@ -389,9 +388,9 @@ Task("CreateNuGetPackage")
   .Does(() => {
     var projectErrorsAndInfos = new ErrorsAndInfos();
     var solutionFileFullName = (MakeAbsolute(DirectoryPath.FromString("./src")).FullPath + '\\' + solutionId + ".slnx").Replace('/', '\\');
-    var project = projectFactory.Load(solutionFileFullName, solutionFileFullName.Replace(".slnx", ".csproj").Replace(".sln", ".csproj"), projectErrorsAndInfos);
+    var project = projectFactory.Load(solutionFileFullName, solutionFileFullName.Replace(".slnx", ".csproj"), projectErrorsAndInfos);
     if (!projectLogic.DoAllConfigurationsHaveNuspecs(project)) {
-        throw new Exception("The release configuration needs a NuspecFile entry" + "\r\n" + solutionFileFullName + "\r\n" + solutionFileFullName.Replace(".slnx", ".csproj").Replace(".sln", ".csproj"));
+        throw new Exception("The release configuration needs a NuspecFile entry" + "\r\n" + solutionFileFullName + "\r\n" + solutionFileFullName.Replace(".slnx", ".csproj"));
     }
     if (projectErrorsAndInfos.Errors.Any()) {
         throw new Exception(projectErrorsAndInfos.ErrorsToString());

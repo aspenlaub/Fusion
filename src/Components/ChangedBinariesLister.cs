@@ -62,7 +62,8 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
         }
     }
 
-    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
+    private IList<BinaryToUpdate> ListChangedBinaries(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha,
+            IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
         var changedBinaries = new List<BinaryToUpdate>();
         IFolder compileFolder = workFolder.SubFolder("Compile");
         IFolder previousTargetFolder = workFolder.SubFolder("Previous");
@@ -104,7 +105,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
 
             string solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".slnx";
             if (!File.Exists(solutionFileName)) {
-                solutionFileName = compileFolder.SubFolder("src").FullName + @"\" + repositoryId + ".sln";
+                solutionFileName = solutionFileName.Replace(".slnx", ".sln"); // Some test cases reset to an old commit ID sha
             }
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
@@ -213,9 +214,13 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, ICakeBuilder 
     }
 
     private string AdjustLineIfVersioningRelated(string s) {
-        if (s.Contains("<Version>")) { return "    <Version>2.0.24.7</Version>"; }
-        if (s.Contains("<VersionDays>")) { return "    <VersionDays>24</VersionDays>"; }
-        return s.Contains("<VersionMinutes") ? "    <VersionMinutes>7</VersionMinutes>" : s;
+        return s.Contains("<Version>")
+            ? "    <Version>2.0.24.7</Version>"
+            : s.Contains("<VersionDays>")
+                ? "    <VersionDays>24</VersionDays>"
+                : s.Contains("<VersionMinutes")
+                    ? "    <VersionMinutes>7</VersionMinutes>"
+                    : s;
     }
 
     private string MakeDeterministic(string s) {
