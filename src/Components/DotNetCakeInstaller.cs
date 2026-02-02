@@ -60,13 +60,17 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         }
         if (errorsAndInfos.AnyErrors()) { return; }
 
+        // ReSharper disable once RedundantAssignment
         bool oldPinnedCakeToolVersionInstalled =
             IsGlobalDotNetCakeInstalled(_veryOldPinnedCakeToolVersion, errorsAndInfos)
             || IsGlobalDotNetCakeInstalled(_oldPinnedCakeToolVersion, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
+        if (_pinnedCakeToolVersionMatchingCompiledTargetFramework != _provenPinnedCakeToolVersion) {
+            oldPinnedCakeToolVersionInstalled = true;
+        }
+
         if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)) {
-            errorsAndInfos.Errors.Add("We are here, aren't we?");
             if (errorsAndInfos.AnyErrors()) { return; }
 
             bool skipTest;
@@ -85,6 +89,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         }
 
         _ProcessRunner.RunProcess(_dotNetExecutableFileName,
+              // ReSharper disable once ConditionIsAlwaysTrueOrFalse
               oldPinnedCakeToolVersionInstalled
                   ? _dotNetUpdateCakeToolArguments
                   : _dotNetInstallCakeToolArguments,
