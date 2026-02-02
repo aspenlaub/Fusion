@@ -46,7 +46,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetToolListArguments, _WorkingFolder, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return false; }
 
-        string line = errorsAndInfos.Infos.FirstOrDefault(l => l.StartsWith(_cakeToolId));
+        string line = errorsAndInfos.Infos.LastOrDefault(l => l.StartsWith(_cakeToolId));
         return line?.Substring(_cakeToolId.Length).TrimStart().StartsWith(version) == true;
     }
 
