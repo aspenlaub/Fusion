@@ -13,7 +13,7 @@ public class DotNetCakeInstallerTest {
 
     [TestInitialize]
     public void Initialize() {
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Gitty", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Gitty", new DummyCsArgumentPrompter()).Build();
         Sut = container.Resolve<IDotNetCakeInstaller>();
     }
 
@@ -27,7 +27,7 @@ public class DotNetCakeInstallerTest {
     [TestMethod]
     public void GlobalDotNetCakeIsInstalled() {
         var errorsAndInfos = new ErrorsAndInfos();
-        var isInstalled = Sut.IsCurrentGlobalDotNetCakeInstalled(errorsAndInfos);
+        bool isInstalled = Sut.IsCurrentGlobalDotNetCakeInstalled(errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(isInstalled);
     }
