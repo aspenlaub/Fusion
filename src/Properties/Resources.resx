@@ -216,6 +216,9 @@
   <data name="FoundRemotePackage" xml:space="preserve">
     <value>Found remote package {0}</value>
   </data>
+  <data name="GlobalCakeToolVersionDoesNotMatchTargetFramework" xml:space="preserve">
+    <value>The global dotnet cake version must be {0}</value>
+  </data>
   <data name="HeadTipShaHasAlreadyBeenPushed" xml:space="preserve">
     <value>Head tip sha '{0}' has already been pushed to '{1}'</value>
   </data>
