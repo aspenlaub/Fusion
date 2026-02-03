@@ -45,6 +45,6 @@ public class DotNetCakeInstallerTest {
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         }
         Assert.AreEqual(DotNetCakeInstaller.CakeToolVersionMatchingCompiledTargetFramework ==
-            DotNetCakeInstaller.ProvenPinnedCakeToolVersion, matches);
+            DotNetCakeInstaller.ProvenCakeToolVersion, matches);
     }
 }

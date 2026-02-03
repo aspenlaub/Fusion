@@ -10,4 +10,5 @@ public interface IDotNetCakeInstaller {
     // ReSharper disable once UnusedMemberInSuper.Global
     bool IsGlobalDotNetCakeInstalled(string version, IErrorsAndInfos errorsAndInfos);
     void InstallOrUpdateGlobalDotNetCakeIfNecessary(IErrorsAndInfos errorsAndInfos, out bool inconclusive);
+    void UpdateGlobalDotNetCakeToMatchTargetFrameworkIfNecessary(IErrorsAndInfos errorsAndInfos);
 }
