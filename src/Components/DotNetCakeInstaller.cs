@@ -1,11 +1,13 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using IDotNetCakeInstaller = Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces.IDotNetCakeInstaller;
 
+[assembly: InternalsVisibleTo("Aspenlaub.Net.GitHub.CSharp.Fusion.Test")]
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class DotNetCakeInstaller : IDotNetCakeInstaller {
@@ -13,24 +15,24 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
 #if NET10_0_OR_GREATER
     private const string _veryOldPinnedCakeToolVersion = "4.0.0";
     private const string _oldPinnedCakeToolVersion = "5.0.0";
-    private const string _pinnedCakeToolVersionMatchingCompiledTargetFramework = "6.0.0";
+    internal const string CakeToolVersionMatchingCompiledTargetFramework = "6.0.0";
     private const string _runnerUpPinnedCakeToolVersion = "7.0.0";
 #else
     private const string _veryOldPinnedCakeToolVersion = "3.1.0";
     private const string _oldPinnedCakeToolVersion = "4.0.0";
-    private const string _pinnedCakeToolVersion = "5.0.0";
+    internal const string CakeToolVersionMatchingCompiledTargetFramework = "5.0.0";
     private const string _runnerUpPinnedCakeToolVersion = "6.0.0";
 #endif
-    private const string _provenPinnedCakeToolVersion = "5.0.0";
+    internal const string ProvenPinnedCakeToolVersion = "5.0.0";
     private const string _dotNetExecutableFileName = "dotnet";
     private const string _dotNetToolListArguments = "tool list --global";
     private const string _dotNetInstallCakeToolArguments = "tool install Cake.Tool --version "
-        + _pinnedCakeToolVersionMatchingCompiledTargetFramework + " --global";
+        + CakeToolVersionMatchingCompiledTargetFramework + " --global";
     private const string _dotNetUpdateCakeToolArguments = "tool update Cake.Tool --version "
-        + _pinnedCakeToolVersionMatchingCompiledTargetFramework + " --global";
+        + CakeToolVersionMatchingCompiledTargetFramework + " --global";
     private const string _dotNetUninstallCakeToolArguments = "tool uninstall Cake.Tool --global";
     private const string _dotNetInstallCurrentCakeToolArguments = "tool install Cake.Tool --version "
-        + _provenPinnedCakeToolVersion + " --global";
+        + ProvenPinnedCakeToolVersion + " --global";
 
     private readonly IProcessRunner _ProcessRunner;
     private readonly IFolder _WorkingFolder;
@@ -42,7 +44,19 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
     }
 
     public bool IsProvenGlobalDotNetCakeInstalled(IErrorsAndInfos errorsAndInfos) {
-        return IsGlobalDotNetCakeInstalled(_provenPinnedCakeToolVersion, errorsAndInfos);
+        return IsGlobalDotNetCakeInstalled(ProvenPinnedCakeToolVersion, errorsAndInfos);
+    }
+
+    public bool DoesGlobalCakeToolVersionMatchTargetFramework(IErrorsAndInfos errorsAndInfos) {
+        if (IsGlobalDotNetCakeInstalled(CakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
+            return true;
+        }
+
+        errorsAndInfos.Errors.Add(
+            string.Format(Properties.Resources.GlobalCakeToolVersionDoesNotMatchTargetFramework,
+                          CakeToolVersionMatchingCompiledTargetFramework)
+        );
+        return false;
     }
 
     public bool IsGlobalDotNetCakeInstalled(string version, IErrorsAndInfos errorsAndInfos) {
@@ -55,7 +69,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
 
     public void InstallOrUpdateGlobalDotNetCakeIfNecessary(IErrorsAndInfos errorsAndInfos, out bool inconclusive) {
         inconclusive = false;
-        if (IsGlobalDotNetCakeInstalled(_pinnedCakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
+        if (IsGlobalDotNetCakeInstalled(CakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
             RestoreProvenPinnedCakeVersion(errorsAndInfos);
             return;
         }
@@ -68,7 +82,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         if (errorsAndInfos.AnyErrors()) { return; }
 
         if (IsGlobalDotNetCakeInstalled(_runnerUpPinnedCakeToolVersion, errorsAndInfos)
-            || _pinnedCakeToolVersionMatchingCompiledTargetFramework != _provenPinnedCakeToolVersion) {
+            || CakeToolVersionMatchingCompiledTargetFramework != ProvenPinnedCakeToolVersion) {
             if (errorsAndInfos.AnyErrors()) { return; }
 
             bool skipTest;
@@ -95,7 +109,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
               _WorkingFolder, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        if (!IsGlobalDotNetCakeInstalled(_pinnedCakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
+        if (!IsGlobalDotNetCakeInstalled(CakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
             errorsAndInfos.Errors.Add(Properties.Resources.CouldNotInstallCakeTool);
         }
 
@@ -103,7 +117,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
     }
 
     private void RestoreProvenPinnedCakeVersion(IErrorsAndInfos errorsAndInfos) {
-        if (IsGlobalDotNetCakeInstalled(_provenPinnedCakeToolVersion, errorsAndInfos)) {
+        if (IsGlobalDotNetCakeInstalled(ProvenPinnedCakeToolVersion, errorsAndInfos)) {
             return;
         }
 

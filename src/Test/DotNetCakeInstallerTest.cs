@@ -1,3 +1,4 @@
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
@@ -34,5 +35,16 @@ public class DotNetCakeInstallerTest {
         bool isInstalled = Sut.IsProvenGlobalDotNetCakeInstalled(errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         Assert.IsTrue(isInstalled);
+    }
+
+    [TestMethod]
+    public void CanCheckIfGlobalCakeToolVersionMatchesTargetFramework() {
+        var errorsAndInfos = new ErrorsAndInfos();
+        bool matches = Sut.DoesGlobalCakeToolVersionMatchTargetFramework(errorsAndInfos);
+        if (matches) {
+            Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
+        }
+        Assert.AreEqual(DotNetCakeInstaller.CakeToolVersionMatchingCompiledTargetFramework ==
+            DotNetCakeInstaller.ProvenPinnedCakeToolVersion, matches);
     }
 }
