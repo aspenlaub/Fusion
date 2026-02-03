@@ -48,6 +48,17 @@ var tempCakeBuildFileName = tempFolder + "/build.cake.new";
 var mainNugetFeedId = NugetFeed.AspenlaubLocalFeed;
 
 var container = FusionContainerBuilder.CreateContainerUsingFusionNuclideProtchAndGitty("Shatilaya");
+
+var dotNetCakeInstaller = container.Resolve<IDotNetCakeInstaller>();
+var dotNetCakeErrorsAndInfos = new ErrorsAndInfos();
+var doesGlobalCakeToolVersionMatchTargetFramework = dotNetCakeInstaller.DoesGlobalCakeToolVersionMatchTargetFramework(dotNetCakeErrorsAndInfos);
+if (dotNetCakeErrorsAndInfos.Errors.Any()) {
+  throw new Exception(dotNetCakeErrorsAndInfos.ErrorsToString());
+}
+if (!doesGlobalCakeToolVersionMatchTargetFramework) {
+  throw new Exception("The installed dotnet cake version does not match the target framework.");
+}
+
 var currentGitBranch = container.Resolve<IGitUtilities>().CheckedOutBranch(new Folder(repositoryFolder));
 
 var projectErrorsAndInfos = new ErrorsAndInfos();
