@@ -50,10 +50,11 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
         return IsGlobalDotNetCakeInstalled(ProvenCakeToolVersion, errorsAndInfos);
     }
 
-    public bool DoesGlobalCakeToolVersionMatchTargetFramework(IErrorsAndInfos errorsAndInfos) {
+    public bool DoesGlobalCakeToolVersionMatchTargetFramework(bool doNotLogErrorMessage, IErrorsAndInfos errorsAndInfos) {
         if (IsGlobalDotNetCakeInstalled(CakeToolVersionMatchingCompiledTargetFramework, errorsAndInfos)) {
             return true;
         }
+        if (doNotLogErrorMessage) { return false; }
 
         errorsAndInfos.Errors.Add(
             string.Format(Properties.Resources.GlobalCakeToolVersionDoesNotMatchTargetFramework,
@@ -120,7 +121,7 @@ public class DotNetCakeInstaller : IDotNetCakeInstaller {
     }
 
     public void UpdateGlobalDotNetCakeToMatchTargetFrameworkIfNecessary(IErrorsAndInfos errorsAndInfos) {
-        if (DoesGlobalCakeToolVersionMatchTargetFramework(errorsAndInfos)) {
+        if (DoesGlobalCakeToolVersionMatchTargetFramework(true, errorsAndInfos)) {
             return;
         }
         if (errorsAndInfos.AnyErrors()) { return; }

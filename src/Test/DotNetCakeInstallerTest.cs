@@ -40,7 +40,7 @@ public class DotNetCakeInstallerTest {
     [TestMethod]
     public void CanCheckIfGlobalCakeToolVersionMatchesTargetFramework() {
         var errorsAndInfos = new ErrorsAndInfos();
-        bool matches = Sut.DoesGlobalCakeToolVersionMatchTargetFramework(errorsAndInfos);
+        bool matches = Sut.DoesGlobalCakeToolVersionMatchTargetFramework(false, errorsAndInfos);
         if (matches) {
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
         }
