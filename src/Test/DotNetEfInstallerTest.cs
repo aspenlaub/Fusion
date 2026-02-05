@@ -10,13 +10,13 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
 [TestClass]
 public class DotNetEfInstallerTest {
-    private readonly IContainer _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+    private readonly IContainer _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
 
     protected IDotNetEfInstaller Sut;
 
     [TestInitialize]
     public void Initialize() {
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
         Sut = container.Resolve<IDotNetEfInstaller>();
     }
 

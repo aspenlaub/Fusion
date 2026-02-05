@@ -24,7 +24,7 @@ public class ChangedBinariesListerTest {
     private const string _currentNuclideHeadTipIdSha = "a9bec6ccf1f929e9a44f51197c40fdf5fd19eaa1";
 
     private readonly IContainer _Container
-        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
 
     [TestMethod]
     public void UnchangedPeghBinariesAreNotListed() {

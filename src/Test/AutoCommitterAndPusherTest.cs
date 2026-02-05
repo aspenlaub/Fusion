@@ -11,7 +11,7 @@ public class AutoCommitterAndPusherTest {
 
     [TestMethod]
     public void CanConstructAutoCommitterAndPusher() {
-        var container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        var container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion").Build();
         Assert.IsNotNull(container.Resolve<IAutoCommitterAndPusher>());
     }
 }

@@ -23,7 +23,7 @@ public class FolderUpdaterTest {
     private const string _dummyServiceRepositoryId = "DummyService";
 
     private readonly IContainer _Container
-        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
     private readonly IFolder _WorkFolder
         = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(FolderUpdaterTest));
 

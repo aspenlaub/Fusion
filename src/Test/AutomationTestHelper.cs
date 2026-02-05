@@ -19,7 +19,7 @@ public class AutomationTestHelper : IDisposable {
     public IFolder FinalFolder => AutomationTestProjectsFolder.SubFolder("Final");
 
     public AutomationTestHelper(string subFolder) {
-        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
         var errorsAndInfos = new ErrorsAndInfos();
         const string url = "https://github.com/aspenlaub/AutomationTestProjects.git";
         AutomationTestProjectsFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(subFolder);

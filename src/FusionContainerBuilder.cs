@@ -1,8 +1,6 @@
 ﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
 using Microsoft.Extensions.DependencyInjection;
 using DotNetCakeInstaller = Aspenlaub.Net.GitHub.CSharp.Fusion.Components.DotNetCakeInstaller;
@@ -14,11 +12,11 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion;
 
 public static class FusionContainerBuilder {
     public static IContainer CreateContainerUsingFusionNuclideProtchAndGitty(string applicationName) {
-        return new ContainerBuilder().UseFusionNuclideProtchAndGitty(applicationName, new DummyCsArgumentPrompter()).Build();
+        return new ContainerBuilder().UseFusionNuclideProtchAndGitty(applicationName).Build();
     }
 
-    public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
-        builder.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
+    public static ContainerBuilder UseFusionNuclideProtchAndGitty(this ContainerBuilder builder, string applicationName) {
+        builder.UseNuclideProtchGittyAndPegh(applicationName);
         builder.RegisterType<NugetPackageUpdater>().As<INugetPackageUpdater>();
         builder.RegisterType<NugetPackageToPushFinder>().As<INugetPackageToPushFinder>();
         builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
@@ -33,8 +31,8 @@ public static class FusionContainerBuilder {
         return builder;
     }
 
-    public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, string applicationName, ICsArgumentPrompter csArgumentPrompter) {
-        services.UseNuclideProtchGittyAndPegh(applicationName, csArgumentPrompter);
+    public static IServiceCollection UseFusionNuclideProtchAndGitty(this IServiceCollection services, string applicationName) {
+        services.UseNuclideProtchGittyAndPegh(applicationName);
         services.AddTransient<INugetPackageUpdater, NugetPackageUpdater>();
         services.AddTransient<INugetPackageToPushFinder, NugetPackageToPushFinder>();
         services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();

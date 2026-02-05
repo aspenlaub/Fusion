@@ -36,8 +36,8 @@ public class NugetPackageToPushFinderTest {
 
     [ClassInitialize]
     public static void ClassInitialize(TestContext context) {
-        _container = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
-        ContainerBuilder containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter());
+        _container = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion").Build();
+        ContainerBuilder containerBuilder = new ContainerBuilder().UseGittyTestUtilities().UseProtch().UseFusionNuclideProtchAndGitty("Fusion");
         var pushedHeadTipShaRepositoryMock = new Mock<IPushedHeadTipShaRepository>();
         pushedHeadTipShaRepositoryMock.Setup(r => r.GetAsync(It.IsAny<string>(), It.IsAny<IErrorsAndInfos>())).Returns(Task.FromResult(new List<string>()));
         containerBuilder.RegisterInstance(pushedHeadTipShaRepositoryMock.Object);

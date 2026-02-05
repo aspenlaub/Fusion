@@ -19,7 +19,7 @@ public class DotNetBuilderTest {
     [TestInitialize]
     public void Initialize() {
         _AutomationTestHelper = new AutomationTestHelper(nameof(DotNetBuilderTest));
-        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        _Container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
         _Sut = _Container.Resolve<IDotNetBuilder>();
     }
 
