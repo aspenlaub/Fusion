@@ -40,7 +40,7 @@ public class FolderUpdaterSteps {
         SourceFiles = new Dictionary<int, string>();
         DestinationFiles = new Dictionary<int, string>();
         UpdateFolderErrorsAndInfos = new ErrorsAndInfos();
-        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
         Sut = container.Resolve<IFolderUpdater>();
     }
 

@@ -30,7 +30,7 @@ public class NugetPackageUpdaterTest {
 
     [ClassInitialize]
     public static void ClassInitialize(TestContext context) {
-        _container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        _container = new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion").Build();
     }
 
     [TestInitialize]

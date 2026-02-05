@@ -30,7 +30,7 @@ public class DotNetEfTestBase {
 
     private static IContainer _privateContainer;
     public static IContainer Container
-        => _privateContainer ??= new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion", new DummyCsArgumentPrompter()).Build();
+        => _privateContainer ??= new ContainerBuilder().UseGittyTestUtilities().UseFusionNuclideProtchAndGitty("Fusion").Build();
 
     public void InitializeTarget() {
         DotNetEfToyTarget.Delete();

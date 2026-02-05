@@ -1,6 +1,5 @@
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Autofac;
@@ -14,7 +13,7 @@ public class DotNetCakeInstallerTest {
 
     [TestInitialize]
     public void Initialize() {
-        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Gitty", new DummyCsArgumentPrompter()).Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Gitty").Build();
         Sut = container.Resolve<IDotNetCakeInstaller>();
     }
 
