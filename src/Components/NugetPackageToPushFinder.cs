@@ -31,9 +31,8 @@ public class NugetPackageToPushFinder(
         IBranchesWithPackagesRepository branchesWithPackagesRepository)
             : INugetPackageToPushFinder {
 
-    public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId,
-                                                             IFolder packageFolderWithBinaries, IFolder repositoryFolder, string solutionFileFullName,
-                                                             string branchId, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries,
+            IFolder repositoryFolder, string solutionFileFullName, string branchId, IErrorsAndInfos errorsAndInfos) {
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
         string projectFileFullName = solutionFileFullName

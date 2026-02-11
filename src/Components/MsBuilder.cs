@@ -11,6 +11,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
     public async Task<bool> BuildAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
         string target = debug ? "DebugBuild" : "ReleaseBuild";
+        if (!solutionFileName.EndsWith("slnx") || !solutionFileName.Contains(@"\src\")) {
+            target = "Legacy" + target;
+        }
         IFolder folder = new Folder(solutionFileName.Substring(0, solutionFileName.LastIndexOf('\\')));
         if (solutionFileName.Contains(@"\src\")) {
             folder = folder.ParentFolder();
