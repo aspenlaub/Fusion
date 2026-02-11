@@ -27,9 +27,9 @@ public class DotNetEfRunnerTest : DotNetEfTestBase {
 
     [TestMethod]
     public void CanDropAndUpdateDatabase() {
-        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanDropAndUpdateDatabase)))) {
-            var projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
+            IFolder projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
 
             DropDatabase(Sut, projectFolder);
             VerifyMigrationIds(Sut, projectFolder, new List<string>());
@@ -44,9 +44,9 @@ public class DotNetEfRunnerTest : DotNetEfTestBase {
 
     [TestMethod]
     public void CanAddDummyMigration() {
-        var simpleLogger = Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanAddDummyMigration)))) {
-            var projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
+            IFolder projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
 
             DropDatabase(Sut, projectFolder);
             UpdateDatabase(Sut, projectFolder, DotNetEfToy702MigrationId);

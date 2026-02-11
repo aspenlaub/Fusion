@@ -147,7 +147,7 @@ public class NugetPackageToPushFinder(
             string tag = tags[0];
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
             var listerErrorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = changedBinariesLister.ListChangedBinaries(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
             if (listerErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                 errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);

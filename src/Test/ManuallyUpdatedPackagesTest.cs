@@ -15,12 +15,12 @@ public class ManuallyUpdatedPackagesTest {
 
     [TestMethod]
     public async Task CanGetManuallyUpdatedPackages() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanGetManuallyUpdatedPackages)))) {
             var errorsAndInfos = new ErrorsAndInfos();
             var secret = new SecretManuallyUpdatedPackages();
-            var container = new ContainerBuilder().UsePegh("Fusion").Build();
-            var manuallyUpdatedPackages = await container.Resolve<ISecretRepository>().GetAsync(secret, errorsAndInfos);
+            IContainer container = new ContainerBuilder().UsePegh("Fusion").Build();
+            ManuallyUpdatedPackages manuallyUpdatedPackages = await container.Resolve<ISecretRepository>().GetAsync(secret, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsNotNull(manuallyUpdatedPackages);
         }

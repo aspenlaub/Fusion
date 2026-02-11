@@ -6,7 +6,6 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Autofac;
@@ -55,7 +54,7 @@ public class DotNetEfTestBase {
         var errorsAndInfos = new ErrorsAndInfos();
         dotNetEfRunner.AddMigration(projectFolder, migrationId, errorsAndInfos);
         const string expectedInfo = "Done.";
-        Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
+        Assert.Contains(i => i.StartsWith(expectedInfo), errorsAndInfos.Infos);
     }
 
     protected void VerifyMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, IList<string> expectedMigrationIds) {
@@ -82,7 +81,7 @@ public class DotNetEfTestBase {
         dotNetEfRunner.DropDatabase(projectFolder, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         const string expectedInfo = $"Dropping database '{DotNetEfToyDatabaseName}'";
-        Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
+        Assert.Contains(i => i.StartsWith(expectedInfo), errorsAndInfos.Infos);
     }
 
     protected void UpdateDatabase(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string expectedMigration) {
@@ -93,8 +92,8 @@ public class DotNetEfTestBase {
             ? "No migrations were applied" : "Applying migration '";
         string expectedInfo = string.IsNullOrEmpty(expectedMigration)
             ? "database is already up to date" : $"{expectedMigration}'";
-        Assert.IsTrue(errorsAndInfos.Infos.Any(i
-            => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo)));
+        Assert.Contains(i
+            => i.StartsWith(expectedInfoStart) && i.Contains(expectedInfo), errorsAndInfos.Infos);
     }
 
     protected async Task<IPackageUpdateOpportunity> EntityFrameworkNugetUpdateOpportunitiesAsync(TestTargetFolder testTargetFolder, IErrorsAndInfos errorsAndInfos) {

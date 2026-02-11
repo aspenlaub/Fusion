@@ -9,7 +9,6 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities.Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -58,7 +57,7 @@ public class NugetPackageUpdaterTest {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             bool yesNo = await NugetUpdateOpportunitiesAsync(_pakledConsumerTarget, errorsAndInfos);
             Assert.IsTrue(yesNo);
-            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.Contains($"package Pakled from {_pakledVersion}")));
+            Assert.Contains(i => i.Contains($"package Pakled from {_pakledVersion}"), errorsAndInfos.Infos);
             IPackageUpdateOpportunity packageUpdateOpportunity = await EntityFrameworkNugetUpdateOpportunitiesAsync(errorsAndInfos);
             Assert.IsFalse(packageUpdateOpportunity.YesNo);
             Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
@@ -92,7 +91,7 @@ public class NugetPackageUpdaterTest {
             Assert.HasCount(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate,
                             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
-            Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
+            Assert.Contains(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString(), dependencyIdsAndVersions, "No package update was made");
         }
     }
 

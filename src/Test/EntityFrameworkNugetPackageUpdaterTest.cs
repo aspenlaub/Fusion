@@ -38,7 +38,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
             Assert.StartsWith("MicrosoftEntityFrameworkCoreTools", potentialMigrationId);
             Assert.AreNotEqual("MicrosoftEntityFrameworkCoreTools7050", potentialMigrationId);
             const string expectedInfo = "Could update package Microsoft.EntityFrameworkCore.Tools from 7.0.2 to 7.";
-            Assert.IsTrue(errorsAndInfos.Infos.Any(i => i.StartsWith(expectedInfo)));
+            Assert.Contains(i => i.StartsWith(expectedInfo), errorsAndInfos.Infos);
         }
     }
 
@@ -98,7 +98,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
             Assert.HasCount(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate,
                             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
-            Assert.IsTrue(dependencyIdsAndVersions.Any(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString()), "No package update was made");
+            Assert.Contains(i => dependencyIdsAndVersionsAfterUpdate[i.Key].ToString() != i.Value.ToString(), dependencyIdsAndVersions, "No package update was made");
         }
     }
 

@@ -11,7 +11,6 @@ using Aspenlaub.Net.GitHub.CSharp.Gitty.TestUtilities.Aspenlaub.Net.GitHub.CShar
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -68,7 +67,7 @@ public class NugetPackageToPushFinderTest {
 
             CloneTarget(PakledTarget, errorsAndInfos);
 
-            RunCakeScript(PakledTarget, true, errorsAndInfos);
+            await RunShatilayaAsync(PakledTarget, true, errorsAndInfos);
 
             errorsAndInfos = new ErrorsAndInfos();
             INugetPackageToPushFinder sut = _container.Resolve<INugetPackageToPushFinder>();
@@ -115,10 +114,10 @@ public class NugetPackageToPushFinderTest {
 
             string headTipIdSha = _container.Resolve<IGitUtilities>().HeadTipIdSha(PakledTarget.Folder());
             if (!latestPackage.Tags.Contains(headTipIdSha)) {
-                return; // $"No package has been pushed for {headTipIdSha} and {PakledTarget.SolutionId}, please run build.cake for this solution"
+                return;
             }
 
-            RunCakeScript(PakledTarget, false, errorsAndInfos);
+            await RunShatilayaAsync(PakledTarget, false, errorsAndInfos);
 
             packages = await _container.Resolve<INugetFeedLister>()
                                       .ListReleasedPackagesAsync(NugetFeed.AspenlaubLocalFeed, @"Aspenlaub.Net.GitHub.CSharp." + PakledTarget.SolutionId, errorsAndInfos);
@@ -134,7 +133,7 @@ public class NugetPackageToPushFinderTest {
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 
-    private static void RunCakeScript(ITestTargetFolder testTargetFolder, bool disableNugetPush, IErrorsAndInfos errorsAndInfos) {
+    private static async Task RunShatilayaAsync(ITestTargetFolder testTargetFolder, bool disableNugetPush, IErrorsAndInfos errorsAndInfos) {
         IProjectLogic projectLogic = _container.Resolve<IProjectLogic>();
         IProjectFactory projectFactory = _container.Resolve<IProjectFactory>();
         string solutionFileFullName = testTargetFolder.Folder().SubFolder("src").FullName + '\\' + testTargetFolder.SolutionId + ".slnx";
@@ -142,8 +141,8 @@ public class NugetPackageToPushFinderTest {
         Assert.IsTrue(projectLogic.DoAllConfigurationsHaveNuspecs(projectFactory.Load(solutionFileFullName,
             solutionFileFullName.Replace(".slnx", ".csproj"), projectErrorsAndInfos)));
 
-        string target = disableNugetPush ? "IgnoreOutdatedBuildCakePendingChangesAndDoNotPush" : "IgnoreOutdatedBuildCakePendingChanges";
-        TargetRunner.RunBuildCakeScript(BuildCake.Standard, testTargetFolder, target, errorsAndInfos);
+        string target = disableNugetPush ? "IgnorePendingChangesAndDoNotPush" : "IgnorePendingChanges";
+        await TargetRunner.RunShatilayaAsync(testTargetFolder, target, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 
@@ -156,9 +155,9 @@ public class NugetPackageToPushFinderTest {
 
             CloneTarget(ChabTarget, errorsAndInfos);
 
-            RunCakeScript(ChabTarget, true, errorsAndInfos);
+            await RunShatilayaAsync(ChabTarget, true, errorsAndInfos);
 
-            Assert.IsFalse(errorsAndInfos.Infos.Any(i => i.Contains("No test")));
+            Assert.DoesNotContain(i => i.Contains("No test"), errorsAndInfos.Infos);
 
             errorsAndInfos = new ErrorsAndInfos();
             INugetPackageToPushFinder sut = _container.Resolve<INugetPackageToPushFinder>();

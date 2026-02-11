@@ -22,7 +22,7 @@ public static class FusionContainerBuilder {
         builder.RegisterType<AutoCommitterAndPusher>().As<IAutoCommitterAndPusher>();
         builder.RegisterType<FolderUpdater>().As<IFolderUpdater>();
         builder.RegisterType<ChangedBinariesLister>().As<IChangedBinariesLister>();
-        builder.RegisterType<CakeBuilder>().As<ICakeBuilder>();
+        builder.RegisterType<MsBuilder>().As<IMsBuilder>();
         builder.RegisterType<BinariesHelper>().As<IBinariesHelper>();
         builder.RegisterType<DotNetEfInstaller>().As<IDotNetEfInstaller>();
         builder.RegisterType<DotNetEfRunner>().As<IDotNetEfRunner>();
@@ -38,7 +38,7 @@ public static class FusionContainerBuilder {
         services.AddTransient<IAutoCommitterAndPusher, AutoCommitterAndPusher>();
         services.AddTransient<IFolderUpdater, FolderUpdater>();
         services.AddTransient<IChangedBinariesLister, ChangedBinariesLister>();
-        services.AddTransient<ICakeBuilder, CakeBuilder>();
+        services.AddTransient<IMsBuilder, MsBuilder>();
         services.AddTransient<IBinariesHelper, BinariesHelper>();
         services.AddTransient<IDotNetEfInstaller, DotNetEfInstaller>();
         services.AddTransient<IDotNetEfRunner, DotNetEfRunner>();

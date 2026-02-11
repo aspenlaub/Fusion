@@ -88,15 +88,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Automated update of &quot;{0}&quot;.
-        /// </summary>
-        internal static string AutoUpdateOfCakeFile {
-            get {
-                return ResourceManager.GetString("AutoUpdateOfCakeFile", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Building &apos;{0}&apos; at head tip ID sha &apos;{1}&apos;.
         /// </summary>
         internal static string Building {
@@ -259,7 +250,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to File &quot;{0}&quot; was changed after compiling again (reson: &quot;{1}&quot;).
+        ///   Looks up a localized string similar to File &quot;{0}&quot; was changed after compiling again (reason: &quot;{1}&quot;).
         /// </summary>
         internal static string FileChangedAfterCompilingAgain {
             get {
@@ -304,7 +295,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The files are equal in length but have {0} differences, which cannot be ignored.
+        ///   Looks up a localized string similar to The files are equal in length, but have {0} differences, which cannot be ignored.
         /// </summary>
         internal static string FilesHaveEqualLengthButNDifferences {
             get {
@@ -313,7 +304,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The files are equal in length but it cannot be ignored.
+        ///   Looks up a localized string similar to The files are equal in length, but it cannot be ignored.
         /// </summary>
         internal static string FilesHaveEqualLengthThatCannotBeIgnored {
             get {
@@ -412,7 +403,7 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The json files are equal in length but it cannot be ignored.
+        ///   Looks up a localized string similar to The json files are equal in length, but it cannot be ignored.
         /// </summary>
         internal static string JsonFilesHaveEqualLengthThatCannotBeIgnored {
             get {
@@ -516,15 +507,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string NumberOfFilesWithUncommittedChangesHasChanged {
             get {
                 return ResourceManager.GetString("NumberOfFilesWithUncommittedChangesHasChanged", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Expected cake files to commit and push, no other file types.
-        /// </summary>
-        internal static string OnlyCakeFilesExpected {
-            get {
-                return ResourceManager.GetString("OnlyCakeFilesExpected", resourceCulture);
             }
         }
         

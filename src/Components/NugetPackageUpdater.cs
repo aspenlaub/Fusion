@@ -158,7 +158,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 LogProjectPackageUpdateMessage( $"Updating dependency {id}",
                         projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
                 KeyValuePair<string, string> dependencyIdAndVersion = dependencyIdsAndVersions.First(d => d.Key == id);
-                var version = System.Version.Parse(dependencyIdAndVersion.Value);
+                var version = Version.Parse(dependencyIdAndVersion.Value);
                 Version latestRemotePackageVersion = await IdentifyLatestRemotePackageVersion(nugetFeedIds, entityFrameworkOnly, id, version);
                 if (latestRemotePackageVersion == null) {
                     continue;
@@ -294,7 +294,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 if (manuallyUpdatedPackages.Any(p => p.Matches(id, checkedOutBranch, projectFileFullName))) { continue; }
             }
 
-            if (!System.Version.TryParse(dependencyIdsAndVersion.Value, out Version version)) {
+            if (!Version.TryParse(dependencyIdsAndVersion.Value, out Version version)) {
                 continue;
             }
 
@@ -314,8 +314,8 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
         return packageUpdateOpportunity;
     }
 
-    private async Task<System.Version> IdentifyLatestRemotePackageVersion(IEnumerable<string> nugetFeedIds,
-        bool entityFrameworkUpdatesOnly, string id, System.Version version) {
+    private async Task<Version> IdentifyLatestRemotePackageVersion(IEnumerable<string> nugetFeedIds,
+        bool entityFrameworkUpdatesOnly, string id, Version version) {
         IList<IPackageSearchMetadata> remotePackages = null;
         foreach (string nugetFeedId in nugetFeedIds) {
             var listingErrorsAndInfos = new ErrorsAndInfos();

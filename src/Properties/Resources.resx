@@ -6,7 +6,7 @@
     Version 2.0
     
     The primary goals of this format is to allow a simple XML format 
-    that is mostly human readable. The generation and parsing of the 
+    that is mostly human-readable. The generation and parsing of the 
     various data types are done through the TypeConverter classes 
     associated with the data types.
     
@@ -126,9 +126,6 @@
   <data name="AutoCommitPushAccessTokenNotFound" xml:space="preserve">
     <value>Access token with purpose AutoCommitPush not found</value>
   </data>
-  <data name="AutoUpdateOfCakeFile" xml:space="preserve">
-    <value>Automated update of "{0}"</value>
-  </data>
   <data name="Building" xml:space="preserve">
     <value>Building '{0}' at head tip ID sha '{1}'</value>
   </data>
@@ -184,7 +181,7 @@
     <value>Failed to restore nuget packages for '{0}' at head tip ID sha '{1}'</value>
   </data>
   <data name="FileChangedAfterCompilingAgain" xml:space="preserve">
-    <value>File "{0}" was changed after compiling again (reson: "{1}")</value>
+    <value>File "{0}" was changed after compiling again (reason: "{1}")</value>
   </data>
   <data name="FileIsNew" xml:space="preserve">
     <value>File is new</value>
@@ -199,10 +196,10 @@
     <value>Files differ in length (new {0}, old {1})</value>
   </data>
   <data name="FilesHaveEqualLengthButNDifferences" xml:space="preserve">
-    <value>The files are equal in length but have {0} differences, which cannot be ignored</value>
+    <value>The files are equal in length, but have {0} differences, which cannot be ignored</value>
   </data>
   <data name="FilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
-    <value>The files are equal in length but it cannot be ignored</value>
+    <value>The files are equal in length, but it cannot be ignored</value>
   </data>
   <data name="FolderNotFound" xml:space="preserve">
     <value>Folder "{0}" does not exist</value>
@@ -235,7 +232,7 @@
     <value>Incomplete 'DeveloperSettings'. Please update "{0}" in your SecretRepository</value>
   </data>
   <data name="JsonFilesHaveEqualLengthThatCannotBeIgnored" xml:space="preserve">
-    <value>The json files are equal in length but it cannot be ignored</value>
+    <value>The json files are equal in length, but it cannot be ignored</value>
   </data>
   <data name="LoadingNugetFeeds" xml:space="preserve">
     <value>Loading nuget feeds</value>
@@ -269,9 +266,6 @@
   </data>
   <data name="NumberOfFilesWithUncommittedChangesHasChanged" xml:space="preserve">
     <value>The number of files with uncommitted changes has changed. Expected {0}, got {1}</value>
-  </data>
-  <data name="OnlyCakeFilesExpected" xml:space="preserve">
-    <value>Expected cake files to commit and push, no other file types</value>
   </data>
   <data name="OnlyCsProjFilesAndMigrationsExpected" xml:space="preserve">
     <value>Expected .csproj and migration files to commit and push, no other file types: {0}</value>

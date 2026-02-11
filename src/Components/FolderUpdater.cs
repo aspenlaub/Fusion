@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Nuclide.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
@@ -28,16 +30,16 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
             Directory.CreateDirectory(destinationFolder.FullName);
         }
 
-        var hasSomethingBeenUpdated = false;
-        foreach (var sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
+        bool hasSomethingBeenUpdated = false;
+        foreach (FileInfo sourceFileInfo in Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories).Select(f => new FileInfo(f))) {
             var destinationFileInfo = new FileInfo(destinationFolder.FullName + '\\' + sourceFileInfo.FullName.Substring(sourceFolder.FullName.Length));
             string updateReason;
             if (File.Exists(destinationFileInfo.FullName)) {
                 if (sourceFileInfo.Length == 0 && destinationFileInfo.Length == 0) { continue; }
 
                 if (sourceFileInfo.Length == destinationFileInfo.Length) {
-                    var sourceContents = File.ReadAllBytes(sourceFileInfo.FullName);
-                    var destinationContents = File.ReadAllBytes(destinationFileInfo.FullName);
+                    byte[] sourceContents = File.ReadAllBytes(sourceFileInfo.FullName);
+                    byte[] destinationContents = File.ReadAllBytes(destinationFileInfo.FullName);
                     if (sourceContents.Length == destinationContents.Length) {
                         if (binariesHelper.CanFilesOfEqualLengthBeTreatedEqual(folderUpdateMethod, mainNamespace, sourceContents, destinationContents, sourceFileInfo, hasSomethingBeenUpdated, destinationFileInfo, out updateReason)) {
                             continue;
@@ -79,7 +81,7 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
             File.Copy(sourceFileInfo.FullName, destinationFileInfo.FullName, true);
         } catch {
             if (File.Exists(destinationFileInfo.FullName)) {
-                var newNameForFileToBeOverwritten = NewNameForFileToBeOverwritten(destinationFileInfo.DirectoryName, destinationFileInfo.Name);
+                string newNameForFileToBeOverwritten = NewNameForFileToBeOverwritten(destinationFileInfo.DirectoryName, destinationFileInfo.Name);
                 try {
                     File.Move(destinationFileInfo.FullName, newNameForFileToBeOverwritten);
                     Thread.Sleep(TimeSpan.FromSeconds(1));
@@ -111,11 +113,11 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
 
     public async Task UpdateFolderAsync(string repositoryId, string branchId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
         bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
-        var changedBinaries = changedBinariesLister.ListChangedBinaries(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
+        IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        var anyCopies = false;
-        foreach (var changedBinary in changedBinaries) {
+        bool anyCopies = false;
+        foreach (BinaryToUpdate changedBinary in changedBinaries) {
             var sourceFileInfo = new FileInfo(sourceFolder.FullName + '\\' + changedBinary.FileName);
             if (!File.Exists(sourceFileInfo.FullName)) {
                 continue;
@@ -130,7 +132,7 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
         var sourceFileInfos = Directory.GetFiles(sourceFolder.FullName, "*.*", SearchOption.AllDirectories)
            .Select(f => new FileInfo(f))
            .ToList();
-        foreach (var sourceFileInfo in sourceFileInfos) {
+        foreach (FileInfo sourceFileInfo in sourceFileInfos) {
             if (sourceFileInfo.DirectoryName == null) { continue; }
 
             var destinationFileInfo = new FileInfo(destinationFolder.FullName
@@ -162,7 +164,7 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
             return;
         }
 
-        var pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
+        List<string> pushedHeadTipShas = await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos);
         if (errorsAndInfos.Errors.Any()) { return; }
 
         if (pushedHeadTipShas.Contains(destinationHeadTipIdSha)) {

@@ -1,5 +1,4 @@
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -16,13 +15,13 @@ public class DotNetEfInstallerTest {
 
     [TestInitialize]
     public void Initialize() {
-        var container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
+        IContainer container = new ContainerBuilder().UseFusionNuclideProtchAndGitty("Fusion").Build();
         Sut = container.Resolve<IDotNetEfInstaller>();
     }
 
     [TestMethod]
     public void CanInstallGlobalDotNetEfIfNecessary() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanInstallGlobalDotNetEfIfNecessary)))) {
             var errorsAndInfos = new ErrorsAndInfos();
             Sut.InstallOrUpdateGlobalDotNetEfIfNecessary(errorsAndInfos);
@@ -32,10 +31,10 @@ public class DotNetEfInstallerTest {
 
     [TestMethod]
     public void GlobalDotNetEfIsInstalled() {
-        var simpleLogger = _Container.Resolve<ISimpleLogger>();
+        ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(GlobalDotNetEfIsInstalled)))) {
             var errorsAndInfos = new ErrorsAndInfos();
-            var isInstalled = Sut.IsCurrentGlobalDotNetEfInstalled(errorsAndInfos);
+            bool isInstalled = Sut.IsCurrentGlobalDotNetEfInstalled(errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsToString());
             Assert.IsTrue(isInstalled);
         }

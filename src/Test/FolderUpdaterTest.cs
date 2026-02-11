@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
-using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -43,9 +42,9 @@ public class FolderUpdaterTest {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanListAndCopyChangedPeghBinaries)))) {
             IChangedBinariesLister lister = _Container.Resolve<IChangedBinariesLister>();
             var errorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = lister.ListChangedBinaries(_peghRepositoryId, "master",
-                                                                               ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
-                                                                               ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await lister.ListChangedBinariesAsync(_peghRepositoryId, "master",
+               ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
+               ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
             Assert.HasCount(3, changedBinaries);
             IFolder sourceFolder = _WorkFolder.SubFolder("Source");
             sourceFolder.CreateIfNecessary();
@@ -81,7 +80,8 @@ public class FolderUpdaterTest {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanListAndCopyMissingDummyServiceBinaries)))) {
             IChangedBinariesLister lister = _Container.Resolve<IChangedBinariesLister>();
             var errorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = lister.ListChangedBinaries(_dummyServiceRepositoryId, "master", _previousDummyServiceHeadTipIdSha, _currentDummyServiceHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await lister.ListChangedBinariesAsync(_dummyServiceRepositoryId, "master",
+                _previousDummyServiceHeadTipIdSha, _currentDummyServiceHeadTipIdSha, errorsAndInfos);
             Assert.HasCount(11, changedBinaries);
             IFolder sourceFolder = _WorkFolder.SubFolder("Source");
             sourceFolder.CreateIfNecessary();

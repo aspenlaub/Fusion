@@ -11,7 +11,7 @@ public class BinariesHelper : IBinariesHelper {
     public bool CanFilesOfEqualLengthBeTreatedEqual(FolderUpdateMethod folderUpdateMethod, string mainNamespace, IReadOnlyList<byte> sourceContents, IReadOnlyList<byte> destinationContents,
         FileInfo sourceFileInfo, bool hasSomethingBeenUpdated, FileSystemInfo destinationFileInfo, out string updateReason) {
         updateReason = Properties.Resources.FilesHaveEqualLengthThatCannotBeIgnored;
-        var differences = sourceContents.Where((t, i) => t != destinationContents[i]).Count();
+        int differences = sourceContents.Where((t, i) => t != destinationContents[i]).Count();
         if (differences == 0) {
             return true;
         }

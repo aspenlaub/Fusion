@@ -11,42 +11,9 @@ using LibGit2Sharp;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
-public class AutoCommitterAndPusher(
-        IGitUtilities gitUtilities, ISecretRepository secretRepository,
-        IPushedHeadTipShaRepository headTipShaRepository,
-        IBranchesWithPackagesRepository branchesWithPackagesRepository)
+public class AutoCommitterAndPusher(IGitUtilities gitUtilities, ISecretRepository secretRepository,
+        IPushedHeadTipShaRepository headTipShaRepository, IBranchesWithPackagesRepository branchesWithPackagesRepository)
             : IAutoCommitterAndPusher {
-
-    public async Task AutoCommitAndPushSingleCakeFileIfNecessaryAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        await AutoCommitAndPushSingleCakeFileAsync(nugetFeedId, repositoryFolder, true, errorsAndInfos);
-    }
-
-    public async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
-        await AutoCommitAndPushSingleCakeFileAsync(nugetFeedId, repositoryFolder, false, errorsAndInfos);
-    }
-
-    private async Task AutoCommitAndPushSingleCakeFileAsync(string nugetFeedId, IFolder repositoryFolder, bool onlyIfNecessary, IErrorsAndInfos errorsAndInfos) {
-        var files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
-        if (files.Count == 0) {
-            if (onlyIfNecessary) { return; }
-
-            errorsAndInfos.Errors.Add(Properties.Resources.NoFileWithUncommittedChanges);
-        } else if (files.Count != 1) {
-            errorsAndInfos.Errors.Add(string.Format(Properties.Resources.ExactlyOneFileExpected, string.Join(", ", files)));
-            return;
-        }
-
-        var file = files[0];
-        if (!file.EndsWith(".cake", StringComparison.InvariantCultureIgnoreCase)) {
-            errorsAndInfos.Errors.Add(Properties.Resources.OnlyCakeFilesExpected);
-            return;
-        }
-
-        var shortName = file.Substring(file.LastIndexOf('\\') + 1);
-
-        var message = string.Format(Properties.Resources.AutoUpdateOfCakeFile, shortName);
-        await AutoCommitAndPushAsync(nugetFeedId, repositoryFolder, files, onlyIfNecessary, message, true, errorsAndInfos);
-    }
 
     public async Task AutoCommitAndPushPackageUpdates(string nugetFeedId, IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
         var files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder).ToList();
@@ -73,24 +40,24 @@ public class AutoCommitterAndPusher(
     }
 
     private async Task AutoCommitAndPushAsync(string nugetFeedId, IFolder repositoryFolder, List<string> files, bool onlyIfNecessary, string commitMessage, bool noRebuildRequired, IErrorsAndInfos errorsAndInfos) {
-        var branchName = gitUtilities.CheckedOutBranch(repositoryFolder);
-        var branchesWithPackages = await branchesWithPackagesRepository.GetBranchIdsAsync(errorsAndInfos);
+        string branchName = gitUtilities.CheckedOutBranch(repositoryFolder);
+        IList<string> branchesWithPackages = await branchesWithPackagesRepository.GetBranchIdsAsync(errorsAndInfos);
         if (!branchesWithPackages.Contains(branchName)) {
             errorsAndInfos.Errors.Add(Properties.Resources.CheckedOutBranchIsNotMasterMainOrBranchWithPackages);
             return;
         }
 
-        var headTipShaBeforePush = gitUtilities.HeadTipIdSha(repositoryFolder);
+        string headTipShaBeforePush = gitUtilities.HeadTipIdSha(repositoryFolder);
 
-        gitUtilities.IdentifyOwnerAndName(repositoryFolder, out var owner, out _, errorsAndInfos);
+        gitUtilities.IdentifyOwnerAndName(repositoryFolder, out string owner, out _, errorsAndInfos);
         if (errorsAndInfos.AnyErrors()) {
             errorsAndInfos.Errors.Add(Properties.Resources.OwnerAndNameNotFound);
             return;
         }
 
         var personalAccessTokensSecret = new PersonalAccessTokensSecret();
-        var personalAccessTokens = await secretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
-        var personalAccessToken = personalAccessTokens.FirstOrDefault(t => t.Owner == owner && t.Purpose == "AutoCommitPush");
+        PersonalAccessTokens personalAccessTokens = await secretRepository.GetAsync(personalAccessTokensSecret, errorsAndInfos);
+        PersonalAccessToken personalAccessToken = personalAccessTokens.FirstOrDefault(t => t.Owner == owner && t.Purpose == "AutoCommitPush");
         if (personalAccessToken == null) {
             errorsAndInfos.Errors.Add(Properties.Resources.AutoCommitPushAccessTokenNotFound);
             return;
@@ -104,14 +71,14 @@ public class AutoCommitterAndPusher(
             return;
         }
 
-        var remote = remotes[0];
+        Remote remote = remotes[0];
 
         files.ForEach(f => {
             // ReSharper disable once AccessToDisposedClosure
             Commands.Stage(repo, f);
         });
 
-        var checkFiles = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+        IList<string> checkFiles = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
         if (onlyIfNecessary && !checkFiles.Any()) { return; }
 
         if (checkFiles.Count != files.Count) {
@@ -121,7 +88,7 @@ public class AutoCommitterAndPusher(
         }
 
         var author = new Signature(personalAccessToken.TokenName, personalAccessToken.Email, DateTime.Now);
-        var committer = author;
+        Signature committer = author;
         repo.Commit(commitMessage, author, committer);
 
         var options = new PushOptions {
@@ -135,10 +102,10 @@ public class AutoCommitterAndPusher(
 
         if (!noRebuildRequired) { return; }
 
-        var pushedHeadTipShaRepository = headTipShaRepository;
+        IPushedHeadTipShaRepository pushedHeadTipShaRepository = headTipShaRepository;
         if (!(await pushedHeadTipShaRepository.GetAsync(nugetFeedId, errorsAndInfos)).Contains(headTipShaBeforePush)) { return; }
 
-        var headTipSha = gitUtilities.HeadTipIdSha(repositoryFolder);
+        string headTipSha = gitUtilities.HeadTipIdSha(repositoryFolder);
         await pushedHeadTipShaRepository.AddAsync(nugetFeedId, headTipSha, errorsAndInfos);
     }
 }
