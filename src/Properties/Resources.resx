@@ -6,7 +6,7 @@
     Version 2.0
     
     The primary goals of this format is to allow a simple XML format 
-    that is mostly human-readable. The generation and parsing of the 
+    that is mostly human readable. The generation and parsing of the 
     various data types are done through the TypeConverter classes 
     associated with the data types.
     
@@ -272,6 +272,9 @@
   </data>
   <data name="OtherFilesRequireUpdateAnyway" xml:space="preserve">
     <value>Other files require update anyway</value>
+  </data>
+  <data name="OutputFolderCouldNotBeFound" xml:space="preserve">
+    <value>Output folder could not be found</value>
   </data>
   <data name="OwnerAndNameNotFound" xml:space="preserve">
     <value>Could not find owner and name of the remote repository</value>

@@ -21,4 +21,26 @@ public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
         await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos);
         return !errorsAndInfos.Errors.Any();
     }
+
+    public async Task<IFolder> BuildToTempAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
+        string target = debug ? "DebugBuildToTemp" : "ReleaseBuildToTemp";
+        IFolder folder = new Folder(solutionFileName.Substring(0, solutionFileName.LastIndexOf('\\')));
+        if (solutionFileName.Contains(@"\src\")) {
+            folder = folder.ParentFolder();
+        }
+        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos);
+        if (errorsAndInfos.AnyErrors()) {
+            return null;
+        }
+
+        const string outputFolderTag = "Output folder is: ";
+        string line = errorsAndInfos.Infos.SingleOrDefault(s => s.StartsWith(outputFolderTag));
+        if (string.IsNullOrEmpty(line)) {
+            errorsAndInfos.Errors.Add(Properties.Resources.OutputFolderCouldNotBeFound);
+            return null;
+        }
+
+        var outputFolder = new Folder(line.Substring(outputFolderTag.Length));
+        return outputFolder.Exists() ? outputFolder : null;
+    }
 }

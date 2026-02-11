@@ -529,6 +529,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Output folder could not be found.
+        /// </summary>
+        internal static string OutputFolderCouldNotBeFound {
+            get {
+                return ResourceManager.GetString("OutputFolderCouldNotBeFound", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not find owner and name of the remote repository.
         /// </summary>
         internal static string OwnerAndNameNotFound {
