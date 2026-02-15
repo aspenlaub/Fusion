@@ -7,5 +7,6 @@ public interface IMsBuilder {
     Task<bool> BuildAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos);
 #pragma warning disable IDE0051
     Task<IFolder> BuildToTempAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos);
+    Task<IFolder> BuildSolutionOrCsProjToTempInReleaseAsync(string fileToBuildFullName, IErrorsAndInfos errorsAndInfos);
 #pragma warning restore IDE0051
 }
