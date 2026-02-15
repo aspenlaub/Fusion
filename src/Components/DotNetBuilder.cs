@@ -11,6 +11,9 @@ public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
     private const string _dotNetExecutableFileName = "dotnet";
 
     public bool Build(string solutionFileName, bool debug, string tempFolderName, IErrorsAndInfos errorsAndInfos) {
+        if (!solutionFileName.Contains(".sln")) {
+            throw new ArgumentException(nameof(solutionFileName));
+        }
         string arguments = "build " + solutionFileName + " -v m -c " + (debug ? "Debug" : "Release");
         if (!string.IsNullOrEmpty(tempFolderName)) {
             arguments = arguments + " -o \"" + tempFolderName + "\"";

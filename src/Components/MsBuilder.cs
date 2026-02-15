@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
@@ -10,6 +11,9 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
     public async Task<bool> BuildAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
+        if (!solutionFileName.Contains(".sln")) {
+            throw new ArgumentException(nameof(solutionFileName));
+        }
         string target = debug ? "DebugBuild" : "ReleaseBuild";
         if (!solutionFileName.EndsWith("slnx") || !solutionFileName.Contains(@"\src\")) {
             target = "Legacy" + target;
@@ -23,6 +27,9 @@ public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
     }
 
     public async Task<IFolder> BuildToTempAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
+        if (!solutionFileName.Contains(".sln")) {
+            throw new ArgumentException(nameof(solutionFileName));
+        }
         string target = debug ? "DebugBuildToTemp" : "ReleaseBuildToTemp";
         IFolder folder = new Folder(solutionFileName.Substring(0, solutionFileName.LastIndexOf('\\')));
         if (solutionFileName.Contains(@"\src\")) {
