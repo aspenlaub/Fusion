@@ -169,15 +169,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Could not install cake tool.
-        /// </summary>
-        internal static string CouldNotInstallCakeTool {
-            get {
-                return ResourceManager.GetString("CouldNotInstallCakeTool", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Could not install dotnet entity framework tool.
         /// </summary>
         internal static string CouldNotInstallEfTool {
@@ -345,15 +336,6 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         internal static string FoundRemotePackage {
             get {
                 return ResourceManager.GetString("FoundRemotePackage", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The global dotnet cake version must be {0}.
-        /// </summary>
-        internal static string GlobalCakeToolVersionDoesNotMatchTargetFramework {
-            get {
-                return ResourceManager.GetString("GlobalCakeToolVersionDoesNotMatchTargetFramework", resourceCulture);
             }
         }
         
