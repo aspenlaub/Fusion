@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
+using Aspenlaub.Net.GitHub.CSharp.Skladasu.Entities;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
