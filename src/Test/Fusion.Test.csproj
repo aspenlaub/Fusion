@@ -14,7 +14,6 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'" />
   <ItemGroup>
-    <PackageReference Include="Seoa" Version="2.0.2405.915" />
     <PackageReference Include="Moq" Version="4.20.72" />
     <PackageReference Include="coverlet.collector" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
@@ -22,6 +21,7 @@
     </PackageReference>
     <PackageReference Include="Reqnroll.MSTest" Version="3.3.3" />
     <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.3" />
+    <PackageReference Include="Seoa" Version="2.0.2423.959" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fusion.csproj" />
