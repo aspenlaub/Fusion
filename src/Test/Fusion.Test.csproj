@@ -19,9 +19,9 @@
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Reqnroll.MSTest" Version="3.3.3" />
-    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.3" />
-    <PackageReference Include="Seoa" Version="2.0.2424.481" />
+    <PackageReference Include="Reqnroll.MSTest" Version="3.3.4" />
+    <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.4" />
+    <PackageReference Include="Seoa" Version="2.0.2455.1107" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fusion.csproj" />
