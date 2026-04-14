@@ -21,7 +21,7 @@
     </PackageReference>
     <PackageReference Include="Reqnroll.MSTest" Version="3.3.4" />
     <PackageReference Include="Reqnroll.Tools.MsBuild.Generation" Version="3.3.4" />
-    <PackageReference Include="Seoa" Version="2.0.2455.1107" />
+    <PackageReference Include="Seoa" Version="2.0.2456.1108" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Fusion.csproj" />
