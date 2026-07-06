@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
@@ -28,7 +29,8 @@ public class ChangedBinariesListerTest {
             IChangedBinariesLister sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = await sut.ListChangedBinariesAsync("Pegh", "master", _majorPeghChangeHeadTipIdSha, AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await sut.ListChangedBinariesAsync("Pegh", "master", _majorPeghChangeHeadTipIdSha,
+                AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(changedBinaries.Any());
         }
@@ -41,7 +43,8 @@ public class ChangedBinariesListerTest {
             IChangedBinariesLister sut = _Container.Resolve<IChangedBinariesLister>();
             Assert.IsNotNull(sut);
             var errorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = await sut.ListChangedBinariesAsync("Pegh", "master", BeforeMajorPeghChangeHeadTipSha, _majorPeghChangeHeadTipIdSha, errorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await sut.ListChangedBinariesAsync("Pegh", "master", BeforeMajorPeghChangeHeadTipSha,
+                _majorPeghChangeHeadTipIdSha, errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.HasCount(3, changedBinaries);
             Assert.Contains(c => c.FileName == "Aspenlaub.Net.GitHub.CSharp.Pegh.dll", changedBinaries);

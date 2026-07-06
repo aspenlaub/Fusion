@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
@@ -11,7 +12,7 @@ using Aspenlaub.Net.GitHub.CSharp.Skladasu.Interfaces;
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 
 public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
-    public async Task<bool> BuildAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
+    public async Task<bool> BuildAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!solutionFileName.Contains(".sln")) {
             throw new ArgumentException(nameof(solutionFileName));
         }
@@ -23,11 +24,11 @@ public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
         if (solutionFileName.Contains(@"\src\")) {
             folder = folder.ParentFolder();
         }
-        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos);
+        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos, cancellationToken);
         return !errorsAndInfos.Errors.Any();
     }
 
-    public async Task<IFolder> BuildToTempAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IFolder> BuildToTempAsync(string solutionFileName, bool debug, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!solutionFileName.Contains(".sln")) {
             throw new ArgumentException(nameof(solutionFileName));
         }
@@ -36,7 +37,7 @@ public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
         if (solutionFileName.Contains(@"\src\")) {
             folder = folder.ParentFolder();
         }
-        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos);
+        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) {
             return null;
         }
@@ -52,13 +53,13 @@ public class MsBuilder(IShatilayaRunner shatilayaRunner) : IMsBuilder {
         return outputFolder.Exists() ? outputFolder : null;
     }
 
-    public async Task<IFolder> BuildSolutionOrCsProjToTempInReleaseAsync(string fileToBuildFullName, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IFolder> BuildSolutionOrCsProjToTempInReleaseAsync(string fileToBuildFullName, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         string target = fileToBuildFullName.Contains(".sln") ? "ReleaseBuildToTemp" : "ReleaseBuildCsProjToTemp";
         IFolder folder = new Folder(fileToBuildFullName.Substring(0, fileToBuildFullName.LastIndexOf('\\')));
         if (fileToBuildFullName.Contains(@"\src\")) {
             folder = folder.ParentFolder();
         }
-        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos);
+        await shatilayaRunner.RunShatilayaAsync(folder, target, errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) {
             return null;
         }

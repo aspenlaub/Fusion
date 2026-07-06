@@ -1,5 +1,7 @@
 ﻿using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
@@ -27,29 +29,31 @@ public class DotNetEfInstaller : IDotNetEfInstaller {
         _WorkingFolder.CreateIfNecessary();
     }
 
-    public bool IsCurrentGlobalDotNetEfInstalled(IErrorsAndInfos errorsAndInfos) {
-        return IsGlobalDotNetEfInstalled(_pinnedEfToolVersion, errorsAndInfos);
+    public async Task<bool> IsCurrentGlobalDotNetEfInstalledAsync(IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        return await IsGlobalDotNetEfInstalledAsync(_pinnedEfToolVersion, errorsAndInfos, cancellationToken);
     }
 
-    public bool IsGlobalDotNetEfInstalled(string version, IErrorsAndInfos errorsAndInfos) {
-        _ProcessRunner.RunProcess(_dotNetExecutableFileName, _dotNetToolListArguments, _WorkingFolder, errorsAndInfos);
+    public async Task<bool> IsGlobalDotNetEfInstalledAsync(string version, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        await _ProcessRunner.RunProcessAsync(_dotNetExecutableFileName, _dotNetToolListArguments, _WorkingFolder, errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) { return false; }
 
         string line = errorsAndInfos.Infos.FirstOrDefault(l => l.StartsWith(_efToolId));
         return line?.Substring(_efToolId.Length).TrimStart().StartsWith(version) == true;
     }
 
-    public void InstallOrUpdateGlobalDotNetEfIfNecessary(IErrorsAndInfos errorsAndInfos) {
-        if (IsGlobalDotNetEfInstalled(_pinnedEfToolVersion, errorsAndInfos)) { return; }
+    public async Task InstallOrUpdateGlobalDotNetEfIfNecessaryAsync(IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        if (await IsGlobalDotNetEfInstalledAsync(_pinnedEfToolVersion, errorsAndInfos, cancellationToken)) { return; }
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        bool oldPinnedEfToolVersionInstalled = IsGlobalDotNetEfInstalled(_oldPinnedEfToolVersion, errorsAndInfos);
+        bool oldPinnedEfToolVersionInstalled = await IsGlobalDotNetEfInstalledAsync(_oldPinnedEfToolVersion, errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        _ProcessRunner.RunProcess(_dotNetExecutableFileName, oldPinnedEfToolVersionInstalled ? _dotNetUpdateEfToolArguments : _dotNetInstallEfToolArguments, _WorkingFolder, errorsAndInfos);
+        await _ProcessRunner.RunProcessAsync(_dotNetExecutableFileName,
+            oldPinnedEfToolVersionInstalled ? _dotNetUpdateEfToolArguments : _dotNetInstallEfToolArguments, _WorkingFolder,
+            errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) { return; }
 
-        if (IsGlobalDotNetEfInstalled(_pinnedEfToolVersion, errorsAndInfos)) { return; }
+        if (await IsGlobalDotNetEfInstalledAsync(_pinnedEfToolVersion, errorsAndInfos, cancellationToken)) { return; }
         errorsAndInfos.Errors.Add(Properties.Resources.CouldNotInstallEfTool);
     }
 }

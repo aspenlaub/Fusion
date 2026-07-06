@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty;
@@ -51,15 +52,15 @@ public class DotNetEfTestBase {
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
     }
 
-    protected void AddMigration(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string migrationId) {
+    protected async Task AddMigrationAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string migrationId) {
         var errorsAndInfos = new ErrorsAndInfos();
-        dotNetEfRunner.AddMigration(projectFolder, migrationId, errorsAndInfos);
+        await dotNetEfRunner.AddMigrationAsync(projectFolder, migrationId, errorsAndInfos, CancellationToken.None);
         const string expectedInfo = "Done.";
         Assert.Contains(i => i.StartsWith(expectedInfo), errorsAndInfos.Infos);
     }
 
-    protected void VerifyMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, IList<string> expectedMigrationIds) {
-        IList<string> actualMigrationIds = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+    protected async Task VerifyMigrationIdsAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, IList<string> expectedMigrationIds) {
+        IList<string> actualMigrationIds = await ListAppliedMigrationIdsAsync(dotNetEfRunner, projectFolder);
         VerifyMigrationIds(expectedMigrationIds, actualMigrationIds);
     }
 
@@ -70,24 +71,24 @@ public class DotNetEfTestBase {
         }
     }
 
-    protected IList<string> ListAppliedMigrationIds(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
+    protected async Task<IList<string>> ListAppliedMigrationIdsAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
         var errorsAndInfos = new ErrorsAndInfos();
-        IList<string> migrationIds = dotNetEfRunner.ListAppliedMigrationIds(projectFolder, errorsAndInfos);
+        IList<string> migrationIds = await dotNetEfRunner.ListAppliedMigrationIdsAsync(projectFolder, errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return migrationIds;
     }
 
-    protected void DropDatabase(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
+    protected async Task DropDatabaseAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder) {
         var errorsAndInfos = new ErrorsAndInfos();
-        dotNetEfRunner.DropDatabase(projectFolder, errorsAndInfos);
+        await dotNetEfRunner.DropDatabaseAsync(projectFolder, errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         const string expectedInfo = $"Dropping database '{DotNetEfToyDatabaseName}'";
         Assert.Contains(i => i.StartsWith(expectedInfo), errorsAndInfos.Infos);
     }
 
-    protected void UpdateDatabase(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string expectedMigration) {
+    protected async Task UpdateDatabaseAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string expectedMigration) {
         var errorsAndInfos = new ErrorsAndInfos();
-        dotNetEfRunner.UpdateDatabase(projectFolder, errorsAndInfos);
+        await dotNetEfRunner.UpdateDatabaseAsync(projectFolder, errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         string expectedInfoStart = string.IsNullOrEmpty(expectedMigration)
             ? "No migrations were applied" : "Applying migration '";

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
@@ -10,7 +12,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
     private const string _dotNetExecutableFileName = "dotnet";
 
-    public bool Build(string solutionFileName, bool debug, string tempFolderName, IErrorsAndInfos errorsAndInfos) {
+    public async Task<bool> BuildAsync(string solutionFileName, bool debug, string tempFolderName, IErrorsAndInfos errorsAndInfos,
+            CancellationToken cancellationToken) {
         if (!solutionFileName.Contains(".sln")) {
             throw new ArgumentException(nameof(solutionFileName));
         }
@@ -22,7 +25,7 @@ public class DotNetBuilder(IProcessRunner processRunner) : IDotNetBuilder {
         var solutionFolder = new Folder(
             solutionFileName.Substring(0, solutionFileName.LastIndexOf("\\", StringComparison.Ordinal))
         );
-        processRunner.RunProcess(_dotNetExecutableFileName, arguments, solutionFolder, errorsAndInfos);
+        await processRunner.RunProcessAsync(_dotNetExecutableFileName, arguments, solutionFolder, errorsAndInfos, cancellationToken);
         InfosToErrors(errorsAndInfos, "the file is locked", "");
         InfosToErrors(errorsAndInfos, "failed", "");
         InfosToErrors(errorsAndInfos, "error", "0 error");

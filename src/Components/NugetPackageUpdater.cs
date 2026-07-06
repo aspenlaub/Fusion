@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Extensions;
@@ -33,19 +34,19 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
     private readonly IList<string> _EndingsThatAllowReset = new List<string> { "csproj", "config" };
 
     public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-                                                                              string checkedOutBranch, IErrorsAndInfos errorsAndInfos) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch, errorsAndInfos);
+            string checkedOutBranch, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch, errorsAndInfos, cancellationToken);
     }
 
     public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
             string migrationId, string checkedOutBranch,
-            IErrorsAndInfos errorsAndInfos) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch, errorsAndInfos);
+            IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch, errorsAndInfos, cancellationToken);
     }
 
     protected async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
             bool entityFrameworkOnly, string migrationId, string checkedOutBranch,
-            IErrorsAndInfos errorsAndInfos) {
+            IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
             IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             simpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
@@ -89,7 +90,8 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 var projectReducedErrorsAndInfos = new ErrorsAndInfos();
                 if (!await UpdateNugetPackagesForProjectAsync(projectFileFullName, nugetFeedIds,
                         yesNoInconclusive.YesNo, entityFrameworkOnly,
-                        migrationId, checkedOutBranch, projectErrorsAndInfos, projectReducedErrorsAndInfos)) {
+                        migrationId, checkedOutBranch, projectErrorsAndInfos, projectReducedErrorsAndInfos,
+                        cancellationToken)) {
                     continue;
                 }
 
@@ -113,7 +115,8 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
     private async Task<bool> UpdateNugetPackagesForProjectAsync(string projectFileFullName,
             IList<string> nugetFeedIds, bool yesNo, bool entityFrameworkOnly, string migrationId,
-            string checkedOutBranch, IErrorsAndInfos projectErrorsAndInfos, IErrorsAndInfos projectReducedErrorsAndInfos) {
+            string checkedOutBranch, IErrorsAndInfos projectErrorsAndInfos, IErrorsAndInfos projectReducedErrorsAndInfos,
+            CancellationToken cancellationToken) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesForProjectAsync)))) {
             IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             var projectFileFolder = new Folder(projectFileFullName.Substring(0, projectFileFullName.LastIndexOf('\\')));
@@ -121,13 +124,13 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             LogProjectPackageUpdateMessage("Checking if project has at least one migration",
                 projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
             bool projectHasMigrations = entityFrameworkOnly
-                                        && dotNetEfRunner.ListAppliedMigrationIds(projectFileFolder, projectErrorsAndInfos)
-                                                         .Any();
+                                        && (await dotNetEfRunner.ListAppliedMigrationIdsAsync(projectFileFolder, projectErrorsAndInfos, cancellationToken))
+                                                .Any();
 
             if (entityFrameworkOnly && projectHasMigrations) {
                 LogProjectPackageUpdateMessage( "Updating database",
                     projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-                dotNetEfRunner.UpdateDatabase(projectFileFolder, projectErrorsAndInfos);
+                await dotNetEfRunner.UpdateDatabaseAsync(projectFileFolder, projectErrorsAndInfos, cancellationToken);
                 if (projectErrorsAndInfos.AnyErrors()) {
                     simpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
                     return false;
@@ -167,7 +170,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 }
 
                 string arguments = "remove " + projectFileFullName + " package " + id;
-                processRunner.RunProcess("dotnet", arguments, projectFileFolder, projectErrorsAndInfos);
+                await processRunner.RunProcessAsync("dotnet", arguments, projectFileFolder, projectErrorsAndInfos, cancellationToken);
                 projectErrorsAndInfos.Infos.Add(arguments);
                 projectReducedErrorsAndInfos.Infos.Add(arguments);
                 if (entityFrameworkOnly) {
@@ -175,7 +178,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 } else {
                     arguments = "add " + projectFileFullName + " package " + id;
                 }
-                processRunner.RunProcess("dotnet", arguments, projectFileFolder, projectErrorsAndInfos);
+                await processRunner.RunProcessAsync("dotnet", arguments, projectFileFolder, projectErrorsAndInfos, cancellationToken);
                 projectErrorsAndInfos.Infos.Add(arguments);
                 projectReducedErrorsAndInfos.Infos.Add(arguments);
             }
@@ -186,7 +189,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 if (string.IsNullOrEmpty(migrationId)) {
                     migrationId = ids[0].Replace(".", "");
                 }
-                dotNetEfRunner.AddMigration(projectFileFolder, migrationId, projectErrorsAndInfos);
+                await dotNetEfRunner.AddMigrationAsync(projectFileFolder, migrationId, projectErrorsAndInfos, cancellationToken);
                 if (projectErrorsAndInfos.AnyErrors()) {
                     simpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
                     return false;
@@ -194,7 +197,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
                 LogProjectPackageUpdateMessage( "Updating database",
                         projectErrorsAndInfos, projectReducedErrorsAndInfos, methodNamesFromStack);
-                dotNetEfRunner.UpdateDatabase(projectFileFolder, projectErrorsAndInfos);
+                await dotNetEfRunner.UpdateDatabaseAsync(projectFileFolder, projectErrorsAndInfos, cancellationToken);
                 if (projectErrorsAndInfos.AnyErrors()) {
                     simpleLogger.LogInformationWithCallStack("Returning false", methodNamesFromStack);
                     return false;

@@ -4,6 +4,8 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Interfaces;
 using NuGet.Packaging;
@@ -13,27 +15,27 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 public class DotNetEfRunner(IProcessRunner processRunner) : IDotNetEfRunner {
     private const string _dotNetExecutableFileName = "dotnet";
 
-    public void DropDatabase(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
+    public async Task DropDatabaseAsync(IFolder projectFolder, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!projectFolder.Exists()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FolderNotFound, projectFolder.FullName));
             return;
         }
 
         const string arguments = "ef database drop -f";
-        processRunner.RunProcess(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        await processRunner.RunProcessAsync(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos, cancellationToken);
     }
 
-    public void UpdateDatabase(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
+    public async Task UpdateDatabaseAsync(IFolder projectFolder, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!projectFolder.Exists()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FolderNotFound, projectFolder.FullName));
             return;
         }
 
         const string arguments = "ef database update";
-        processRunner.RunProcess(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        await processRunner.RunProcessAsync(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos, cancellationToken);
     }
 
-    public IList<string> ListAppliedMigrationIds(IFolder projectFolder, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IList<string>> ListAppliedMigrationIdsAsync(IFolder projectFolder, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!projectFolder.Exists()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FolderNotFound, projectFolder.FullName));
             return new List<string>();
@@ -41,7 +43,7 @@ public class DotNetEfRunner(IProcessRunner processRunner) : IDotNetEfRunner {
 
         const string arguments = "ef migrations list";
         var runnerErrorsAndInfos = new ErrorsAndInfos();
-        processRunner.RunProcess(_dotNetExecutableFileName, arguments, projectFolder, runnerErrorsAndInfos);
+        await processRunner.RunProcessAsync(_dotNetExecutableFileName, arguments, projectFolder, runnerErrorsAndInfos, cancellationToken);
         if (runnerErrorsAndInfos.AnyErrors()) {
             errorsAndInfos.Errors.AddRange(runnerErrorsAndInfos.Errors);
             return new List<string>();
@@ -53,13 +55,13 @@ public class DotNetEfRunner(IProcessRunner processRunner) : IDotNetEfRunner {
         return migrationIds;
     }
 
-    public void AddMigration(IFolder projectFolder, string migrationId, IErrorsAndInfos errorsAndInfos) {
+    public async Task AddMigrationAsync(IFolder projectFolder, string migrationId, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         if (!projectFolder.Exists()) {
             errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FolderNotFound, projectFolder.FullName));
             return;
         }
 
         string arguments = "ef migrations add " + migrationId;
-        processRunner.RunProcess(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos);
+        await processRunner.RunProcessAsync(_dotNetExecutableFileName, arguments, projectFolder, errorsAndInfos, cancellationToken);
     }
 }

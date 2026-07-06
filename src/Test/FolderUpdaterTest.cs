@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
@@ -45,7 +46,7 @@ public class FolderUpdaterTest {
             var errorsAndInfos = new ErrorsAndInfos();
             IList<BinaryToUpdate> changedBinaries = await lister.ListChangedBinariesAsync(_peghRepositoryId, "master",
                ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
-               ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos);
+               ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha, errorsAndInfos, CancellationToken.None);
             Assert.HasCount(3, changedBinaries);
             IFolder sourceFolder = _WorkFolder.SubFolder("Source");
             sourceFolder.CreateIfNecessary();
@@ -62,7 +63,7 @@ public class FolderUpdaterTest {
             await sut.UpdateFolderAsync(_peghRepositoryId, "master",
                                         ChangedBinariesListerTest.BeforeMajorPeghChangeHeadTipSha,
                                         sourceFolder, ChangedBinariesListerTest.AfterMajorPeghChangeHeadTipIdSha,
-                                        destinationFolder, true, true, "aspenlaub.local", errorsAndInfos);
+                                        destinationFolder, true, true, "aspenlaub.local", errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             foreach (BinaryToUpdate changedBinary in changedBinaries) {
                 Assert.AreEqual(changedBinary.FileName, await File.ReadAllTextAsync(sourceFolder.FullName + '\\' + changedBinary.FileName));
@@ -82,7 +83,7 @@ public class FolderUpdaterTest {
             IChangedBinariesLister lister = _Container.Resolve<IChangedBinariesLister>();
             var errorsAndInfos = new ErrorsAndInfos();
             IList<BinaryToUpdate> changedBinaries = await lister.ListChangedBinariesAsync(_dummyServiceRepositoryId, "master",
-                _previousDummyServiceHeadTipIdSha, _currentDummyServiceHeadTipIdSha, errorsAndInfos);
+                _previousDummyServiceHeadTipIdSha, _currentDummyServiceHeadTipIdSha, errorsAndInfos, CancellationToken.None);
             Assert.HasCount(11, changedBinaries);
             IFolder sourceFolder = _WorkFolder.SubFolder("Source");
             sourceFolder.CreateIfNecessary();
@@ -97,7 +98,7 @@ public class FolderUpdaterTest {
             destinationFolder.CreateIfNecessary();
             IFolderUpdater sut = _Container.Resolve<IFolderUpdater>();
             await sut.UpdateFolderAsync(_dummyServiceRepositoryId, "master", _previousDummyServiceHeadTipIdSha, sourceFolder, _currentDummyServiceHeadTipIdSha, destinationFolder,
-                                        true, true, "aspenlaub.local", errorsAndInfos);
+                true, true, "aspenlaub.local", errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
             foreach (string fileName in changedBinaries.Select(changedBinary => changedBinary.FileName)) {
                 string sourceFileName = sourceFolder.FullName + "\\" + fileName;

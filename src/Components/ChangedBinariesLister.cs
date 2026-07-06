@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
@@ -21,7 +22,8 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IMsBuilder ms
         IFolderDeleter folderDeleter, IGitUtilities gitUtilities, INugetPackageRestorer nugetPackageRestorer)
     : IChangedBinariesLister {
 
-    public async Task<IList<BinaryToUpdate>> ListChangedBinariesAsync(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos) {
+    public async Task<IList<BinaryToUpdate>> ListChangedBinariesAsync(string repositoryId, string branchId, string previousHeadTipIdSha,
+            string currentHeadTipIdSha, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         IList<BinaryToUpdate> changedBinaries = new List<BinaryToUpdate>();
 
         IFolder workFolder = new Folder(Path.GetTempPath()).SubFolder("AspenlaubTemp").SubFolder(nameof(ChangedBinariesLister)).SubFolder(repositoryId);
@@ -29,9 +31,11 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IMsBuilder ms
             CleanUpFolder(workFolder, errorsAndInfos);
             if (!errorsAndInfos.AnyErrors()) {
                 workFolder.CreateIfNecessary();
-                changedBinaries = await ListChangedBinariesAsync(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, true);
+                changedBinaries = await ListChangedBinariesAsync(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder,
+                    errorsAndInfos, true, cancellationToken);
                 if (changedBinaries.Any()) {
-                    changedBinaries = await ListChangedBinariesAsync(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder, errorsAndInfos, false);
+                    changedBinaries = await ListChangedBinariesAsync(repositoryId, branchId, previousHeadTipIdSha, currentHeadTipIdSha, workFolder,
+                        errorsAndInfos, false, cancellationToken);
                 }
             }
         } catch (Exception e) {
@@ -66,7 +70,8 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IMsBuilder ms
     }
 
     private async Task<IList<BinaryToUpdate>> ListChangedBinariesAsync(string repositoryId, string branchId, string previousHeadTipIdSha, string currentHeadTipIdSha,
-            IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual) {
+            IFolder workFolder, IErrorsAndInfos errorsAndInfos, bool doNotListFilesOfEqualLengthThatCanBeTreatedAsEqual,
+            CancellationToken cancellationToken) {
         var changedBinaries = new List<BinaryToUpdate>();
         IFolder compileFolder = workFolder.SubFolder("Compile");
         IFolder previousTargetFolder = workFolder.SubFolder("Previous");
@@ -106,7 +111,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IMsBuilder ms
             }
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Restoring, repositoryId, headTipIdSha));
             var restoreErrorsAndInfos = new ErrorsAndInfos();
-            nugetPackageRestorer.RestoreNugetPackages(solutionFileName, restoreErrorsAndInfos);
+            await nugetPackageRestorer.RestoreNugetPackagesAsync(solutionFileName, restoreErrorsAndInfos, cancellationToken);
             if (restoreErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToRestore, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(restoreErrorsAndInfos.Errors);
@@ -115,7 +120,7 @@ public class ChangedBinariesLister(IBinariesHelper binariesHelper, IMsBuilder ms
 
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.Building, repositoryId, headTipIdSha));
             var buildErrorsAndInfos = new ErrorsAndInfos();
-            await msBuilder.BuildAsync(solutionFileName, false, buildErrorsAndInfos);
+            await msBuilder.BuildAsync(solutionFileName, false, buildErrorsAndInfos, cancellationToken);
             if (buildErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Errors.Add(string.Format(Properties.Resources.FailedToBuild, repositoryId, headTipIdSha));
                 errorsAndInfos.Errors.AddRange(buildErrorsAndInfos.Errors);

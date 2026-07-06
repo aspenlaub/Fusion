@@ -1,3 +1,5 @@
+using System.Threading;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
@@ -21,21 +23,21 @@ public class DotNetEfInstallerTest {
     }
 
     [TestMethod]
-    public void CanInstallGlobalDotNetEfIfNecessary() {
+    public async Task CanInstallGlobalDotNetEfIfNecessary() {
         ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanInstallGlobalDotNetEfIfNecessary)))) {
             var errorsAndInfos = new ErrorsAndInfos();
-            Sut.InstallOrUpdateGlobalDotNetEfIfNecessary(errorsAndInfos);
+            await Sut.InstallOrUpdateGlobalDotNetEfIfNecessaryAsync(errorsAndInfos, CancellationToken.None);
             Assert.That.ThereWereNoErrors(errorsAndInfos);
         }
     }
 
     [TestMethod]
-    public void GlobalDotNetEfIsInstalled() {
+    public async Task GlobalDotNetEfIsInstalled() {
         ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(GlobalDotNetEfIsInstalled)))) {
             var errorsAndInfos = new ErrorsAndInfos();
-            bool isInstalled = Sut.IsCurrentGlobalDotNetEfInstalled(errorsAndInfos);
+            bool isInstalled = await Sut.IsCurrentGlobalDotNetEfInstalledAsync(errorsAndInfos, CancellationToken.None);
             Assert.That.ThereWereNoErrors(errorsAndInfos);
             Assert.IsTrue(isInstalled);
         }

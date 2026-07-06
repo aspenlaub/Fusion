@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty;
@@ -18,10 +19,10 @@ using Aspenlaub.Net.GitHub.CSharp.Protch;
 using Aspenlaub.Net.GitHub.CSharp.Protch.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Interfaces;
+using Autofac;
 using LibGit2Sharp;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
-using Autofac;
 using NuGet.Protocol.Core.Types;
 using Version = System.Version;
 
@@ -76,7 +77,7 @@ public class NugetPackageToPushFinderTest {
             IPackageToPush packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed,
                 PakledTarget.Folder().ParentFolder().SubFolder(PakledTarget.SolutionId + @"Bin\Release"), PakledTarget.Folder(),
                 PakledTarget.Folder().SubFolder("src").FullName + @"\" + PakledTarget.SolutionId + ".slnx", "master",
-                errorsAndInfos);
+                errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             string source = await nugetFeed.UrlOrResolvedFolderAsync(_container.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -165,7 +166,7 @@ public class NugetPackageToPushFinderTest {
             INugetPackageToPushFinder sut = _container.Resolve<INugetPackageToPushFinder>();
             IPackageToPush packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"),
                 ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".slnx",
-                "master", errorsAndInfos);
+                "master", errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             string source = await nugetFeed.UrlOrResolvedFolderAsync(_container.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -174,7 +175,7 @@ public class NugetPackageToPushFinderTest {
             sut = _containerWithMockedPushedHeadTipShaRepository.Resolve<INugetPackageToPushFinder>();
             packageToPush = await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, ChabTarget.Folder().ParentFolder().SubFolder(ChabTarget.SolutionId + @"Bin\Release"),
                 ChabTarget.Folder(), ChabTarget.Folder().SubFolder("src").FullName + @"\" + ChabTarget.SolutionId + ".slnx", "master",
-                errorsAndInfos);
+                errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             source = await nugetFeed.UrlOrResolvedFolderAsync(_container.Resolve<IFolderResolver>(), errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
@@ -202,7 +203,8 @@ public class NugetPackageToPushFinderTest {
             IFolder repositoryFolder = gitHubFolder.SubFolder(VishizhukelNetTarget.SolutionId);
             Assert.IsTrue(repositoryFolder.Exists(), $"Folder {repositoryFolder.FullName} does not exist");
             string solutionFileFullName = repositoryFolder.SubFolder("src").FullName + @"\" + VishizhukelNetTarget.SolutionId + ".slnx";
-            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, packageFolderWithBinaries, repositoryFolder, solutionFileFullName, "master", errorsAndInfos);
+            await sut.FindPackageToPushAsync(NugetFeed.AspenlaubLocalFeed, packageFolderWithBinaries, repositoryFolder, solutionFileFullName,
+                "master", errorsAndInfos, CancellationToken.None);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         }
     }

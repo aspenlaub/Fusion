@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
@@ -26,37 +27,37 @@ public class DotNetEfRunnerTest : DotNetEfTestBase {
     }
 
     [TestMethod]
-    public void CanDropAndUpdateDatabase() {
+    public async Task CanDropAndUpdateDatabase() {
         ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanDropAndUpdateDatabase)))) {
             IFolder projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
 
-            DropDatabase(Sut, projectFolder);
-            VerifyMigrationIds(Sut, projectFolder, new List<string>());
+            await DropDatabaseAsync(Sut, projectFolder);
+            await VerifyMigrationIdsAsync(Sut, projectFolder, new List<string>());
 
-            UpdateDatabase(Sut, projectFolder, DotNetEfToy702MigrationId);
-            VerifyMigrationIds(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
+            await UpdateDatabaseAsync(Sut, projectFolder, DotNetEfToy702MigrationId);
+            await VerifyMigrationIdsAsync(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
 
-            UpdateDatabase(Sut, projectFolder, "");
-            VerifyMigrationIds(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
+            await UpdateDatabaseAsync(Sut, projectFolder, "");
+            await VerifyMigrationIdsAsync(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
         }
     }
 
     [TestMethod]
-    public void CanAddDummyMigration() {
+    public async Task CanAddDummyMigration() {
         ISimpleLogger simpleLogger = Container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanAddDummyMigration)))) {
             IFolder projectFolder = DotNetEfToyTarget.Folder().SubFolder("src");
 
-            DropDatabase(Sut, projectFolder);
-            UpdateDatabase(Sut, projectFolder, DotNetEfToy702MigrationId);
-            VerifyMigrationIds(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
+            await DropDatabaseAsync(Sut, projectFolder);
+            await UpdateDatabaseAsync(Sut, projectFolder, DotNetEfToy702MigrationId);
+            await VerifyMigrationIdsAsync(Sut, projectFolder, new List<string> { DotNetEfToy702MigrationId });
 
-            AddMigration(Sut, projectFolder, DotNetEfToyDummyMigrationId);
+            await AddMigrationAsync(Sut, projectFolder, DotNetEfToyDummyMigrationId);
 
-            UpdateDatabase(Sut, projectFolder, DotNetEfToyDummyMigrationId);
-            VerifyMigrationIds(Sut, projectFolder,
-                               new List<string> { DotNetEfToy702MigrationId, DotNetEfToyDummyMigrationId });
+            await UpdateDatabaseAsync(Sut, projectFolder, DotNetEfToyDummyMigrationId);
+            await VerifyMigrationIdsAsync(Sut, projectFolder,
+                new List<string> { DotNetEfToy702MigrationId, DotNetEfToyDummyMigrationId });
         }
     }
 }

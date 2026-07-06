@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
@@ -65,17 +66,17 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
 
             IDotNetEfRunner dotNetEfRunner = Container.Resolve<IDotNetEfRunner>();
 
-            IList<string> migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+            IList<string> migrationIdsBeforeUpdate = await ListAppliedMigrationIdsAsync(dotNetEfRunner, projectFolder);
 
             if (migrationIdsBeforeUpdate.Count > 0 && migrationIdsBeforeUpdate[^1] != lastMigrationIdBeforeUpdate) {
                 if (migrationIdsBeforeUpdate.Contains(lastMigrationIdBeforeUpdate)) {
-                    DropDatabase(dotNetEfRunner, projectFolder);
+                    await DropDatabaseAsync(dotNetEfRunner, projectFolder);
                 }
 
-                UpdateDatabase(dotNetEfRunner, projectFolder, lastMigrationIdBeforeUpdate);
+                await UpdateDatabaseAsync(dotNetEfRunner, projectFolder, lastMigrationIdBeforeUpdate);
             }
 
-            migrationIdsBeforeUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+            migrationIdsBeforeUpdate = await ListAppliedMigrationIdsAsync(dotNetEfRunner, projectFolder);
 
             YesNoInconclusive yesNoInconclusive = await UpdateEntityFrameworkPackagesAsync(testTargetFolder);
             Assert.IsTrue(yesNoInconclusive.YesNo);
@@ -87,7 +88,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
             Assert.IsTrue(string.IsNullOrEmpty(packageUpdateOpportunity.PotentialMigrationId));
             Assert.That.ThereWereNoErrors(errorsAndInfos);
 
-            IList<string> migrationIdsAfterUpdate = ListAppliedMigrationIds(dotNetEfRunner, projectFolder);
+            IList<string> migrationIdsAfterUpdate = await ListAppliedMigrationIdsAsync(dotNetEfRunner, projectFolder);
 
             Assert.HasCount(migrationIdsBeforeUpdate.Count + 1, migrationIdsAfterUpdate,
                             "One added and applied migration was expected");
@@ -108,7 +109,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         INugetPackageUpdater sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
         YesNoInconclusive yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
-                                                                                                            DotNetEfToyDummyMigrationId, "master", errorsAndInfos);
+            DotNetEfToyDummyMigrationId, "master", errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }

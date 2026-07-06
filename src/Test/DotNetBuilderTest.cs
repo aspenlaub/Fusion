@@ -1,13 +1,15 @@
-﻿using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+﻿using System.IO;
+using System.Threading;
+using System.Threading.Tasks;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
+using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Components;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.IO;
-using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Extensions;
-using Autofac;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Entities;
+using Autofac;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 
@@ -25,48 +27,48 @@ public class DotNetBuilderTest {
     }
 
     [TestMethod]
-    public void CanDebugBuildSolutionThatCompilesInDebug() {
-        CanOrCannotBuild("Compiles", true, true);
+    public async Task CanDebugBuildSolutionThatCompilesInDebug() {
+        await CanOrCannotBuildAsync("Compiles", true, true);
     }
 
     [TestMethod]
-    public void CanReleaseBuildSolutionThatCompilesInRelease() {
-        CanOrCannotBuild("Compiles", false, true);
+    public async Task CanReleaseBuildSolutionThatCompilesInRelease() {
+        await CanOrCannotBuildAsync("Compiles", false, true);
     }
 
     [TestMethod]
-    public void CanDebugBuildSolutionThatCompilesInDebugOnly() {
-        CanOrCannotBuild("CompilesInDebug", true, true);
+    public async Task CanDebugBuildSolutionThatCompilesInDebugOnly() {
+        await CanOrCannotBuildAsync("CompilesInDebug", true, true);
     }
 
     [TestMethod]
-    public void CannotReleaseBuildSolutionThatCompilesInDebugOnly() {
-        CanOrCannotBuild("CompilesInDebug", false, false);
+    public async Task CannotReleaseBuildSolutionThatCompilesInDebugOnly() {
+        await CanOrCannotBuildAsync("CompilesInDebug", false, false);
     }
 
     [TestMethod]
-    public void CannotDebugBuildSolutionThatCompilesInReleaseOnly() {
-        CanOrCannotBuild("CompilesInRelease", true, false);
+    public async Task CannotDebugBuildSolutionThatCompilesInReleaseOnly() {
+        await CanOrCannotBuildAsync("CompilesInRelease", true, false);
     }
 
     [TestMethod]
-    public void CanReleaseBuildSolutionThatCompilesInReleaseOnly() {
-        CanOrCannotBuild("CompilesInRelease", false, true);
+    public async Task CanReleaseBuildSolutionThatCompilesInReleaseOnly() {
+        await CanOrCannotBuildAsync("CompilesInRelease", false, true);
     }
 
     [TestMethod]
-    public void CannotDebugBuildSolutionThatDoesNotCompile() {
-        CanOrCannotBuild("DoesNotCompile", true, false);
+    public async Task CannotDebugBuildSolutionThatDoesNotCompile() {
+        await CanOrCannotBuildAsync("DoesNotCompile", true, false);
     }
 
     [TestMethod]
-    public void CannotReleaseBuildSolutionThatDoesNotCompile() {
-        CanOrCannotBuild("DoesNotCompile", false, false);
+    public async Task CannotReleaseBuildSolutionThatDoesNotCompile() {
+        await CanOrCannotBuildAsync("DoesNotCompile", false, false);
     }
 
-    protected void CanOrCannotBuild(string solutionId, bool debug, bool buildExpected) {
+    protected async Task CanOrCannotBuildAsync(string solutionId, bool debug, bool buildExpected) {
         ISimpleLogger simpleLogger = _Container.Resolve<ISimpleLogger>();
-        string id = nameof(CanOrCannotBuild) + solutionId
+        string id = nameof(CanOrCannotBuildAsync) + solutionId
              + (debug ? "Debug" : "Release")
              + (buildExpected ? "Build" : "NoBuild");
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(id))) {
@@ -83,7 +85,7 @@ public class DotNetBuilderTest {
 
             Directory.CreateDirectory(finalFolderName);
             var errorsAndInfos = new ErrorsAndInfos();
-            bool buildSucceeded = _Sut.Build(solutionFileName, debug, finalFolderName, errorsAndInfos);
+            bool buildSucceeded = await _Sut.BuildAsync(solutionFileName, debug, finalFolderName, errorsAndInfos, CancellationToken.None);
             Assert.AreEqual(buildExpected, buildSucceeded);
             if (!buildSucceeded) {
                 return;

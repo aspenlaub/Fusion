@@ -50,6 +50,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.4" />
-    <PackageReference Include="Nuclide" Version="2.0.2537.1022" />
+    <PackageReference Include="Nuclide" Version="2.0.2539.750" />
   </ItemGroup>
 </Project>

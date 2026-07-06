@@ -33,7 +33,8 @@ public class NugetPackageToPushFinder(
             : INugetPackageToPushFinder {
 
     public async Task<IPackageToPush> FindPackageToPushAsync(string nugetFeedId, IFolder packageFolderWithBinaries,
-            IFolder repositoryFolder, string solutionFileFullName, string branchId, IErrorsAndInfos errorsAndInfos) {
+            IFolder repositoryFolder, string solutionFileFullName, string branchId, IErrorsAndInfos errorsAndInfos,
+            CancellationToken cancellationToken) {
         IPackageToPush packageToPush = new PackageToPush();
         errorsAndInfos.Infos.Add(Properties.Resources.CheckingProjectVsSolution);
         string projectFileFullName = solutionFileFullName
@@ -147,7 +148,8 @@ public class NugetPackageToPushFinder(
             string tag = tags[0];
             errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CheckingIfThereAreChangedBinaries, headTipIdSha, tag));
             var listerErrorsAndInfos = new ErrorsAndInfos();
-            IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(project.PackageId, branchId, headTipIdSha, tag, listerErrorsAndInfos);
+            IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(project.PackageId, branchId, headTipIdSha,
+                tag, listerErrorsAndInfos, cancellationToken);
             if (listerErrorsAndInfos.AnyErrors()) {
                 errorsAndInfos.Infos.AddRange(listerErrorsAndInfos.Infos);
                 errorsAndInfos.Errors.AddRange(listerErrorsAndInfos.Errors);

@@ -113,8 +113,9 @@ public class FolderUpdater(IBinariesHelper binariesHelper, IChangedBinariesListe
     }
 
     public async Task UpdateFolderAsync(string repositoryId, string branchId, string sourceHeadTipIdSha, IFolder sourceFolder, string destinationHeadTipIdSha, IFolder destinationFolder,
-        bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos) {
-        IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(repositoryId, branchId, sourceHeadTipIdSha, destinationHeadTipIdSha, errorsAndInfos);
+        bool forRelease, bool createAndPushPackages, string nugetFeedId, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        IList<BinaryToUpdate> changedBinaries = await changedBinariesLister.ListChangedBinariesAsync(repositoryId, branchId, sourceHeadTipIdSha,
+            destinationHeadTipIdSha, errorsAndInfos, cancellationToken);
         if (errorsAndInfos.AnyErrors()) { return; }
 
         bool anyCopies = false;
