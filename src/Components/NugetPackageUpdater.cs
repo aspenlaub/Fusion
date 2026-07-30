@@ -35,17 +35,25 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
     public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
             string checkedOutBranch, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch, errorsAndInfos, cancellationToken);
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch,
+            false, errorsAndInfos, cancellationToken);
     }
 
     public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-            string migrationId, string checkedOutBranch,
+            string migrationId, string checkedOutBranch, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+        return await UpdateEntityFrameworkNugetPackagesInRepositoryAsync(repositoryFolder,
+            migrationId, checkedOutBranch, false, errorsAndInfos, cancellationToken);
+    }
+
+    public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
+            string migrationId, string checkedOutBranch, bool useCurrentDotNetTargetFramework,
             IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
-        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch, errorsAndInfos, cancellationToken);
+        return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch,
+            useCurrentDotNetTargetFramework, errorsAndInfos, cancellationToken);
     }
 
     protected async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-            bool entityFrameworkOnly, string migrationId, string checkedOutBranch,
+            bool entityFrameworkOnly, string migrationId, string checkedOutBranch, bool useCurrentDotNetTargetFramework,
             IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
             IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
@@ -74,6 +82,10 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
                 errorsAndInfos.Infos.Add("Could not reset");
                 simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
+            }
+
+            if (useCurrentDotNetTargetFramework) {
+                TargetFrameworkAdjuster.UseCurrentDotNet(repositoryFolder.SubFolder("src"));
             }
 
             simpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
@@ -339,7 +351,7 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
         }
 
         if (entityFrameworkUpdatesOnly) {
-            remotePackages = remotePackages.Where(p => p.Identity.Version.Major == version.Major).ToList();
+            remotePackages = [.. remotePackages.Where(p => p.Identity.Version.Major == version.Major)];
         }
 
         Version latestRemotePackageVersion = remotePackages.Max(p => p.Identity.Version.Version);
@@ -347,17 +359,14 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             return null;
         }
 
+#pragma warning disable IDE0046
         if (latestRemotePackageVersion?.ToString().StartsWith(version.ToString()) != true) {
+#pragma warning restore IDE0046
             return latestRemotePackageVersion;
         }
 
-        if (latestRemotePackageVersion.Major != version.Major) {
-            throw new NotImplementedException("Investigation required");
-        }
-        if (latestRemotePackageVersion.Minor != version.Minor) {
-            throw new NotImplementedException("Investigation required");
-        }
-
-        return latestRemotePackageVersion.Build <= version.Build ? null : latestRemotePackageVersion;
+        return latestRemotePackageVersion.Major != version.Major || latestRemotePackageVersion.Minor != version.Minor
+            ? throw new NotImplementedException("Investigation required")
+            : latestRemotePackageVersion.Build <= version.Build ? null : latestRemotePackageVersion;
     }
 }

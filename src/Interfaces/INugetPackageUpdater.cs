@@ -4,6 +4,8 @@ using Aspenlaub.Net.GitHub.CSharp.Pegh.Entities;
 using Aspenlaub.Net.GitHub.CSharp.Pegh.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Skladasu.Interfaces;
 
+#pragma warning disable IDE0051
+
 namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 
 public interface INugetPackageUpdater {
@@ -14,4 +16,6 @@ public interface INugetPackageUpdater {
         IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken);
     Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string migrationId, string checkedOutBranch,
         IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken);
+    Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string migrationId, string checkedOutBranch,
+        bool useCurrentDotNetTargetFramework, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken);
 }

@@ -94,7 +94,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
                             "One added and applied migration was expected");
 
             VerifyMigrationIds(migrationIdsBeforeUpdate,
-                               migrationIdsAfterUpdate.Take(migrationIdsBeforeUpdate.Count).ToList());
+                            [.. migrationIdsAfterUpdate.Take(migrationIdsBeforeUpdate.Count)]);
             Assert.EndsWith(DotNetEfToyDummyMigrationId, migrationIdsAfterUpdate.Last());
 
             IDictionary<string, string> dependencyIdsAndVersionsAfterUpdate = await packageReferencesScanner.DependencyIdsAndVersionsAsync(projectFolder.FullName, true, false, dependencyErrorsAndInfos);
@@ -109,7 +109,7 @@ public class EntityFrameworkNugetPackageUpdaterTest : DotNetEfTestBase {
         INugetPackageUpdater sut = Container.Resolve<INugetPackageUpdater>();
         var errorsAndInfos = new ErrorsAndInfos();
         YesNoInconclusive yesNoInconclusive = await sut.UpdateEntityFrameworkNugetPackagesInRepositoryAsync(testTargetFolder.Folder(),
-            DotNetEfToyDummyMigrationId, "master", errorsAndInfos, CancellationToken.None);
+            DotNetEfToyDummyMigrationId, "master", true, errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }

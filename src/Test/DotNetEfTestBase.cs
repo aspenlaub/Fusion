@@ -2,6 +2,7 @@
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Aspenlaub.Net.GitHub.CSharp.Fusion.Components;
 using Aspenlaub.Net.GitHub.CSharp.Fusion.Interfaces;
 using Aspenlaub.Net.GitHub.CSharp.Gitty;
 using Aspenlaub.Net.GitHub.CSharp.Gitty.Extensions;
@@ -42,6 +43,7 @@ public class DotNetEfTestBase {
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         gitUtilities.Reset(DotNetEfToyTarget.Folder(), DotNetEfToyHeadTipSha, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        TargetFrameworkAdjuster.UseCurrentDotNet(DotNetEfToyTarget.Folder());
 
         DotNetEfToyTarget2.Delete();
         url = "https://github.com/aspenlaub/" + DotNetEfToyTarget2.SolutionId + ".git";
@@ -50,6 +52,7 @@ public class DotNetEfTestBase {
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         gitUtilities.Reset(DotNetEfToyTarget2.Folder(), DotNetEfToyHeadTipSha2, errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+        TargetFrameworkAdjuster.UseCurrentDotNet(DotNetEfToyTarget2.Folder());
     }
 
     protected async Task AddMigrationAsync(IDotNetEfRunner dotNetEfRunner, IFolder projectFolder, string migrationId) {
