@@ -12,7 +12,7 @@ public interface INugetPackageUpdater {
     Task<bool> AreThereNugetUpdateOpportunitiesAsync(IFolder repositoryFolder, string checkedOutBranch, IErrorsAndInfos errorsAndInfos);
     Task<bool> AreThereNugetUpdateOpportunitiesForSolutionAsync(IFolder solutionFolder, string checkedOutBranch, IErrorsAndInfos errorsAndInfos);
     Task<IPackageUpdateOpportunity> AreThereEntityFrameworkNugetUpdateOpportunitiesAsync(IFolder repositoryFolder, string checkedOutBranch, IErrorsAndInfos errorsAndInfos);
-    Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string checkedOutBranch,
+    Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string checkedOutBranch, bool usingGit,
         IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken);
     Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder, string migrationId, string checkedOutBranch,
         IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken);

@@ -69,19 +69,36 @@ public class NugetPackageUpdaterTest {
 
     [TestMethod]
     public async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges() {
+        await CanUpdateNugetPackagesWithCsProjAndConfigChanges(true);
+    }
+
+    [TestMethod]
+    public async Task CanUpdateNugetPackagesWithCsProjAndConfigChangesNotUsingGit() {
+        await CanUpdateNugetPackagesWithCsProjAndConfigChanges(false);
+    }
+
+    private async Task CanUpdateNugetPackagesWithCsProjAndConfigChanges(bool usingGit) {
         ISimpleLogger simpleLogger = _container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanUpdateNugetPackagesWithCsProjAndConfigChanges)))) {
             IGitUtilities gitUtilities = _container.Resolve<IGitUtilities>();
             var errorsAndInfos = new ErrorsAndInfos();
-            gitUtilities.Reset(_pakledConsumerTarget.Folder(), _pakledConsumerHeadTipSha, errorsAndInfos);
+            IFolder repositoryFolder = _pakledConsumerTarget.Folder();
+            gitUtilities.Reset(repositoryFolder, _pakledConsumerHeadTipSha, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
+            if (!usingGit) {
+                IFolder gitFolder = repositoryFolder.SubFolder(".git");
+                Assert.IsTrue(gitFolder.Exists());
+                Directory.Move(gitFolder.FullName, gitFolder.FullName.Replace(".git", ".nogit"));
+            }
+
+            IFolder solutionFolder = usingGit ? repositoryFolder.SubFolder("src") : repositoryFolder;
             IPackageReferencesScanner packageReferencesScanner = _container.Resolve<IPackageReferencesScanner>();
             var dependencyErrorsAndInfos = new ErrorsAndInfos();
             IDictionary<string, string> dependencyIdsAndVersions =
-                await packageReferencesScanner.DependencyIdsAndVersionsAsync(_pakledConsumerTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+                await packageReferencesScanner.DependencyIdsAndVersionsAsync(solutionFolder.FullName, true, false, dependencyErrorsAndInfos);
             MakeCsProjAndConfigChange();
             errorsAndInfos = new ErrorsAndInfos();
-            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), errorsAndInfos);
+            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(repositoryFolder, usingGit, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsTrue(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
@@ -90,7 +107,7 @@ public class NugetPackageUpdaterTest {
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(yesNoInconclusive.YesNo);
             IDictionary<string, string> dependencyIdsAndVersionsAfterUpdate =
-                await packageReferencesScanner.DependencyIdsAndVersionsAsync(_pakledConsumerTarget.Folder().SubFolder("src").FullName, true, false, dependencyErrorsAndInfos);
+                await packageReferencesScanner.DependencyIdsAndVersionsAsync(solutionFolder.FullName, true, false, dependencyErrorsAndInfos);
             Assert.HasCount(dependencyIdsAndVersions.Count, dependencyIdsAndVersionsAfterUpdate,
                             $"Project had {dependencyIdsAndVersions.Count} package/-s before update, {dependencyIdsAndVersionsAfterUpdate.Count} afterwards");
             Assert.IsTrue(dependencyIdsAndVersions.All(i => dependencyIdsAndVersionsAfterUpdate.ContainsKey(i.Key)), "Package id/-s have changed");
@@ -103,7 +120,7 @@ public class NugetPackageUpdaterTest {
         ISimpleLogger simpleLogger = _container.Resolve<ISimpleLogger>();
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(CanDetermineThatThereIsNoNugetPackageToUpdateWithCsProjAndConfigChanges)))) {
             var errorsAndInfos = new ErrorsAndInfos();
-            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), errorsAndInfos);
+            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), true, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             if (yesNoInconclusive.YesNo) {
                 return;
@@ -111,7 +128,7 @@ public class NugetPackageUpdaterTest {
 
             MakeCsProjAndConfigChange();
             errorsAndInfos = new ErrorsAndInfos();
-            yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), errorsAndInfos);
+            yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), true, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(yesNoInconclusive.YesNo);
             Assert.IsFalse(yesNoInconclusive.Inconclusive);
@@ -124,7 +141,7 @@ public class NugetPackageUpdaterTest {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(ErrorWhenAskedToUpdateNugetPackagesWithCsChange)))) {
             MakeCsChange();
             var errorsAndInfos = new ErrorsAndInfos();
-            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), errorsAndInfos);
+            YesNoInconclusive yesNoInconclusive = await UpdateNugetPackagesAsync(_pakledConsumerTarget.Folder(), true, errorsAndInfos);
             Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
             Assert.IsFalse(yesNoInconclusive.YesNo);
             Assert.IsTrue(yesNoInconclusive.Inconclusive);
@@ -150,9 +167,10 @@ public class NugetPackageUpdaterTest {
         return packageUpdateOpportunity;
     }
 
-    private async Task<YesNoInconclusive> UpdateNugetPackagesAsync(IFolder targetFolder, IErrorsAndInfos errorsAndInfos) {
+    private static async Task<YesNoInconclusive> UpdateNugetPackagesAsync(IFolder targetFolder, bool usingGit, IErrorsAndInfos errorsAndInfos) {
         INugetPackageUpdater sut = _container.Resolve<INugetPackageUpdater>();
-        YesNoInconclusive yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(targetFolder, "master", errorsAndInfos, CancellationToken.None);
+        YesNoInconclusive yesNoInconclusive = await sut.UpdateNugetPackagesInRepositoryAsync(targetFolder, "master", usingGit,
+            errorsAndInfos, CancellationToken.None);
         Assert.IsFalse(errorsAndInfos.Errors.Any(), errorsAndInfos.ErrorsPlusRelevantInfos());
         return yesNoInconclusive;
     }

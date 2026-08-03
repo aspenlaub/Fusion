@@ -34,9 +34,9 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
     private readonly IList<string> _EndingsThatAllowReset = new List<string> { "csproj", "config" };
 
     public async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
-            string checkedOutBranch, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+            string checkedOutBranch, bool usingGit, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, false, "", checkedOutBranch,
-            false, errorsAndInfos, cancellationToken);
+            false, usingGit, errorsAndInfos, cancellationToken);
     }
 
     public async Task<YesNoInconclusive> UpdateEntityFrameworkNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
@@ -49,24 +49,28 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             string migrationId, string checkedOutBranch, bool useCurrentDotNetTargetFramework,
             IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         return await UpdateNugetPackagesInRepositoryAsync(repositoryFolder, true, migrationId, checkedOutBranch,
-            useCurrentDotNetTargetFramework, errorsAndInfos, cancellationToken);
+            useCurrentDotNetTargetFramework, true, errorsAndInfos, cancellationToken);
     }
 
     protected async Task<YesNoInconclusive> UpdateNugetPackagesInRepositoryAsync(IFolder repositoryFolder,
             bool entityFrameworkOnly, string migrationId, string checkedOutBranch, bool useCurrentDotNetTargetFramework,
-            IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
+            bool usingGit, IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         using (simpleLogger.BeginScope(SimpleLoggingScopeId.Create(nameof(UpdateNugetPackagesInRepositoryAsync)))) {
+            IFolder solutionFolder = usingGit ? repositoryFolder.SubFolder("src") : repositoryFolder;
             IList<string> methodNamesFromStack = methodNamesFromStackFramesExtractor.ExtractMethodNamesFromStackFrames();
             simpleLogger.LogInformationWithCallStack("Determining files with uncommitted changes", methodNamesFromStack);
             var yesNoInconclusive = new YesNoInconclusive();
-            IList<string> files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
-            yesNoInconclusive.Inconclusive = files.Any(f => _EndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
+            if (usingGit) {
+                IList<string> files = gitUtilities.FilesWithUncommittedChanges(repositoryFolder);
+                yesNoInconclusive.Inconclusive = files.Any(f => _EndingsThatAllowReset.All(e => !f.EndsWith("." + e, StringComparison.InvariantCultureIgnoreCase)));
+            }
             yesNoInconclusive.YesNo = false;
             if (yesNoInconclusive.Inconclusive) {
                 errorsAndInfos.Infos.Add("Not all files allow a reset");
                 simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
                 return yesNoInconclusive;
             }
+
             var nugetFeedsSecret = new SecretNugetFeeds();
             NugetFeeds nugetFeeds = await secretRepository.GetAsync(nugetFeedsSecret, errorsAndInfos);
             if (errorsAndInfos.Errors.Any()) {
@@ -76,20 +80,22 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
 
             var nugetFeedIds = nugetFeeds.Select(f => f.Id).ToList();
 
-            simpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
-            gitUtilities.Reset(repositoryFolder, gitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
-            if (errorsAndInfos.AnyErrors()) {
-                errorsAndInfos.Infos.Add("Could not reset");
-                simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
-                return yesNoInconclusive;
+            if (usingGit) {
+                simpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
+                gitUtilities.Reset(repositoryFolder, gitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+                if (errorsAndInfos.AnyErrors()) {
+                    errorsAndInfos.Infos.Add("Could not reset");
+                    simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
+                    return yesNoInconclusive;
+                }
             }
 
             if (useCurrentDotNetTargetFramework) {
-                TargetFrameworkAdjuster.UseCurrentDotNet(repositoryFolder.SubFolder("src"));
+                TargetFrameworkAdjuster.UseCurrentDotNet(solutionFolder);
             }
 
             simpleLogger.LogInformationWithCallStack("Searching for project files", methodNamesFromStack);
-            var projectFileFullNames = Directory.GetFiles(repositoryFolder.SubFolder("src").FullName, "*.csproj", SearchOption.AllDirectories).ToList();
+            var projectFileFullNames = Directory.GetFiles(solutionFolder.FullName, "*.csproj", SearchOption.AllDirectories).ToList();
             if (!projectFileFullNames.Any()) {
                 errorsAndInfos.Infos.Add("No project files found");
                 simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
@@ -118,8 +124,10 @@ public class NugetPackageUpdater(IGitUtilities gitUtilities, IProcessRunner proc
             }
 
             errorsAndInfos.Infos.Add("No project was updated");
-            simpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
-            gitUtilities.Reset(repositoryFolder, gitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+            if (usingGit) {
+                simpleLogger.LogInformationWithCallStack("Resetting repository", methodNamesFromStack);
+                gitUtilities.Reset(repositoryFolder, gitUtilities.HeadTipIdSha(repositoryFolder), errorsAndInfos);
+            }
             simpleLogger.LogInformationWithCallStack($"Returning {yesNoInconclusive}", methodNamesFromStack);
             return yesNoInconclusive;
         }
