@@ -26,8 +26,8 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Test;
 public class NugetPackageUpdaterTest {
     private static readonly TestTargetFolder _pakledConsumerTarget
         = new(nameof(NugetPackageUpdaterTest), "PakledConsumer");
-    private const string _pakledConsumerHeadTipSha = "fc62a8d58d1eda8dc8286a1bcf433c355ac06084"; // Before Pakled update
-    private const string _pakledVersion = "2.4.2280.502"; // Before Pakled update
+    private const string _pakledConsumerHeadTipSha = "ef319b5641a7a6f4dc59e47e8294bfdd2d48e465"; // Before Pakled update
+    private const string _pakledVersion = "2.4.2620.948"; // Before Pakled update
     private static IContainer _container;
 
     [ClassInitialize]
