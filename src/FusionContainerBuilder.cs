@@ -25,6 +25,7 @@ public static class FusionContainerBuilder {
         builder.RegisterType<DotNetEfInstaller>().As<IDotNetEfInstaller>();
         builder.RegisterType<DotNetEfRunner>().As<IDotNetEfRunner>();
         builder.RegisterType<DotNetBuilder>().As<IDotNetBuilder>();
+        builder.RegisterType<TargetFrameworkUpdater>().As<ITargetFrameworkUpdater>();
         return builder;
     }
 
@@ -40,6 +41,7 @@ public static class FusionContainerBuilder {
         services.AddTransient<IDotNetEfInstaller, DotNetEfInstaller>();
         services.AddTransient<IDotNetEfRunner, DotNetEfRunner>();
         services.AddTransient<IDotNetBuilder, DotNetBuilder>();
+        services.AddTransient<ITargetFrameworkUpdater, TargetFrameworkUpdater>();
         return services;
     }
 }

@@ -22,9 +22,9 @@ public class TargetFrameworkAdjuster {
         foreach (string csProjFile in csprojFiles) {
             string contents = File.ReadAllText(csProjFile);
             foreach (string newContents in _fromDotNetFrameworks
-                                           .Where(fromDotNetFramework => contents.Contains(fromDotNetFramework, StringComparison.InvariantCultureIgnoreCase))
-                                           .Select(fromDotNetFramework => contents.Replace(fromDotNetFramework, toDotNetFramework))
-                                           .Where(newContents => contents != newContents)) {
+                   .Where(fromDotNetFramework => contents.Contains(fromDotNetFramework, StringComparison.InvariantCultureIgnoreCase))
+                   .Select(fromDotNetFramework => contents.Replace(fromDotNetFramework, toDotNetFramework))
+                   .Where(newContents => contents != newContents)) {
                 File.WriteAllText(csProjFile, newContents);
             }
         }
