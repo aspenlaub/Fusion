@@ -46,7 +46,22 @@ public class TargetFrameworkUpdater(IGitUtilities gitUtilities, IProjectFactory 
             errorsAndInfos.Errors.Add($"Could not determine installed target frameworks: {ex.Message}");
         }
 
-        return [.. installedTargetFrameworks.OrderByDescending(x => x)];
+        return [.. installedTargetFrameworks.OrderByDescending(ExtractMajorVersionNumber)];
+    }
+
+
+    public static int ExtractMajorVersionNumber(string s) {
+        if (!s.Contains('.')) {
+            return -1;
+        }
+
+        s = s.Substring(0, s.IndexOf('.'));
+        if (!s.StartsWith("net")) {
+            return -1;
+        }
+
+        s = s.Substring(3);
+        return int.TryParse(s, out int majorVersionNumber) ? majorVersionNumber : -1;
     }
 
     private static string TargetFrameworkMoniker(string version) {

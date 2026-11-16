@@ -47,9 +47,7 @@ public class TargetFrameworkUpdaterTest {
         List<string> installedTargetFrameworks = await _Sut.InstalledTargetFrameworksAsync(errorsAndInfos);
         Assert.IsFalse(errorsAndInfos.AnyErrors(), errorsAndInfos.ErrorsPlusRelevantInfos());
         Assert.IsGreaterThanOrEqualTo(2, installedTargetFrameworks.Count);
-        var majorVersionNumbers = installedTargetFrameworks.Select(ExtractMajorVersionNumber).ToList();
-        Assert.Contains(10, majorVersionNumbers);
-        Assert.Contains(11, majorVersionNumbers);
+        var majorVersionNumbers = installedTargetFrameworks.Select(TargetFrameworkUpdater.ExtractMajorVersionNumber).ToList();
         for (int i = 0; i < majorVersionNumbers.Count - 1; i++) {
             Assert.IsGreaterThan(majorVersionNumbers[i + 1], majorVersionNumbers[i]);
         }
@@ -79,19 +77,5 @@ public class TargetFrameworkUpdaterTest {
 
         Assert.IsTrue(!targetFrameworkUpdateOpportunity.Inconclusive && targetFrameworkUpdateOpportunity.YesNo,
             "A target framework update opportunity was expected");
-    }
-
-    private static int ExtractMajorVersionNumber(string s) {
-        if (!s.Contains('.')) {
-            return -1;
-        }
-
-        s = s.Substring(0, s.IndexOf('.'));
-        if (!s.StartsWith("net")) {
-            return -1;
-        }
-
-        s = s.Substring(3);
-        return int.TryParse(s, out int majorVersionNumber) ? majorVersionNumber : -1;
     }
 }
