@@ -72,7 +72,7 @@ public class TargetFrameworkUpdater(IGitUtilities gitUtilities, IProjectFactory 
     public async Task<YesNoInconclusive> IsThereATargetFrameworkUpdateOpportunityAsync(IFolder repositoryFolder,
             IErrorsAndInfos errorsAndInfos) {
         string checkedOutBranch = gitUtilities.CheckedOutBranch(repositoryFolder);
-        if (checkedOutBranch != "master" && checkedOutBranch != "main") {
+        if (checkedOutBranch != "" && checkedOutBranch != "master" && checkedOutBranch != "main") {
             return new YesNoInconclusive { Inconclusive = true };
         }
 
@@ -97,7 +97,12 @@ public class TargetFrameworkUpdater(IGitUtilities gitUtilities, IProjectFactory 
             }
         }
 
-        return new YesNoInconclusive { Inconclusive = false, YesNo = targetFrameworks.IndexOf(targetFramework) > 0 };
+        int tfIndex = targetFrameworks.IndexOf(targetFramework);
+        if (tfIndex > 0) {
+            errorsAndInfos.Infos.Add(string.Format(Properties.Resources.CanUpdateTargetFrameworkFromTo,
+                targetFramework, targetFrameworks[0]));
+        }
+        return new YesNoInconclusive { Inconclusive = false, YesNo = tfIndex > 0 };
     }
 
     private async Task<List<IProject>> GetProjectsInRepository(IFolder repositoryFolder, IErrorsAndInfos errorsAndInfos) {
@@ -139,8 +144,9 @@ public class TargetFrameworkUpdater(IGitUtilities gitUtilities, IProjectFactory 
     public async Task UpdateTargetFrameworkInRepositoryAsync(IFolder repositoryFolder, string targetFramework,
             IErrorsAndInfos errorsAndInfos, CancellationToken cancellationToken) {
         string checkedOutBranch = gitUtilities.CheckedOutBranch(repositoryFolder);
-        if (checkedOutBranch != "master" && checkedOutBranch != "main") {
+        if (checkedOutBranch != "" && checkedOutBranch != "master" && checkedOutBranch != "main") {
             errorsAndInfos.Errors.Add($"Checked out branch is {checkedOutBranch}");
+            return;
         }
 
         List<string> targetFrameworks = await InstalledTargetFrameworksAsync(errorsAndInfos);

@@ -133,6 +133,15 @@ namespace Aspenlaub.Net.GitHub.CSharp.Fusion.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Could update target framework from {0} to {1}.
+        /// </summary>
+        internal static string CanUpdateTargetFrameworkFromTo {
+            get {
+                return ResourceManager.GetString("CanUpdateTargetFrameworkFromTo", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is not the master or main branch that is checked out, nor is it a branch that produces packages.
         /// </summary>
         internal static string CheckedOutBranchIsNotMasterMainOrBranchWithPackages {
